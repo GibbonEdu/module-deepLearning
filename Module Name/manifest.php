@@ -20,42 +20,94 @@ along with this program.  If not, see <http:// www.gnu.org/licenses/>.
 // This file describes the module, including database tables
 
 // Basic variables
-$name        = '';            // The name of the module as it appears to users. Needs to be unique to installation. Also the name of the folder that holds the unit.
-$description = '';            // Short text description
+$name        = 'Deep Learning';            // The name of the module as it appears to users. Needs to be unique to installation. Also the name of the folder that holds the unit.
+$description = 'filler';            // Short text description
 $entryURL    = "index.php";   // The landing page for the unit, used in the main menu
 $type        = "Additional";  // Do not change.
 $category    = '';            // The main menu area to place the module in
-$version     = '';            // Version number
-$author      = '';            // Your name
+$version     = '0.1';            // Version number
+$author      = 'Harry Merrett';            // Your name
 $url         = '';            // Your URL
 
 // Module tables & gibbonSettings entries
-$moduleTables[] = ''; // One array entry for every database table you need to create. Might be nice to preface the table name with the module name, to keep the db neat. 
-$moduleTables[] = ''; // Also can be used to put data into gibbonSettings. Other sql can be run, but resulting data will not be cleaned up on uninstall.
+$moduleTables[] = 'CREATE TABLE `deepLearningEvent` (
+  `deepLearningEventID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
+  `name` varchar(40),
+  `description` text,
+  `backgroundImage` text,
+  `active` boolean,
+  PRIMARY KEY (`deepLearningEventID`)
+)'; // One array entry for every database table you need to create. Might be nice to preface the table name with the module name, to keep the db neat.
+$moduleTables[] = 'CREATE TABLE `deepLearningExperience` (
+  `deepLearningExperienceID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
+  `deepLearningEventID` int(10) unsigned,
+  `deepLearningMajorID1` int(10) unsigned
+  `deepLearningMajorID2` int(10) unsigned
+  `minor1` varchar(30),
+  `minor2` varchar(30),
+  `headerImage` text,
+  `maxEnrollment` int(3),
+  `blurb` text,
+  `timestamp` timestamp,
+  PRIMARY KEY (`deepLearningExperienceID`)
+)'; // Also can be used to put data into gibbonSettings. Other sql can be run, but resulting data will not be cleaned up on uninstall.
+$moduleTables[] = 'CREATE TABLE `deepLearningDate` (
+  `deepLearningEventID` int(10) unsigned,
+  `date` date,
+  `name` varchar(30),
+)';
+$moduleTables[] = 'CREATE TABLE `deepLearningMajor` (
+  `deepLearningMajorID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
+  `name` varchar(30),
+  PRIMARY KEY (`deepLearningMajorID`)
+)';
+$moduleTables[] = 'CREATE TABLE `deepLearningExperienceHost` (
+  `deepLearningExperienceHostID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
+  `gibbonPersonID` int(10) unsigned,
+  `deepLearningExperienceID` int(10) unsigned,
+  PRIMARY KEY (`deepLearningExperienceHostID`)
+)';
+$moduleTables[] = 'CREATE TABLE `deepLearningEnrollment` (
+  `deepLearningEnrollmentID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
+  `deepLearningExperienceID` int(10) unsigned
+  `gibbonPersonID` int(10) unsigned,
+  `enrolDate` date,
+  `choice` enum(`1`,`2`,`3`).
+  `status` enum(`Pending`,`Accepted`)
+  PRIMARY KEY (`deepLearningExperienceID`)
+)';
+$moduleTables[] = 'CREATE TABLE `deepLearningExperienceBlock` (
+  `deepLearningExperienceBlockID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
+  `deepLearningExperienceID` int(10) unsigned zerofill NOT NULL,
+  `title` varchar(100) NOT NULL,
+  `type` varchar(50) NOT NULL,
+  `length` varchar(3) NULL DEFAULT NULL,
+  `contents` text NOT NULL,
+)';
 
 // Add gibbonSettings entries
 $gibbonSetting[] = "";
 
-// Action rows 
+// Action rows
 // One array per action
 $actionRows[] = [
-    'name'                      => '', // The name of the action (appears to user in the right hand side module menu)
+    'name'                      => 'Manage Majors', // The name of the action (appears to user in the right hand side module menu)
     'precedence'                => '0',// If it is a grouped action, the precedence controls which is highest action in group
-    'category'                  => '', // Optional: subgroups for the right hand side module menu
-    'description'               => '', // Text description
+    'category'                  => 'Admin', // Optional: subgroups for the right hand side module menu
+    'description'               => 'Allows the user to manage experience majors.', // Text description
     'URLList'                   => '', // List of pages included in this action
     'entryURL'                  => '', // The landing action for the page.
     'entrySidebar'              => 'Y', // Whether or not there's a sidebar on entry to the action
     'menuShow'                  => 'Y', // Whether or not this action shows up in menus or if it's hidden
     'defaultPermissionAdmin'    => 'Y', // Default permission for built in role Admin
-    'defaultPermissionTeacher'  => 'Y', // Default permission for built in role Teacher
+    'defaultPermissionTeacher'  => 'N', // Default permission for built in role Teacher
     'defaultPermissionStudent'  => 'N', // Default permission for built in role Student
     'defaultPermissionParent'   => 'N', // Default permission for built in role Parent
-    'defaultPermissionSupport'  => 'Y', // Default permission for built in role Support
+    'defaultPermissionSupport'  => 'N', // Default permission for built in role Support
     'categoryPermissionStaff'   => 'Y', // Should this action be available to user roles in the Staff category?
-    'categoryPermissionStudent' => 'Y', // Should this action be available to user roles in the Student category?
-    'categoryPermissionParent'  => 'Y', // Should this action be available to user roles in the Parent category?
-    'categoryPermissionOther'   => 'Y', // Should this action be available to user roles in the Other category?
+    'categoryPermissionStudent' => 'N', // Should this action be available to user roles in the Student category?
+    'categoryPermissionParent'  => 'N', // Should this action be available to user roles in the Parent category?
+    'categoryPermissionOther'   => 'N', // Should this action be available to user roles in the Other category?
 ];
 
 // Hooks
