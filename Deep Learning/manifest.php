@@ -52,9 +52,11 @@ $moduleTables[] = 'CREATE TABLE `deepLearningExperience` (
   PRIMARY KEY (`deepLearningExperienceID`)
 )'; // Also can be used to put data into gibbonSettings. Other sql can be run, but resulting data will not be cleaned up on uninstall.
 $moduleTables[] = 'CREATE TABLE `deepLearningDate` (
+  `deepLearningDateID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
   `deepLearningEventID` int(10) unsigned,
   `date` date,
   `name` varchar(30),
+  PRIMARY KEY (`deepLearningDateID`)
 )';
 $moduleTables[] = 'CREATE TABLE `deepLearningMajor` (
   `deepLearningMajorID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
@@ -72,8 +74,8 @@ $moduleTables[] = 'CREATE TABLE `deepLearningEnrollment` (
   `deepLearningExperienceID` int(10) unsigned
   `gibbonPersonID` int(10) unsigned,
   `enrolDate` date,
-  `choice` enum(`1`,`2`,`3`).
-  `status` enum(`Pending`,`Accepted`)
+  `choice` enum(`1`,`2`,`3`) DEFAULT `3`,
+  `status` enum(`Pending`,`Accepted`) DEFAULT `Pending`,
   PRIMARY KEY (`deepLearningExperienceID`)
 )';
 $moduleTables[] = 'CREATE TABLE `deepLearningExperienceBlock` (
