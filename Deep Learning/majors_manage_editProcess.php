@@ -22,13 +22,16 @@ use Gibbon\Module\DeepLearning\Domain\MajorGateway;
 
 require_once '../../gibbon.php';
 
-$URL = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/majors_manage_add.php';
+$deepLearningMajorID = $_POST['deepLearningMajorID'] ?? '';
 
-if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/majors_manage_add.php') == false) {
+$URL = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/majors_manage_edit.php&deepLearningMajorID='.$deepLearningMajorID;
+
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/majors_manage_edit.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
     exit;
 } else {
+
     // Proceed!
     $majorGateway = $container->get(MajorGateway::class);
 
@@ -37,25 +40,32 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/majors_manag
     ];
 
     // Validate the required values are present
-    if (empty($data['name'])) {
+    if (empty($deepLearningMajorID) || empty($data['name']) ) {
         $URL .= '&return=error1';
         header("Location: {$URL}");
         exit;
     }
 
+    // Validate the database relationships exist
+    if (!$majorGateway->exists($deepLearningMajorID)) {
+        $URL .= '&return=error2';
+        header("Location: {$URL}");
+        exit;
+    }
+
     // Validate that this record is unique
-    if (!$majorGateway->unique($data, ['name'])) {
+    if (!$majorGateway->unique($data, ['name'], $deepLearningMajorID)) {
         $URL .= '&return=error7';
         header("Location: {$URL}");
         exit;
     }
 
-    // Create the record
-    $deepLearningMajorID = $majorGateway->insert($data);
+    // Update the record
+    $updated = $majorGateway->update($deepLearningMajorID, $data);
 
-    $URL .= !$deepLearningMajorID
+    $URL .= !$updated
         ? "&return=error2"
-        : "&return=success0&editID=$deepLearningMajorID";
+        : "&return=success0";
 
     header("Location: {$URL}");
 }

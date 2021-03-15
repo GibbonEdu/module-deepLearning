@@ -17,45 +17,38 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Services\Format;
 use Gibbon\Module\DeepLearning\Domain\MajorGateway;
 
 require_once '../../gibbon.php';
 
-$URL = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/majors_manage_add.php';
+$deepLearningMajorID = $_POST['deepLearningMajorID'] ?? '';
 
-if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/majors_manage_add.php') == false) {
+$URL = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/majors_manage.php';
+
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/majors_manage_delete.php') == false) {
     $URL .= '&return=error0';
+    header("Location: {$URL}");
+    exit;
+} elseif (empty($deepLearningMajorID)) {
+    $URL .= '&return=error1';
     header("Location: {$URL}");
     exit;
 } else {
     // Proceed!
     $majorGateway = $container->get(MajorGateway::class);
+    $values = $majorGateway->getByID($deepLearningMajorID);
 
-    $data = [
-        'name'          => $_POST['name'] ?? '',
-    ];
-
-    // Validate the required values are present
-    if (empty($data['name'])) {
-        $URL .= '&return=error1';
+    if (empty($values)) {
+        $URL .= '&return=error2';
         header("Location: {$URL}");
         exit;
     }
 
-    // Validate that this record is unique
-    if (!$majorGateway->unique($data, ['name'])) {
-        $URL .= '&return=error7';
-        header("Location: {$URL}");
-        exit;
-    }
+    $deleted = $majorGateway->delete($deepLearningMajorID);
 
-    // Create the record
-    $deepLearningMajorID = $majorGateway->insert($data);
-
-    $URL .= !$deepLearningMajorID
-        ? "&return=error2"
-        : "&return=success0&editID=$deepLearningMajorID";
+    $URL .= !$deleted
+        ? '&return=error2'
+        : '&return=success0';
 
     header("Location: {$URL}");
 }
