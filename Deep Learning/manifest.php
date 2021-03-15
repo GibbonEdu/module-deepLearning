@@ -24,25 +24,25 @@ $name        = 'Deep Learning';            // The name of the module as it appea
 $description = 'filler';            // Short text description
 $entryURL    = "index.php";   // The landing page for the unit, used in the main menu
 $type        = "Additional";  // Do not change.
-$category    = '';            // The main menu area to place the module in
+$category    = 'Learn';            // The main menu area to place the module in
 $version     = '0.1';            // Version number
 $author      = 'Harry Merrett';            // Your name
 $url         = '';            // Your URL
 
 // Module tables & gibbonSettings entries
-$moduleTables[] = 'CREATE TABLE `deepLearningEvent` (
+$moduleTables[] = "CREATE TABLE `deepLearningEvent` (
   `deepLearningEventID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
   `name` varchar(40),
   `description` text,
   `backgroundImage` text,
   `active` boolean,
   PRIMARY KEY (`deepLearningEventID`)
-)'; // One array entry for every database table you need to create. Might be nice to preface the table name with the module name, to keep the db neat.
-$moduleTables[] = 'CREATE TABLE `deepLearningExperience` (
+)"; // One array entry for every database table you need to create. Might be nice to preface the table name with the module name, to keep the db neat.
+$moduleTables[] = "CREATE TABLE `deepLearningExperience` (
   `deepLearningExperienceID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
   `deepLearningEventID` int(10) unsigned,
-  `deepLearningMajorID1` int(10) unsigned
-  `deepLearningMajorID2` int(10) unsigned
+  `deepLearningMajorID1` int(10) unsigned,
+  `deepLearningMajorID2` int(10) unsigned,
   `minor1` varchar(30),
   `minor2` varchar(30),
   `headerImage` text,
@@ -50,45 +50,46 @@ $moduleTables[] = 'CREATE TABLE `deepLearningExperience` (
   `blurb` text,
   `timestamp` timestamp,
   PRIMARY KEY (`deepLearningExperienceID`)
-)'; // Also can be used to put data into gibbonSettings. Other sql can be run, but resulting data will not be cleaned up on uninstall.
-$moduleTables[] = 'CREATE TABLE `deepLearningDate` (
+)"; // Also can be used to put data into gibbonSettings. Other sql can be run, but resulting data will not be cleaned up on uninstall.
+$moduleTables[] = "CREATE TABLE `deepLearningDate` (
   `deepLearningDateID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
   `deepLearningEventID` int(10) unsigned,
   `date` date,
   `name` varchar(30),
   PRIMARY KEY (`deepLearningDateID`)
-)';
-$moduleTables[] = 'CREATE TABLE `deepLearningMajor` (
+)";
+$moduleTables[] = "CREATE TABLE `deepLearningMajor` (
   `deepLearningMajorID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
   `name` varchar(30),
   PRIMARY KEY (`deepLearningMajorID`)
-)';
-$moduleTables[] = 'CREATE TABLE `deepLearningExperienceHost` (
+)";
+$moduleTables[] = "CREATE TABLE `deepLearningExperienceHost` (
   `deepLearningExperienceHostID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
   `gibbonPersonID` int(10) unsigned,
   `deepLearningExperienceID` int(10) unsigned,
   PRIMARY KEY (`deepLearningExperienceHostID`)
-)';
-$moduleTables[] = 'CREATE TABLE `deepLearningEnrollment` (
-  `deepLearningEnrollmentID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
-  `deepLearningExperienceID` int(10) unsigned
-  `gibbonPersonID` int(10) unsigned,
-  `enrolDate` date,
-  `choice` enum(`1`,`2`,`3`) DEFAULT `3`,
-  `status` enum(`Pending`,`Accepted`) DEFAULT `Pending`,
-  PRIMARY KEY (`deepLearningExperienceID`)
-)';
-$moduleTables[] = 'CREATE TABLE `deepLearningExperienceBlock` (
+)";
+$moduleTables[] = "CREATE TABLE `deepLearningEnrollment` (
+  `deepLearningEnrollemtnID` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `deepLearningExperienceID` int(10) unsigned DEFAULT NULL,
+  `gibbonPersonID` int(10) unsigned zerofill DEFAULT NULL,
+  `enrolDate` date DEFAULT NULL,
+  `choice` enum('1','2','3') NOT NULL DEFAULT '1',
+  `status` enum('Pending','Accepted') NOT NULL DEFAULT 'Pending',
+  PRIMARY KEY (`deepLearningEnrollemtnID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+$moduleTables[] = "CREATE TABLE `deepLearningExperienceBlock` (
   `deepLearningExperienceBlockID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
   `deepLearningExperienceID` int(10) unsigned zerofill NOT NULL,
   `title` varchar(100) NOT NULL,
   `type` varchar(50) NOT NULL,
   `length` varchar(3) NULL DEFAULT NULL,
   `contents` text NOT NULL,
-)';
+  PRIMARY KEY (`deepLearningExperienceBlockID`)
+)";
 
 // Add gibbonSettings entries
-$gibbonSetting[] = "";
+// $gibbonSetting[] = "";
 
 // Action rows
 // One array per action
@@ -113,4 +114,4 @@ $actionRows[] = [
 ];
 
 // Hooks
-$hooks[] = ''; // Serialised array to create hook and set options. See Hooks documentation online.
+// $hooks[] = ''; // Serialised array to create hook and set options. See Hooks documentation online.
