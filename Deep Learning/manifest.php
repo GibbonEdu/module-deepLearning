@@ -21,11 +21,11 @@ along with this program.  If not, see <http:// www.gnu.org/licenses/>.
 
 // Basic variables
 $name        = 'Deep Learning';            // The name of the module as it appears to users. Needs to be unique to installation. Also the name of the folder that holds the unit.
-$description = 'filler';            // Short text description
+$description = 'Allows schools to implement ICHK\'s Deep Learning curriculum, in which students choose learning experiences within an event. ';            // Short text description
 $entryURL    = "index.php";   // The landing page for the unit, used in the main menu
 $type        = "Additional";  // Do not change.
 $category    = 'Learn';            // The main menu area to place the module in
-$version     = '0.1';            // Version number
+$version     = '0.1.00';            // Version number
 $author      = 'Harry Merrett';            // Your name
 $url         = '';            // Your URL
 
@@ -41,7 +41,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningEvent` (
 $moduleTables[] = "CREATE TABLE `deepLearningExperience` (
   `deepLearningExperienceID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
   `deepLearningEventID` INT(10) UNSIGNED ZEROFILL NOT NULL,
-  `deepLearningMajorID1` INT(10) UNSIGNED ZEROFILL NULL,
+  `deepLearningMajorID1` INT(10) UNSIGNED ZEROFILL NOT NULL,
   `deepLearningMajorID2` INT(10) UNSIGNED ZEROFILL NULL,
   `minor1` varchar(30),
   `minor2` varchar(30),
