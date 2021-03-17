@@ -31,7 +31,7 @@ $url         = '';            // Your URL
 
 // Module tables & gibbonSettings entries
 $moduleTables[] = "CREATE TABLE `deepLearningEvent` (
-  `deepLearningEventID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
+  `deepLearningEventID` int(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(40) NOT NULL,
   `description` TEXT NULL,
   `backgroundImage` text,
@@ -52,35 +52,35 @@ $moduleTables[] = "CREATE TABLE `deepLearningExperience` (
   PRIMARY KEY (`deepLearningExperienceID`)
 )"; // Also can be used to put data into gibbonSettings. Other sql can be run, but resulting data will not be cleaned up on uninstall.
 $moduleTables[] = "CREATE TABLE `deepLearningDate` (
-  `deepLearningDateID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
-  `deepLearningEventID` int(10) unsigned,
+  `deepLearningDateID` int(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+  `deepLearningEventID` int(10) UNSIGNED ZEROFILL ,
   `date` date,
   `name` varchar(30),
   PRIMARY KEY (`deepLearningDateID`)
 )";
 $moduleTables[] = "CREATE TABLE `deepLearningMajor` (
-  `deepLearningMajorID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
+  `deepLearningMajorID` int(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
   `name` varchar(30),
   PRIMARY KEY (`deepLearningMajorID`)
 )";
 $moduleTables[] = "CREATE TABLE `deepLearningExperienceHost` (
-  `deepLearningExperienceHostID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
-  `gibbonPersonID` int(10) unsigned,
-  `deepLearningExperienceID` int(10) unsigned,
+  `deepLearningExperienceHostID` int(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+  `gibbonPersonID` int(10) UNSIGNED ZEROFILL,
+  `deepLearningExperienceID` int(10) UNSIGNED ZEROFILL,
   PRIMARY KEY (`deepLearningExperienceHostID`)
 )";
 $moduleTables[] = "CREATE TABLE `deepLearningEnrollment` (
-  `deepLearningEnrollemtnID` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `deepLearningExperienceID` int(10) unsigned DEFAULT NULL,
-  `gibbonPersonID` int(10) unsigned zerofill DEFAULT NULL,
+  `deepLearningEnrollemtnID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `deepLearningExperienceID` int(10) UNSIGNED DEFAULT NULL,
+  `gibbonPersonID` int(10) UNSIGNED ZEROFILL DEFAULT NULL,
   `enrolDate` date DEFAULT NULL,
   `choice` enum('1','2','3') NOT NULL DEFAULT '1',
   `status` enum('Pending','Accepted') NOT NULL DEFAULT 'Pending',
   PRIMARY KEY (`deepLearningEnrollemtnID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 $moduleTables[] = "CREATE TABLE `deepLearningExperienceBlock` (
-  `deepLearningExperienceBlockID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
-  `deepLearningExperienceID` int(10) unsigned zerofill NOT NULL,
+  `deepLearningExperienceBlockID` int(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+  `deepLearningExperienceID` int(10) UNSIGNED ZEROFILL NOT NULL,
   `title` varchar(100) NOT NULL,
   `type` varchar(50) NOT NULL,
   `length` varchar(3) NULL DEFAULT NULL,
