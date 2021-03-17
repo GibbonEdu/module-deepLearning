@@ -32,8 +32,8 @@ $url         = '';            // Your URL
 // Module tables & gibbonSettings entries
 $moduleTables[] = "CREATE TABLE `deepLearningEvent` (
   `deepLearningEventID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
-  `name` varchar(40),
-  `description` text,
+  `name` VARCHAR(40) NOT NULL,
+  `description` TEXT NULL,
   `backgroundImage` text,
   `active` boolean,
   PRIMARY KEY (`deepLearningEventID`)
