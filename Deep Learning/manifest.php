@@ -40,9 +40,9 @@ $moduleTables[] = "CREATE TABLE `deepLearningEvent` (
 )"; // One array entry for every database table you need to create. Might be nice to preface the table name with the module name, to keep the db neat.
 $moduleTables[] = "CREATE TABLE `deepLearningExperience` (
   `deepLearningExperienceID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
-  `deepLearningEventID` int(10) unsigned,
-  `deepLearningMajorID1` int(10) unsigned,
-  `deepLearningMajorID2` int(10) unsigned,
+  `deepLearningEventID` INT(10) UNSIGNED ZEROFILL NOT NULL,
+  `deepLearningMajorID1` INT(10) UNSIGNED ZEROFILL NULL,
+  `deepLearningMajorID2` INT(10) UNSIGNED ZEROFILL NULL,
   `minor1` varchar(30),
   `minor2` varchar(30),
   `headerImage` text,
