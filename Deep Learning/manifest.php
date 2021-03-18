@@ -34,8 +34,8 @@ $moduleTables[] = "CREATE TABLE `deepLearningEvent` (
   `deepLearningEventID` int(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(40) NOT NULL,
   `description` TEXT NULL,
-  `backgroundImage` text,
-  `active` boolean,
+  `backgroundImage` TEXT NULL,
+  `active` BOOLEAN NOT NULL,
   PRIMARY KEY (`deepLearningEventID`)
 )"; // One array entry for every database table you need to create. Might be nice to preface the table name with the module name, to keep the db neat.
 $moduleTables[] = "CREATE TABLE `deepLearningExperience` (
@@ -43,30 +43,30 @@ $moduleTables[] = "CREATE TABLE `deepLearningExperience` (
   `deepLearningEventID` INT(10) UNSIGNED ZEROFILL NOT NULL,
   `deepLearningMajorID1` INT(10) UNSIGNED ZEROFILL NOT NULL,
   `deepLearningMajorID2` INT(10) UNSIGNED ZEROFILL NULL,
-  `minor1` varchar(30),
-  `minor2` varchar(30),
-  `headerImage` text,
-  `maxEnrollment` int(3),
-  `blurb` text,
-  `timestamp` timestamp,
+  `minor1` varchar(30) NULL,
+  `minor2` varchar(30) NULL,
+  `headerImage` TEXT NULL,
+  `maxEnrollment` INT(3) NOT NULL,
+  `blurb` TEXT NOT NULL,
+  `timestamp` TIMESTAMP NOT NULL,
   PRIMARY KEY (`deepLearningExperienceID`)
 )"; // Also can be used to put data into gibbonSettings. Other sql can be run, but resulting data will not be cleaned up on uninstall.
 $moduleTables[] = "CREATE TABLE `deepLearningDate` (
-  `deepLearningDateID` int(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
-  `deepLearningEventID` int(10) UNSIGNED ZEROFILL ,
-  `date` date,
-  `name` varchar(30),
+  `deepLearningDateID` INT(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+  `deepLearningEventID` INT(10) UNSIGNED ZEROFILL NOT NULL,
+  `date` DATE NOT NULL,
+  `name` VARCHAR(30) NOT NULL,
   PRIMARY KEY (`deepLearningDateID`)
 )";
 $moduleTables[] = "CREATE TABLE `deepLearningMajor` (
   `deepLearningMajorID` int(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
-  `name` varchar(30),
+  `name` VARCHAR(30) NOT NULL,
   PRIMARY KEY (`deepLearningMajorID`)
 )";
 $moduleTables[] = "CREATE TABLE `deepLearningExperienceHost` (
   `deepLearningExperienceHostID` int(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
-  `gibbonPersonID` int(10) UNSIGNED ZEROFILL,
-  `deepLearningExperienceID` int(10) UNSIGNED ZEROFILL,
+  `gibbonPersonID` int(10) UNSIGNED ZEROFILL NOT NULL,
+  `deepLearningExperienceID` int(10) UNSIGNED ZEROFILL NOT NULL,
   PRIMARY KEY (`deepLearningExperienceHostID`)
 )";
 $moduleTables[] = "CREATE TABLE `deepLearningEnrollment` (
