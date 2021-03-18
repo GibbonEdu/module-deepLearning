@@ -1,0 +1,7 @@
+CHANGELOG
+=========
+
+v0.1.00
+-------
+Initial version, sets up database tables
+Manage Majors action
