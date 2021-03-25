@@ -25,7 +25,7 @@ $description = 'Allows schools to implement ICHK\'s Deep Learning curriculum, in
 $entryURL    = "index.php";   // The landing page for the unit, used in the main menu
 $type        = "Additional";  // Do not change.
 $category    = 'Learn';            // The main menu area to place the module in
-$version     = '0.1.00';            // Version number
+$version     = '0.2.00';            // Version number
 $author      = 'Harry Merrett';            // Your name
 $url         = '';            // Your URL
 
@@ -35,7 +35,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningEvent` (
   `name` VARCHAR(40) NOT NULL,
   `description` TEXT NULL,
   `backgroundImage` TEXT NULL,
-  `active` BOOLEAN NOT NULL,
+  `active` enum('Y','N') DEFAULT 'Y',
   PRIMARY KEY (`deepLearningEventID`)
 )"; // One array entry for every database table you need to create. Might be nice to preface the table name with the module name, to keep the db neat.
 $moduleTables[] = "CREATE TABLE `deepLearningExperience` (
@@ -118,8 +118,8 @@ $actionRows[] = [
     'precedence'                => '0',// If it is a grouped action, the precedence controls which is highest action in group
     'category'                  => 'Admin', // Optional: subgroups for the right hand side module menu
     'description'               => 'Allows the user to manage Deep Learning events.', // Text description
-    'URLList'                   => '', // List of pages included in this action
-    'entryURL'                  => '', // The landing action for the page.
+    'URLList'                   => 'events_manage.php,events_manage_add.php,events_manage_edit.php,events_manage_delete.php', // List of pages included in this action
+    'entryURL'                  => 'events_manage.php', // The landing action for the page.
     'entrySidebar'              => 'Y', // Whether or not there's a sidebar on entry to the action
     'menuShow'                  => 'Y', // Whether or not this action shows up in menus or if it's hidden
     'defaultPermissionAdmin'    => 'Y', // Default permission for built in role Admin
