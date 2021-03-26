@@ -66,7 +66,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
 
     $blockTemplate = $form->getFactory()->createTable()->setClass('blank');
     $row = $blockTemplate->addRow();
-        $row->addTextField('name')->setClass('w-2/3 pr-10 title')->required()->placeholder(__('Name'));
+        $row->addTextField('eventName')->setClass('w-2/3 pr-10 title')->required()->placeholder(__('Name'));
     $row = $blockTemplate->addRow();
         $row->addDate('eventDate')->setClass('w-48 mt-1')->required()->placeholder(__('Date'));
 
@@ -84,3 +84,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
 
     echo $form->getOutput();
 }
+?>
+
+<script>
+$(document).on('click', '.addBlock', function () {
+    $('input[id^="eventDate"]').removeClass('hasDatepicker').datepicker({onSelect: function(){$(this).blur();}, onClose: function(){$(this).change();} });
+});
+</script>
+
