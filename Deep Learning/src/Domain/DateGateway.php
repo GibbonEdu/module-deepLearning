@@ -46,10 +46,15 @@ class DateGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
-    public function selectDates()
+    public function selectDates($deepLearningEventID)
     {
-        $sql = "SELECT deepLearningDateID as value, deepLearningEventID, date, name FROM deepLearningDate ORDER BY name";
+        $data = ['deepLearningEventID' => $deepLearningEventID];
+        $sql = "SELECT
+          deepLearningDateID, deepLearningEventID, date, name
+        FROM deepLearningDate
+        WHERE deepLearningEventID=:deepLearningEventID
+        ORDER BY name";
 
-        return $this->db()->select($sql);
+        return $this->db()->select($sql, $data);
     }
 }

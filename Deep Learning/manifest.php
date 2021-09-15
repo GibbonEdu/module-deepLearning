@@ -41,6 +41,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningEvent` (
 $moduleTables[] = "CREATE TABLE `deepLearningExperience` (
   `deepLearningExperienceID` int(10) unsigned zerofill NOT NULL AUTO_INCREMENT,
   `deepLearningEventID` INT(10) UNSIGNED ZEROFILL NOT NULL,
+  `name` VARCHAR(40) NOT NULL,
   `deepLearningMajorID1` INT(10) UNSIGNED ZEROFILL NOT NULL,
   `deepLearningMajorID2` INT(10) UNSIGNED ZEROFILL NULL,
   `minor1` varchar(30) NULL,

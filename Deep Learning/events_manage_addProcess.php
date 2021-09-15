@@ -73,10 +73,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     // Create the record
     $deepLearningEventID = $eventGateway->insert($data);
 
+
+    $data = [];
+    $data['deepLearningEventID'] = $deepLearningEventID;
     $dates = $_POST['dates'] ?? [];
     foreach ($dates as $date) {
-      $date['deepLearningEventID'] = $deepLearningEventID;
-      $dateGateway->insert($date);
+      $data['name'] = $date['name'];
+      $data['date'] = Format::dateConvert($date['date']);
+      $dateGateway->insert($data);
     }
 
     $URL .= !$deepLearningEventID

@@ -4,6 +4,7 @@ v0.2.00
 -------
 More functionality for Manage Events
 Changed data type for active status in event table to ENUM
+Add, Edit and Delete functionality added to Manage Events
 
 v0.1.01
 -------
