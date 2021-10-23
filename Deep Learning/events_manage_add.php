@@ -29,10 +29,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         ->add(__m('Manage Events'), 'events_manage.php')
         ->add(__m('Add Event'));
 
-    $editLink = '';
-    if (isset($_GET['editID'])) {
-        $editLink = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Deep Learning/events_manage_edit.php&deepLearningEventID='.$_GET['editID'];
-    }
+    $editLink = isset($_GET['editID']) ? $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/events_manage_edit.php&deepLearningEventID='.$_GET['editID'] : '';
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], $editLink, null);
     }
