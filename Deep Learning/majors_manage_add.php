@@ -29,10 +29,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/majors_manag
         ->add(__m('Manage Majors'), 'majors_manage.php')
         ->add(__m('Add Major'));
 
-    $editLink = '';
-    if (isset($_GET['editID'])) {
-        $editLink = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Deep Learning/majors_manage_edit.php&deepLearningMajorID='.$_GET['editID'];
-    }
+    $editLink = isset($_GET['editID']) ? $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/majors_manage_edit.php&deepLearningMajorID='.$_GET['editID'] : '';
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], $editLink, null);
     }
