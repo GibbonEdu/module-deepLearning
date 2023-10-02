@@ -19,25 +19,50 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Services\Format;
+use Gibbon\Module\DeepLearning\Domain\EventGateway;
+use Gibbon\Module\DeepLearning\Domain\DateGateway;
 
-if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manage_add.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manage_edit.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
     // Proceed!
+    $deepLearningEventID = $_GET['deepLearningEventID'] ?? '';
+
     $page->breadcrumbs
         ->add(__m('Manage Events'), 'events_manage.php')
-        ->add(__m('Add Event'));
+        ->add(__m('Edit Event'));
 
-    $editLink = isset($_GET['editID']) ? $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/events_manage_edit.php&deepLearningEventID='.$_GET['editID'] : '';
+    if (isset($_GET['return'])) {
+        returnProcess($guid, $_GET['return'], null, null);
+    }
+
+    if (empty($deepLearningEventID)) {
+        $page->addError(__('You have not specified one or more required parameters.'));
+        return;
+    }
+
+    $values = $container->get(EventGateway::class)->getByID($deepLearningEventID);
+
+    if (empty($values)) {
+        $page->addError(__('The specified record cannot be found.'));
+        return;
+    }
+
+    $editLink = '';
+    if (isset($_GET['editID'])) {
+        $editLink = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Deep Learning/events_manage_edit.php&deepLearningEventID='.$_GET['editID'];
+    }
     if (isset($_GET['return'])) {
         returnProcess($guid, $_GET['return'], $editLink, null);
     }
 
-    $form = Form::create('event', $gibbon->session->get('absoluteURL').'/modules/'.$gibbon->session->get('module').'/events_manage_addProcess.php');
+    $form = Form::create('event', $session->get('absoluteURL').'/modules/'.$session->get('module').'/events_manage_editProcess.php');
     $form->setFactory(DatabaseFormFactory::create($pdo));
 
-    $form->addHiddenValue('address', $gibbon->session->get('address'));
+    $form->addHiddenValue('address', $session->get('address'));
+    $form->addHiddenValue('deepLearningEventID', $deepLearningEventID);
 
     $row = $form->addRow();
         $row->addLabel('name', __('Name'))->description(__('Must be unique.'));
@@ -65,19 +90,32 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     $row = $blockTemplate->addRow();
         $row->addTextField('name')->setClass('w-2/3 pr-10 title')->required()->placeholder(__('Name'));
     $row = $blockTemplate->addRow();
-        $row->addDate('date')->setClass('w-48 mt-1')->required()->placeholder(__('Date'));
+        $row->addDate('date')->setClass('w-48 mt-1')->required()->placeholder(__('Date'))
+          ->append("<input type='hidden' id='deepLearningDateID' name='deepLearningDateID' value=''/>");
 
     // Custom Blocks
     $row = $form->addRow();
-    $customBlocks = $row->addCustomBlocks('dates', $gibbon->session)
+    $customBlocks = $row->addCustomBlocks('dates', $session)
         ->fromTemplate($blockTemplate)
         ->settings(array('inputNameStrategy' => 'object', 'addOnEvent' => 'click'))
         ->placeholder(__('Event dates will be listed here...'))
         ->addToolInput($addBlockButton);
 
+    $dataBlocks = $container->get(DateGateway::class)->selectDates($deepLearningEventID);
+    while ($rowBlocks = $dataBlocks->fetch()) {
+      $smart = array(
+        'name' => $rowBlocks['name'],
+        'date' => Format::date($rowBlocks['date']),
+        'deepLearningDateID' => $rowBlocks['deepLearningDateID']
+      );
+      $customBlocks->addBlock($rowBlocks['deepLearningDateID'], $smart);
+    }
+
     $row = $form->addRow();
         $row->addFooter();
         $row->addSubmit();
+
+    $form->loadAllValuesFrom($values);
 
     echo $form->getOutput();
 }
