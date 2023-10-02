@@ -19,40 +19,35 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
-use Gibbon\Module\DeepLearning\Domain\MajorGateway;
+use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 
-if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/majors_manage_edit.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_manage_edit.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
     // Proceed!
-    $deepLearningMajorID = $_GET['deepLearningMajorID'] ?? '';
+    $deepLearningExperienceID = $_GET['deepLearningExperienceID'] ?? '';
 
     $page->breadcrumbs
-        ->add(__m('Manage Majors'), 'majors_manage.php')
-        ->add(__m('Edit Major'));
+        ->add(__m('Manage Experiences'), 'experience_manage.php')
+        ->add(__m('Edit Experience'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
-    if (empty($deepLearningMajorID)) {
+    if (empty($deepLearningExperienceID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
         return;
     }
 
-    $values = $container->get(MajorGateway::class)->getByID($deepLearningMajorID);
+    $values = $container->get(ExperienceGateway::class)->getByID($deepLearningExperienceID);
 
     if (empty($values)) {
         $page->addError(__('The specified record cannot be found.'));
         return;
     }
 
-    $form = Form::create('major', $gibbon->session->get('absoluteURL').'/modules/'.$gibbon->session->get('module').'/majors_manage_editProcess.php');
-    $form->setFactory(DatabaseFormFactory::create($pdo));
+    $form = Form::create('experience', $session->get('absoluteURL').'/modules/'.$session->get('module').'/experience_manage_editProcess.php');
 
-    $form->addHiddenValue('address', $gibbon->session->get('address'));
-    $form->addHiddenValue('deepLearningMajorID', $deepLearningMajorID);
+    $form->addHiddenValue('address', $session->get('address'));
+    $form->addHiddenValue('deepLearningExperienceID', $deepLearningExperienceID);
 
     $row = $form->addRow();
         $row->addLabel('name', __('Name'))->description(__('Must be unique.'));

@@ -29,10 +29,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     $page->breadcrumbs
         ->add(__m('Manage Events'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     // Query events
     $eventGateway = $container->get(EventGateway::class);
 

@@ -43,12 +43,12 @@ class EventGateway extends QueryableGateway
             ->from($this->getTableName())
             ->cols(['deepLearningEvent.deepLearningEventID',
             'deepLearningEvent.name',
-            'description',
-            'backgroundImage',
-            'active',
-            "GROUP_CONCAT(DISTINCT date) AS eventDates",
+            'deepLearningEvent.description',
+            'deepLearningEvent.backgroundImage',
+            'deepLearningEvent.active',
+            "GROUP_CONCAT(DISTINCT eventDate) AS eventDates",
             "GROUP_CONCAT(DISTINCT deepLearningExperience.name) AS experienceNames"])
-            ->leftJoin('deepLearningDate', 'deepLearningEvent.deepLearningEventID=deepLearningDate.deepLearningEventID')
+            ->leftJoin('deepLearningEventDate', 'deepLearningEvent.deepLearningEventID=deepLearningEventDate.deepLearningEventID')
             ->leftJoin('deepLearningExperience', 'deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID')
             ->groupBy(['deepLearningEventID','name']);
 

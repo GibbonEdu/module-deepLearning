@@ -21,7 +21,7 @@ use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Services\Format;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
-use Gibbon\Module\DeepLearning\Domain\DateGateway;
+use Gibbon\Module\DeepLearning\Domain\EventDateGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manage_edit.php') == false) {
     // Access denied
@@ -34,10 +34,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         ->add(__m('Manage Events'), 'events_manage.php')
         ->add(__m('Edit Event'));
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
-
     if (empty($deepLearningEventID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
         return;
@@ -48,14 +44,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     if (empty($values)) {
         $page->addError(__('The specified record cannot be found.'));
         return;
-    }
-
-    $editLink = '';
-    if (isset($_GET['editID'])) {
-        $editLink = $_SESSION[$guid]['absoluteURL'].'/index.php?q=/modules/Deep Learning/events_manage_edit.php&deepLearningEventID='.$_GET['editID'];
-    }
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], $editLink, null);
     }
 
     $form = Form::create('event', $session->get('absoluteURL').'/modules/'.$session->get('module').'/events_manage_editProcess.php');
@@ -91,7 +79,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         $row->addTextField('name')->setClass('w-2/3 pr-10 title')->required()->placeholder(__('Name'));
     $row = $blockTemplate->addRow();
         $row->addDate('date')->setClass('w-48 mt-1')->required()->placeholder(__('Date'))
-          ->append("<input type='hidden' id='deepLearningDateID' name='deepLearningDateID' value=''/>");
+          ->append("<input type='hidden' id='deepLearningEventDateID' name='deepLearningEventDateID' value=''/>");
 
     // Custom Blocks
     $row = $form->addRow();
@@ -101,14 +89,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         ->placeholder(__('Event dates will be listed here...'))
         ->addToolInput($addBlockButton);
 
-    $dataBlocks = $container->get(DateGateway::class)->selectDates($deepLearningEventID);
+    $dataBlocks = $container->get(EventDateGateway::class)->selectDates($deepLearningEventID);
     while ($rowBlocks = $dataBlocks->fetch()) {
       $smart = array(
         'name' => $rowBlocks['name'],
         'date' => Format::date($rowBlocks['date']),
-        'deepLearningDateID' => $rowBlocks['deepLearningDateID']
+        'deepLearningEventDateID' => $rowBlocks['deepLearningEventDateID']
       );
-      $customBlocks->addBlock($rowBlocks['deepLearningDateID'], $smart);
+      $customBlocks->addBlock($rowBlocks['deepLearningEventDateID'], $smart);
     }
 
     $row = $form->addRow();

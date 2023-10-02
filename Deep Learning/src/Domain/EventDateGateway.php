@@ -23,33 +23,38 @@ use Gibbon\Domain\Traits\TableAware;
 use Gibbon\Domain\QueryCriteria;
 use Gibbon\Domain\QueryableGateway;
 
-class MajorGateway extends QueryableGateway
+class EventDateGateway extends QueryableGateway
 {
     use TableAware;
 
-    private static $tableName = 'deepLearningMajor';
-    private static $primaryKey = 'deepLearningMajorID';
+    private static $tableName = 'deepLearningEventDate';
+    private static $primaryKey = 'deepLearningEventDateID';
     private static $searchableColumns = [''];
 
     /**
      * @param QueryCriteria $criteria
      * @return DataSet
      */
-    public function queryMajors(QueryCriteria $criteria)
+    public function queryDates(QueryCriteria $criteria)
     {
         $query = $this
             ->newQuery()
             ->distinct()
             ->from($this->getTableName())
-            ->cols(['deepLearningMajor.deepLearningMajorID', 'name']);
+            ->cols(['deepLearningEventDate.deepLearningEventDateID', 'deepLearningEventDate.deepLearningEventDateID', 'date', 'name']);
 
         return $this->runQuery($query, $criteria);
     }
 
-    public function selectMajors()
+    public function selectDates($deepLearningEventID)
     {
-        $sql = "SELECT deepLearningMajorID as value, name FROM deepLearningMajor ORDER BY name";
+        $data = ['deepLearningEventID' => $deepLearningEventID];
+        $sql = "SELECT
+          deepLearningEventDateID, deepLearningEventID, date, name
+        FROM deepLearningEventDate
+        WHERE deepLearningEventID=:deepLearningEventID
+        ORDER BY name";
 
-        return $this->db()->select($sql);
+        return $this->db()->select($sql, $data);
     }
 }

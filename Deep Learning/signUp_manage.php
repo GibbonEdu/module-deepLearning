@@ -17,13 +17,14 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Module includes
-require_once __DIR__ . '/moduleFunctions.php';
+use Gibbon\Services\Format;
+use Gibbon\Tables\DataTable;
 
-if (!isActionAccessible($guid, $connection2, "/modules/Module Name/name_add.php")) {
-	// Access denied
-	$page->addError(__('You do not have access to this action.'));
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manage.php') == false) {
+    // Access denied
+    $page->addError(__('You do not have access to this action.'));
 } else {
-   // For a form
-   // Check out https:// gist.github.com/SKuipers/3a4de3a323ab9d0969951894c29940ae for a cheatsheet / guide
-}	
+    // Proceed!
+    $page->breadcrumbs
+        ->add(__m('Manage Sign Up'));
+}

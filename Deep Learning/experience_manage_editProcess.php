@@ -18,50 +18,50 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Services\Format;
-use Gibbon\Module\DeepLearning\Domain\MajorGateway;
+use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 
 require_once '../../gibbon.php';
 
-$deepLearningMajorID = $_POST['deepLearningMajorID'] ?? '';
+$deepLearningExperienceID = $_POST['deepLearningExperienceID'] ?? '';
 
-$URL = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/majors_manage_edit.php&deepLearningMajorID='.$deepLearningMajorID;
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/experience_manage_edit.php&deepLearningExperienceID='.$deepLearningExperienceID;
 
-if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/majors_manage_edit.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_manage_edit.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
     exit;
 } else {
 
     // Proceed!
-    $majorGateway = $container->get(MajorGateway::class);
+    $experienceGateway = $container->get(ExperienceGateway::class);
 
     $data = [
         'name'          => $_POST['name'] ?? '',
     ];
 
     // Validate the required values are present
-    if (empty($deepLearningMajorID) || empty($data['name']) ) {
+    if (empty($deepLearningExperienceID) || empty($data['name']) ) {
         $URL .= '&return=error1';
         header("Location: {$URL}");
         exit;
     }
 
     // Validate the database relationships exist
-    if (!$majorGateway->exists($deepLearningMajorID)) {
+    if (!$experienceGateway->exists($deepLearningExperienceID)) {
         $URL .= '&return=error2';
         header("Location: {$URL}");
         exit;
     }
 
     // Validate that this record is unique
-    if (!$majorGateway->unique($data, ['name'], $deepLearningMajorID)) {
+    if (!$experienceGateway->unique($data, ['name'], $deepLearningExperienceID)) {
         $URL .= '&return=error7';
         header("Location: {$URL}");
         exit;
     }
 
     // Update the record
-    $updated = $majorGateway->update($deepLearningMajorID, $data);
+    $updated = $experienceGateway->update($deepLearningExperienceID, $data);
 
     $URL .= !$updated
         ? "&return=error2"

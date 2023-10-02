@@ -17,38 +17,40 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Module\DeepLearning\Domain\MajorGateway;
+use Gibbon\Data\Validator;
+use Gibbon\Domain\System\SettingGateway;
 
 require_once '../../gibbon.php';
 
-$deepLearningMajorID = $_POST['deepLearningMajorID'] ?? '';
+$_POST = $container->get(Validator::class)->sanitize($_POST, ['indexText' => 'HTML']);
 
-$URL = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/majors_manage.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/settings.php';
 
-if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/majors_manage_delete.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/settings.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
-    exit;
-} elseif (empty($deepLearningMajorID)) {
-    $URL .= '&return=error1';
-    header("Location: {$URL}");
-    exit;
 } else {
-    // Proceed!
-    $majorGateway = $container->get(MajorGateway::class);
-    $values = $majorGateway->getByID($deepLearningMajorID);
+    //Proceed!
+    $partialFail = false;
+    $settingGateway = $container->get(SettingGateway::class);
 
-    if (empty($values)) {
-        $URL .= '&return=error2';
-        header("Location: {$URL}");
-        exit;
+    $settingsToUpdate = [
+        'Deep Learning' => [
+            'welcomeText',
+        ],
+    ];
+
+    foreach ($settingsToUpdate as $scope => $settings) {
+        foreach ($settings as $name) {
+            $value = $_POST[$name] ?? '';
+
+            $updated = $settingGateway->updateSettingByScope($scope, $name, $value);
+            $partialFail &= !$updated;
+        }
     }
 
-    $deleted = $majorGateway->delete($deepLearningMajorID);
-
-    $URL .= !$deleted
+    $URL .= $partialFail
         ? '&return=error2'
         : '&return=success0';
-
     header("Location: {$URL}");
 }

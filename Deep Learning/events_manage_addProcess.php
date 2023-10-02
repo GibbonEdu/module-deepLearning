@@ -19,11 +19,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Services\Format;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
-use Gibbon\Module\DeepLearning\Domain\DateGateway;
+use Gibbon\Module\DeepLearning\Domain\EventDateGateway;
 
 require_once '../../gibbon.php';
 
-$URL = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/events_manage_add.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/events_manage_add.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manage_add.php') == false) {
     $URL .= '&return=error0';
@@ -32,7 +32,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
 } else {
     // Proceed!
     $eventGateway = $container->get(EventGateway::class);
-    $dateGateway = $container->get(DateGateway::class);
+    $dateGateway = $container->get(EventDateGateway::class);
 
     $data = [
         'name'          => $_POST['name'] ?? '',
@@ -57,7 +57,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
 
     //Move attached file, if there is one
     if (!empty($_FILES['backgroundImage']['tmp_name'])) {
-        $fileUploader = new Gibbon\FileUploader($pdo, $gibbon->session);
+        $fileUploader = new Gibbon\FileUploader($pdo, $session);
         $fileUploader->getFileExtensions('Graphics/Design');
 
         $file = $_FILES['backgroundImage'] ?? null;

@@ -23,38 +23,33 @@ use Gibbon\Domain\Traits\TableAware;
 use Gibbon\Domain\QueryCriteria;
 use Gibbon\Domain\QueryableGateway;
 
-class DateGateway extends QueryableGateway
+class ExperienceGateway extends QueryableGateway
 {
     use TableAware;
 
-    private static $tableName = 'deepLearningDate';
-    private static $primaryKey = 'deepLearningDateID';
+    private static $tableName = 'deepLearningExperience';
+    private static $primaryKey = 'deepLearningExperienceID';
     private static $searchableColumns = [''];
 
     /**
      * @param QueryCriteria $criteria
      * @return DataSet
      */
-    public function queryDates(QueryCriteria $criteria)
+    public function queryExperiences(QueryCriteria $criteria)
     {
         $query = $this
             ->newQuery()
             ->distinct()
             ->from($this->getTableName())
-            ->cols(['deepLearningDate.deepLearningDateID', 'deepLearningDate.deepLearningDateID', 'date', 'name']);
+            ->cols(['deepLearningExperience.deepLearningExperienceID', 'name']);
 
         return $this->runQuery($query, $criteria);
     }
 
-    public function selectDates($deepLearningEventID)
+    public function selectExperience()
     {
-        $data = ['deepLearningEventID' => $deepLearningEventID];
-        $sql = "SELECT
-          deepLearningDateID, deepLearningEventID, date, name
-        FROM deepLearningDate
-        WHERE deepLearningEventID=:deepLearningEventID
-        ORDER BY name";
+        $sql = "SELECT deepLearningExperienceID as value, name FROM deepLearningExperience ORDER BY name";
 
-        return $this->db()->select($sql, $data);
+        return $this->db()->select($sql);
     }
 }

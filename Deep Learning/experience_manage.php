@@ -17,51 +17,47 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
-use Gibbon\Module\DeepLearning\Domain\MajorGateway;
+use Gibbon\Tables\DataTable;
+use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 
-if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/majors_manage.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_manage.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
     // Proceed!
     $page->breadcrumbs
-        ->add(__m('Manage Majors'));
-
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
+        ->add(__m('Manage Experiences'));
 
     // Query majors
-    $majorGateway = $container->get(MajorGateway::class);
+    $experienceGateway = $container->get(ExperienceGateway::class);
 
-    $criteria = $majorGateway->newQueryCriteria()
+    $criteria = $experienceGateway->newQueryCriteria()
         ->sortBy(['name'])
         ->fromPOST();
 
-    $majors = $majorGateway->queryMajors($criteria);
+    $experiences = $experienceGateway->queryExperiences($criteria);
 
     // Render table
     $table = DataTable::createPaginated('majors', $criteria);
 
     $table->addHeaderAction('add', __('Add'))
-        ->setURL('/modules/Deep Learning/majors_manage_add.php')
+        ->setURL('/modules/Deep Learning/experience_manage_add.php')
         ->displayLabel();
 
     $table->addColumn('name', __('Name'))
-        ->sortable(['deepLearningMajor.name']);
+        ->sortable(['deepLearningExperience.name']);
 
     // ACTIONS
     $table->addActionColumn()
-        ->addParam('deepLearningMajorID')
-        ->format(function ($major, $actions) {
+        ->addParam('deepLearningExperienceID')
+        ->format(function ($experience, $actions) {
             $actions->addAction('edit', __('Edit'))
-                    ->setURL('/modules/Deep Learning/majors_manage_edit.php');
+                    ->setURL('/modules/Deep Learning/experience_manage_edit.php');
 
             $actions->addAction('delete', __('Delete'))
-                    ->setURL('/modules/Deep Learning/majors_manage_delete.php');
+                    ->setURL('/modules/Deep Learning/experience_manage_delete.php');
         });
 
-    echo $table->render($majors);
+    echo $table->render($experiences);
 }

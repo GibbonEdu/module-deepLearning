@@ -41,6 +41,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         return;
     }
 
-    $form = DeleteForm::createForm($gibbon->session->get('absoluteURL').'/modules/Deep Learning/events_manage_deleteProcess.php');
+    $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/Deep Learning/events_manage_deleteProcess.php');
     echo $form->getOutput();
 }

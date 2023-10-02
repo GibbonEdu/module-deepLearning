@@ -17,17 +17,14 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Forms\Prefab\DeleteForm;
+use Gibbon\Services\Format;
+use Gibbon\Tables\DataTable;
 
-// Module includes
-require_once __DIR__ . '/moduleFunctions.php';
-
-if (!isActionAccessible($guid, $connection2, "/modules/Module Name/name_delete.php")) {
-	// Access denied
-	$page->addError(__('You do not have access to this action.'));
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php') == false) {
+    // Access denied
+    $page->addError(__('You do not have access to this action.'));
+} else {
+    // Proceed!
+    $page->breadcrumbs
+        ->add(__m('Deep Learning Events'));
 }
-else {
-    $ID = $_POST['ID']; // The ID / primary key param posted from the name_view page.
-    $form = DeleteForm::createForm($gibbon->session->get('absoluteURL') . '/index.php?q=/modules/' . $gibbon->session->get('module') . '/name.php?ID=$ID');
-    echo $form->getOutput();
-}	

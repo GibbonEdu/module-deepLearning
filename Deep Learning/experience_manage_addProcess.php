@@ -18,19 +18,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Services\Format;
-use Gibbon\Module\DeepLearning\Domain\MajorGateway;
+use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 
 require_once '../../gibbon.php';
 
-$URL = $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/majors_manage_add.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/experience_manage_add.php';
 
-if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/majors_manage_add.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_manage_add.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
     exit;
 } else {
     // Proceed!
-    $majorGateway = $container->get(MajorGateway::class);
+    $experienceGateway = $container->get(ExperienceGateway::class);
 
     $data = [
         'name'          => $_POST['name'] ?? '',
@@ -44,18 +44,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/majors_manag
     }
 
     // Validate that this record is unique
-    if (!$majorGateway->unique($data, ['name'])) {
+    if (!$experienceGateway->unique($data, ['name'])) {
         $URL .= '&return=error7';
         header("Location: {$URL}");
         exit;
     }
 
     // Create the record
-    $deepLearningMajorID = $majorGateway->insert($data);
+    $deepLearningExperienceID = $experienceGateway->insert($data);
 
-    $URL .= !$deepLearningMajorID
+    $URL .= !$deepLearningExperienceID
         ? "&return=error2"
-        : "&return=success0&editID=$deepLearningMajorID";
+        : "&return=success0&editID=$deepLearningExperienceID";
 
     header("Location: {$URL}");
 }

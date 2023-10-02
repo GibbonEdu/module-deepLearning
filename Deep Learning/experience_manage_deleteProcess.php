@@ -17,30 +17,26 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Module\DeepLearning\Domain\EventGateway;
-use Gibbon\Module\DeepLearning\Domain\EventDateGateway;
+use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 
 require_once '../../gibbon.php';
 
-$deepLearningEventID = $_POST['deepLearningEventID'] ?? '';
+$deepLearningExperienceID = $_POST['deepLearningExperienceID'] ?? '';
 
-$URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/events_manage.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/experience_manage.php';
 
-if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manage_delete.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_manage_delete.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
     exit;
-} elseif (empty($deepLearningEventID)) {
+} elseif (empty($deepLearningExperienceID)) {
     $URL .= '&return=error1';
     header("Location: {$URL}");
     exit;
-  } else {
+} else {
     // Proceed!
-    $eventGateway = $container->get(EventGateway::class);
-    $dateGateway = $container->get(EventDateGateway::class);
-
-    // Validate the database relationships exist
-    $values = $eventGateway->getByID($deepLearningEventID);
+    $experienceGateway = $container->get(ExperienceGateway::class);
+    $values = $experienceGateway->getByID($deepLearningExperienceID);
 
     if (empty($values)) {
         $URL .= '&return=error2';
@@ -48,10 +44,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         exit;
     }
 
-    $deleted = $eventGateway->delete($deepLearningEventID);
-
-    // Clean up any dates attached to this event
-    $dateGateway->deleteWhere(['deepLearningEventID' => $deepLearningEventID]);
+    $deleted = $experienceGateway->delete($deepLearningExperienceID);
 
     $URL .= !$deleted
         ? '&return=error2'

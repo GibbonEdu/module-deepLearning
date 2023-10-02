@@ -29,15 +29,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         ->add(__m('Manage Events'), 'events_manage.php')
         ->add(__m('Add Event'));
 
-    $editLink = isset($_GET['editID']) ? $gibbon->session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/events_manage_edit.php&deepLearningEventID='.$_GET['editID'] : '';
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], $editLink, null);
+    if (isset($_GET['editID'])) {
+        $page->return->setEditLink($session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/events_manage_edit.php&deepLearningEventID='.$_GET['editID']);
     }
 
-    $form = Form::create('event', $gibbon->session->get('absoluteURL').'/modules/'.$gibbon->session->get('module').'/events_manage_addProcess.php');
+    $form = Form::create('event', $session->get('absoluteURL').'/modules/'.$session->get('module').'/events_manage_addProcess.php');
     $form->setFactory(DatabaseFormFactory::create($pdo));
 
-    $form->addHiddenValue('address', $gibbon->session->get('address'));
+    $form->addHiddenValue('address', $session->get('address'));
 
     $row = $form->addRow();
         $row->addLabel('name', __('Name'))->description(__('Must be unique.'));
@@ -69,7 +68,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
 
     // Custom Blocks
     $row = $form->addRow();
-    $customBlocks = $row->addCustomBlocks('dates', $gibbon->session)
+    $customBlocks = $row->addCustomBlocks('dates', $session)
         ->fromTemplate($blockTemplate)
         ->settings(array('inputNameStrategy' => 'object', 'addOnEvent' => 'click'))
         ->placeholder(__('Event dates will be listed here...'))
