@@ -45,27 +45,33 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         ->setURL('/modules/Deep Learning/events_manage_add.php')
         ->displayLabel();
 
-    $table->addExpandableColumn('more')->format(function($events) {
-        $output = '';
-        $dates = explode(',', $events['eventDates']);
-        foreach ($dates as $index=>$date) {
-            $dates[$index]= Format::date($date);
-        }
-        $output .= implode('<br/>', $dates).'<br/>';
+    $table->modifyRows(function($values, $row) {
+        if ($values['active'] == 'N') $row->addClass('error');
+        return $row;
+    });
 
-        $names = explode(',', $events['experienceNames']);
-        foreach ($names as $index=>$name) {
-            $names[$index]=$name;
-        }
-        $output .= implode('<br/>', $names);
-        return $output;
+    $table->addExpandableColumn('more')->format(function($values) {
+        return implode('<br/>', explode(',', $values['experienceNames'] ?? ''));
     });
 
     $table->addColumn('name', __('Name'))
         ->sortable(['deepLearningEvent.name']);
 
-    $table->addColumn('description', __('Description'))
-        ->sortable(['deepLearningEvent.description']);
+    $table->addColumn('dates', __('Dates'))
+        ->sortable(['eventDates'])
+        ->format(function ($values) {
+            $dates = array_map(function ($date) {
+                return Format::dateReadable($date);
+            }, explode(',', $values['eventDates'] ?? ''));
+
+            return implode('<br/>', $dates);
+        });
+
+    // $table->addColumn('description', __('Description'))
+    //     ->sortable(['deepLearningEvent.description']);
+
+    $table->addColumn('experienceCount', __m('Experiences'))
+        ->sortable(['experienceCount']);
 
     $table->addColumn('active', __('Active'))->format(Format::using('yesNo', 'active'));
 

@@ -25,6 +25,8 @@ require_once '../../gibbon.php';
 
 $URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/events_manage_add.php';
 
+$gibbonSchoolYearID = $_REQUEST['gibbonSchoolYearID'] ?? $session->get('gibbonSchoolYearID');
+
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manage_add.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
@@ -35,21 +37,24 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     $dateGateway = $container->get(EventDateGateway::class);
 
     $data = [
-        'name'          => $_POST['name'] ?? '',
-        'description'   => $_POST['description'] ?? '',
-        'backgroundImage' => $_POST['backgroundImage'] ?? '',
-        'active'        => $_POST['active'] ?? '',
+        'gibbonSchoolYearID'    => $gibbonSchoolYearID,
+        'name'                  => $_POST['name'] ?? '',
+        'nameShort'             => $_POST['nameShort'] ?? '',
+        'description'           => $_POST['description'] ?? '',
+        'backgroundImage'       => $_POST['backgroundImage'] ?? '',
+        'active'                => $_POST['active'] ?? '',
+        'gibbonYearGroupIDList' => !empty($_POST['gibbonYearGroupIDList'])? implode(',', $_POST['gibbonYearGroupIDList']) : [],
     ];
 
     // Validate the required values are present
-    if (empty($data['name'])) {
+    if (empty($data['name']) || empty($data['nameShort']) || empty($data['active'])) {
         $URL .= '&return=error1';
         header("Location: {$URL}");
         exit;
     }
 
     // Validate that this record is unique
-    if (!$eventGateway->unique($data, ['name'])) {
+    if (!$eventGateway->unique($data, ['name', 'gibbonSchoolYearID'])) {
         $URL .= '&return=error7';
         header("Location: {$URL}");
         exit;

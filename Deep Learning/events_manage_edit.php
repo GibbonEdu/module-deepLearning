@@ -22,6 +22,7 @@ use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Services\Format;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Module\DeepLearning\Domain\EventDateGateway;
+use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manage_edit.php') == false) {
     // Access denied
@@ -40,6 +41,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     }
 
     $values = $container->get(EventGateway::class)->getByID($deepLearningEventID);
+    $experiences = $container->get(ExperienceGateway::class)->selectExperiencesByEvent($deepLearningEventID)->fetchKeyPair();
 
     if (empty($values)) {
         $page->addError(__('The specified record cannot be found.'));
@@ -51,39 +53,40 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
 
     $form->addHiddenValue('address', $session->get('address'));
     $form->addHiddenValue('deepLearningEventID', $deepLearningEventID);
+    $form->addHiddenValue('gibbonSchoolYearID', $values['gibbonSchoolYearID']);
+
+    $form->addRow()->addHeading(__('Basic Details'));
 
     $row = $form->addRow();
-        $row->addLabel('name', __('Name'))->description(__('Must be unique.'));
-        $row->addTextField('name')->required()->maxLength(40);
+        $row->addLabel('name', __('Name'))->description(__('Must be unique for this school year.'));
+        $row->addTextField('name')->required()->maxLength(90);
 
     $row = $form->addRow();
-        $row->addLabel('description', __('Description'));
-        $row->addTextField('description')->required();
+        $row->addLabel('nameShort', __('Short Name'))->description(__('Must be unique for this school year.'));
+        $row->addTextField('nameShort')->required()->maxLength(12);
 
-    $row = $form->addRow();
-        $row->addLabel('backgroundImage', __m('Background Image'))->description(__m('A banner image for the event'));
-        $row->addFileUpload('backgroundImage')->accepts('.jpg,.jpeg,.gif,.png');
-
-    $row = $form->addRow();
-        $row->addLabel('active', __('Active'));
-        $row->addYesNo('active')->required();
+    // $row = $form->addRow();
+    //     $row->addLabel('description', __('Description'));
+    //     $row->addTextField('description')->required();
 
     // DATES
     $form->addRow()->addHeading(__('Event Dates'));
+
+    // Determine if these event dates can be deleted, based on existing experiences
+    $canDelete = empty($experiences);
 
     // Custom Block Template
     $addBlockButton = $form->getFactory()->createButton(__('Add Event Date'))->addClass('addBlock');
 
     $blockTemplate = $form->getFactory()->createTable()->setClass('blank');
-    $row = $blockTemplate->addRow();
-        $row->addTextField('name')->setClass('w-2/3 pr-10 title')->required()->placeholder(__('Name'));
-    $row = $blockTemplate->addRow();
-        $row->addDate('date')->setClass('w-48 mt-1')->required()->placeholder(__('Date'))
+    $row = $blockTemplate->addRow()->addClass('w-3/4 flex justify-between mt-1 ml-2');
+        $row->addTextField('name')->setClass('w-full mr-1 title')->required()->placeholder(__('Name'));
+        $row->addDate('eventDate')->setClass('w-48')->required()->placeholder(__('Date'))
           ->append("<input type='hidden' id='deepLearningEventDateID' name='deepLearningEventDateID' value=''/>");
 
     // Custom Blocks
     $row = $form->addRow();
-    $customBlocks = $row->addCustomBlocks('dates', $session)
+    $customBlocks = $row->addCustomBlocks('dates', $session, $canDelete)
         ->fromTemplate($blockTemplate)
         ->settings(array('inputNameStrategy' => 'object', 'addOnEvent' => 'click'))
         ->placeholder(__('Event dates will be listed here...'))
@@ -93,11 +96,25 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     while ($rowBlocks = $dataBlocks->fetch()) {
       $smart = array(
         'name' => $rowBlocks['name'],
-        'date' => Format::date($rowBlocks['date']),
+        'eventDate' => Format::date($rowBlocks['eventDate']),
         'deepLearningEventDateID' => $rowBlocks['deepLearningEventDateID']
       );
       $customBlocks->addBlock($rowBlocks['deepLearningEventDateID'], $smart);
     }
+
+    // ACCESS
+    $form->addRow()->addHeading(__m('Access'));
+
+    $row = $form->addRow();
+        $row->addLabel('active', __('Active'));
+        $row->addYesNo('active')->required();
+
+    // DISPLAY
+    // $form->addRow()->addHeading(__('Display'));
+
+    // $row = $form->addRow();
+    //     $row->addLabel('backgroundImage', __m('Header Image'))->description(__m('A header image for the event'));
+    //     $row->addFileUpload('backgroundImage')->accepts('.jpg,.jpeg,.gif,.png');
 
     $row = $form->addRow();
         $row->addFooter();
@@ -111,6 +128,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
 
 <script>
 $(document).on('click', '.addBlock', function () {
-    $('input[id^="date"]').removeClass('hasDatepicker').datepicker({onSelect: function(){$(this).blur();}, onClose: function(){$(this).change();} });
+    $('input[id^="eventDate"]').removeClass('hasDatepicker').datepicker({onSelect: function(){$(this).blur();}, onClose: function(){$(this).change();} });
 });
 </script>

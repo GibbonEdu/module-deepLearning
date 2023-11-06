@@ -46,7 +46,8 @@ class EventGateway extends QueryableGateway
             'deepLearningEvent.description',
             'deepLearningEvent.backgroundImage',
             'deepLearningEvent.active',
-            "GROUP_CONCAT(DISTINCT eventDate) AS eventDates",
+            "COUNT(DISTINCT deepLearningExperience.deepLearningExperienceID) as experienceCount",
+            "GROUP_CONCAT(DISTINCT eventDate SEPARATOR ',') AS eventDates",
             "GROUP_CONCAT(DISTINCT deepLearningExperience.name) AS experienceNames"])
             ->leftJoin('deepLearningEventDate', 'deepLearningEvent.deepLearningEventID=deepLearningEventDate.deepLearningEventID')
             ->leftJoin('deepLearningExperience', 'deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID')

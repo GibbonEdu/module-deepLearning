@@ -41,7 +41,12 @@ class EventDateGateway extends QueryableGateway
             ->newQuery()
             ->distinct()
             ->from($this->getTableName())
-            ->cols(['deepLearningEventDate.deepLearningEventDateID', 'deepLearningEventDate.deepLearningEventDateID', 'date', 'name']);
+            ->cols([
+                'deepLearningEventDate.deepLearningEventDateID', 
+                'deepLearningEventDate.deepLearningEventDateID',
+                'deepLearningEventDate.eventDate',
+                'deepLearningEventDate.name',
+            ]);
 
         return $this->runQuery($query, $criteria);
     }
@@ -49,11 +54,10 @@ class EventDateGateway extends QueryableGateway
     public function selectDates($deepLearningEventID)
     {
         $data = ['deepLearningEventID' => $deepLearningEventID];
-        $sql = "SELECT
-          deepLearningEventDateID, deepLearningEventID, date, name
-        FROM deepLearningEventDate
-        WHERE deepLearningEventID=:deepLearningEventID
-        ORDER BY name";
+        $sql = "SELECT deepLearningEventDateID, deepLearningEventID, eventDate, name
+                FROM deepLearningEventDate
+                WHERE deepLearningEventID=:deepLearningEventID
+                ORDER BY eventDate, name";
 
         return $this->db()->select($sql, $data);
     }

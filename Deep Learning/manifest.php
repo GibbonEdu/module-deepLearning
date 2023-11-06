@@ -32,6 +32,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningEvent` (
     `deepLearningEventID` INT(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `gibbonSchoolYearID` INT(3) UNSIGNED ZEROFILL NOT NULL,
     `name` VARCHAR(90) NOT NULL,
+    `nameShort` VARCHAR(12) NOT NULL,
     `description` TEXT NULL,
     `active` ENUM('Y','N') NOT NULL DEFAULT 'Y',
     `backgroundImage` TEXT NULL,

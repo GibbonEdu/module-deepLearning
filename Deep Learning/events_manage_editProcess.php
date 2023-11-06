@@ -19,13 +19,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Services\Format;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
-use Gibbon\Module\DeepLearning\Domain\DateGateway;
+use Gibbon\Module\DeepLearning\Domain\EventDateGateway;
 
 require_once '../../gibbon.php';
 
 $deepLearningEventID = $_POST['deepLearningEventID'] ?? '';
 
 $URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/events_manage_edit.php&deepLearningEventID='.$deepLearningEventID;
+
+$gibbonSchoolYearID = $_REQUEST['gibbonSchoolYearID'] ?? $session->get('gibbonSchoolYearID');
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manage_edit.php') == false) {
     $URL .= '&return=error0';
@@ -35,18 +37,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
 
     // Proceed!
     $eventGateway = $container->get(EventGateway::class);
-    $dateGateway = $container->get(DateGateway::class);
+    $dateGateway = $container->get(EventDateGateway::class);
     $partialFail = false;
 
     $data = [
-        'name'          => $_POST['name'] ?? '',
-        'description'   => $_POST['description'] ?? '',
-        'backgroundImage' => $_POST['backgroundImage'] ?? '',
-        'active'        => $_POST['active'] ?? '',
+        'gibbonSchoolYearID'    => $gibbonSchoolYearID,
+        'name'                  => $_POST['name'] ?? '',
+        'nameShort'             => $_POST['nameShort'] ?? '',
+        'description'           => $_POST['description'] ?? '',
+        'backgroundImage'       => $_POST['backgroundImage'] ?? '',
+        'active'                => $_POST['active'] ?? '',
+        'gibbonYearGroupIDList' => !empty($_POST['gibbonYearGroupIDList'])? implode(',', $_POST['gibbonYearGroupIDList']) : [],
     ];
 
     // Validate the required values are present
-    if (empty($deepLearningEventID) || empty($data['name']) || empty($data['description']) || empty($data['active']) ) {
+    if (empty($deepLearningEventID) || empty($data['name']) || empty($data['nameShort']) || empty($data['active']) ) {
         $URL .= '&return=error1';
         header("Location: {$URL}");
         exit;
@@ -60,7 +65,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     }
 
     // Validate that this record is unique
-    if (!$eventGateway->unique($data, ['name'], $deepLearningEventID)) {
+    if (!$eventGateway->unique($data, ['name', 'gibbonSchoolYearID'], $deepLearningEventID)) {
         $URL .= '&return=error7';
         header("Location: {$URL}");
         exit;
@@ -95,20 +100,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     foreach ($dates as $i) {
         $data = [
             'deepLearningEventID' => $deepLearningEventID,
-            'name'                  => $i['name'] ?? '',
-            'date'                   => Format::dateConvert($i['date']) ?? '',
+            'name'                => $i['name'] ?? '',
+            'eventDate'           => Format::dateConvert($i['eventDate']) ?? '',
         ];
 
-        $deepLearingDateID = $i["deepLearningDateID"] ?? '';
+        $deepLearningDateID = $i["deepLearningDateID"] ?? '';
 
-        if (!empty($deepLearingDateID)) {
-            $partialFail &= !$dateGateway->update($deepLearingDateID, $data);
+        if (!empty($deepLearningDateID)) {
+            $partialFail &= !$dateGateway->update($deepLearningDateID, $data);
         } else {
-            $deepLearingDateID = $dateGateway->insert($data);
-            $partialFail &= !$deepLearingDateID;
+            $deepLearningDateID = $dateGateway->insert($data);
+            $partialFail &= !$deepLearningDateID;
         }
 
-        $blockIDs[] = str_pad($deepLearingDateID, 10, '0', STR_PAD_LEFT);
+        $blockIDs[] = str_pad($deepLearningDateID, 10, '0', STR_PAD_LEFT);
     }
 
     // Remove orphaned blocks
