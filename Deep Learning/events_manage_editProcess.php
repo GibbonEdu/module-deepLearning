@@ -121,8 +121,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
             $partialFail &= !$deepLearningEventDateID;
         }
 
-        $dateIDs[] = str_pad($deepLearningEventDateID, 10, '0', STR_PAD_LEFT);
+        $dateIDs[] = str_pad($deepLearningEventDateID, 12, '0', STR_PAD_LEFT);
     }
+
+    // Cleanup dates that have been deleted
+    $dateGateway->deleteDatesNotInList($deepLearningEventID, $dateIDs);
 
     // Remove orphaned blocks
     if (!empty($dateIDs)) {

@@ -99,6 +99,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
     
     // Update the authors
     $authors = $_POST['authors'] ?? '';
+    $authorIDs = [];
     foreach ($authors as $person) {
         $authorData = [
             'deepLearningUnitID' => $deepLearningUnitID,
@@ -108,9 +109,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         if ($person['gibbonPersonID'] == $session->get('gibbonPersonID')) {
             $authorData['timestamp'] = date('Y-m-d H:i:s');
         }
-        $deepLearningUnitAuthorID = $unitAuthorGateway->insertAndUpdate($authorData, $authorData);
-        $partialFail = !$deepLearningUnitAuthorID;
+        
+        $deepLearningUnitAuthorID = $person['deepLearningUnitAuthorID'] ?? '';
+
+        if (!empty($deepLearningUnitAuthorID)) {
+            $partialFail &= !$unitAuthorGateway->update($deepLearningUnitAuthorID, $authorData);
+        } else {
+            $deepLearningUnitAuthorID = $unitAuthorGateway->insert($authorData);
+            $partialFail &= !$deepLearningUnitAuthorID;
+        }
+
+        $authorIDs[] = str_pad($deepLearningUnitAuthorID, 12, '0', STR_PAD_LEFT);
     }
+
+    // Cleanup authors that have been deleted
+    $unitAuthorGateway->deleteAuthorsNotInList($deepLearningUnitID, $authorIDs);
 
     // Update the tags
     $tags = array_unique(array_filter(array_merge(explode(',', $data['majors'] ?? ''), explode(',', $data['minors'] ?? ''))));

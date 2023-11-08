@@ -59,6 +59,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     $unit = $container->get(UnitGateway::class)->getByID($values['deepLearningUnitID']);
 
     $form = Form::create('experience', $session->get('absoluteURL').'/modules/'.$session->get('module').'/experience_manage_editProcess.php');
+    $form->setFactory(DatabaseFormFactory::create($pdo));
 
     $form->addHiddenValue('address', $session->get('address'));
     $form->addHiddenValue('deepLearningExperienceID', $deepLearningExperienceID);
@@ -70,15 +71,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         $row->addLabel('event', __('Event'));
         $row->addTextField('event')->required()->setValue($event['name'])->readOnly();
 
-    $row = $form->addRow();
-        $row->addLabel('unit', __('Unit'));
-        $row->addTextField('unit')->required()->setValue($unit['name'])->readOnly();
+    // $row = $form->addRow();
+    //     $row->addLabel('unit', __('Unit'));
+    //     $row->addTextField('unit')->required()->setValue($unit['name'])->readOnly();
 
     $row = $form->addRow();
         $row->addLabel('name', __m('Experience Name'))->description(__m('Must be unique within this Deep Learning event.'));
         $row->addTextField('name')->required()->maxLength(90);
 
-        $row = $form->addRow();
+    $row = $form->addRow();
+        $row->addLabel('location', __m('Location'));
+        $row->addTextField('location')->maxLength(255);
+
+    $row = $form->addRow();
+        $row->addLabel('location', __m('Provider'))->description(__m('Leave blank if not using an external provider.'));
+        $row->addTextField('location')->maxLength(255);
+
+    $row = $form->addRow();
         $row->addLabel('active', __('Active'))->description(__m('Inactive experiences are only visible to users with view permissions.'));
         $row->addYesNo('active')->required()->selected('N');
 
@@ -97,6 +106,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         $row->addLabel('enrolmentMax', __('Maximum Enrolment'))->description(__('Enrolment should not exceed this number of students.'));
         $row->addNumber('enrolmentMax')->onlyInteger(true)->minimum(0)->maximum(999)->maxLength(3)->required();
 
+    $yearGroups = $container->get(EventGateway::class)->selectYearGroupsByEvent($values['deepLearningEventID'])->fetchKeyPair();
+    $row = $form->addRow();
+        $row->addLabel('gibbonYearGroupIDList', __('Year Groups'));
+        $row->addCheckbox('gibbonYearGroupIDList')
+            ->fromArray($yearGroups)
+            ->addCheckAllNone()
+            ->loadFromCSV($values);
+
     // STAFF
     $form->addRow()->addHeading(__('Staff'));
 
@@ -108,7 +125,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     $row = $blockTemplate->addRow()->addClass('w-full flex justify-between items-center mt-1 ml-2');
         $row->addSelectStaff('gibbonPersonID')->photo(true, 'small')->setClass('flex-1 mr-1')->required()->placeholder();
         $row->addSelect('role')->fromArray($roles)->setClass('w-48 mr-1')->required()->placeholder();
-        $row->addCheckbox('canEdit')->setLabelClass('w-32')->alignLeft()->setValue('Y')->checked('Y')->description(__m('Can Edit?'))
+        $row->addCheckbox('canEdit')->setLabelClass('w-32')->alignLeft()->setValue('Y')->description(__m('Can Edit?'))
             ->append("<input type='hidden' id='deepLearningStaffID' name='deepLearningStaffID' value=''/>");
 
     // Custom Blocks
@@ -121,7 +138,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
     $staff = $container->get(StaffGateway::class)->selectStaffByExperience($deepLearningExperienceID);
     while ($person = $staff->fetch()) {
-        $customStaff->addBlock($person['deepLearningStaffID'], [
+        $customBlocks->addBlock($person['deepLearningStaffID'], [
             'deepLearningStaffID' => $person['deepLearningStaffID'],
             'gibbonPersonID'      => $person['gibbonPersonID'],
             'role'                => $person['role'] ?? 'Assistant',

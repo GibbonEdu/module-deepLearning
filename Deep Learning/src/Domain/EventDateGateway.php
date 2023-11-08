@@ -61,4 +61,14 @@ class EventDateGateway extends QueryableGateway
 
         return $this->db()->select($sql, $data);
     }
+
+    public function deleteDatesNotInList($deepLearningEventID, $dateIDList)
+    {
+        $dateIDList = is_array($dateIDList) ? implode(',', $dateIDList) : $dateIDList;
+
+        $data = ['deepLearningEventID' => $deepLearningEventID, 'dateIDList' => $dateIDList];
+        $sql = "DELETE FROM deepLearningEventDate WHERE deepLearningEventID=:deepLearningEventID AND NOT FIND_IN_SET(deepLearningEventDateID, :dateIDList)";
+
+        return $this->db()->delete($sql, $data);
+    }
 }

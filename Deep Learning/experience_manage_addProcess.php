@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Services\Format;
 use Gibbon\Data\Validator;
+use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitGateway;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
@@ -50,7 +51,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     $data = [
         'deepLearningEventID'    => $_POST['deepLearningEventID'] ?? '',
         'deepLearningUnitID'     => $_POST['deepLearningUnitID'] ?? '',
-        'gibbonPersonIDCreated'  => $session->get('gibbonPersonID'),
+        'timestampModified'      => date('Y-m-d H:i:s'),
         'gibbonPersonIDModified' => $session->get('gibbonPersonID'),
     ];
 
@@ -73,6 +74,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     // Set the default values for the experience
     $data['name'] = $unit['name'];
     $data['cost'] = $unit['cost'];
+    $data['gibbonYearGroupIDList'] = $event['gibbonYearGroupIDList'];
     $data['enrolmentMin'] = $settingGateway->getSettingByScope('Deep Learning', 'enrolmentMin');
     $data['enrolmentMax'] = $settingGateway->getSettingByScope('Deep Learning', 'enrolmentMax');
 

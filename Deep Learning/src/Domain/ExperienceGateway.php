@@ -49,13 +49,17 @@ class ExperienceGateway extends QueryableGateway
                 'deepLearningExperience.active',
                 'deepLearningStaff.canEdit',
                 'deepLearningStaff.role',
+                "GROUP_CONCAT(DISTINCT CONCAT(gibbonPerson.preferredName, ' ', gibbonPerson.surname) ORDER BY gibbonPerson.surname SEPARATOR '<br/>') as tripLeaders",
+                "COUNT(DISTINCT deepLearningStaff.deepLearningStaffID) as staffCount",
             ])
             ->from($this->getTableName())
             ->innerJoin('deepLearningEvent', 'deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID')
             ->leftJoin('deepLearningStaff', 'deepLearningStaff.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID')
+            ->leftJoin('deepLearningStaff as tripLeader', 'tripLeader.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID AND tripLeader.role="Trip Leader"')
+            ->leftJoin('gibbonPerson', 'gibbonPerson.gibbonPersonID=tripLeader.gibbonPersonID')
             ->where('deepLearningEvent.gibbonSchoolYearID=:gibbonSchoolYearID')
             ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID)
-            ->groupBy(['deepLearningEventID','name']);
+            ->groupBy(['deepLearningExperience.deepLearningExperienceID']);
 
         if (!empty($gibbonPersonID)) {
             $query->where('deepLearningStaff.gibbonPersonID=:gibbonPersonID')

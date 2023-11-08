@@ -42,4 +42,14 @@ class UnitAuthorGateway extends QueryableGateway
 
         return $this->db()->select($sql, $data);
     }
+
+    public function deleteAuthorsNotInList($deepLearningUnitID, $authorIDList)
+    {
+        $authorIDList = is_array($authorIDList) ? implode(',', $authorIDList) : $authorIDList;
+
+        $data = ['deepLearningUnitID' => $deepLearningUnitID, 'authorIDList' => $authorIDList];
+        $sql = "DELETE FROM deepLearningUnitAuthor WHERE deepLearningUnitID=:deepLearningUnitID AND NOT FIND_IN_SET(deepLearningUnitAuthorID, :authorIDList)";
+
+        return $this->db()->delete($sql, $data);
+    }
 }

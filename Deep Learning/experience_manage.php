@@ -57,7 +57,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     $form->addHiddenValue('q', '/modules/Deep Learning/experience_manage.php');
 
     $row = $form->addRow();
-        $row->addLabel('search', __('Search For'))->description(__m('Unit Name, Experience Name'));
+        $row->addLabel('search', __('Search For'))->description(__m('Experience name, unit name'));
         $row->addTextField('search')->setValue($criteria->getSearchText())->maxLength(20);
 
     $row = $form->addRow();
@@ -91,10 +91,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     $table->addColumn('name', __('Name'))
         ->context('primary');
 
-    $table->addColumn('students', __('Students'))
+    $table->addColumn('tripLeaders', __m('Trip Leader(s)'));
+
+    $table->addColumn('staffCount', __('Staff'))
         ->width('10%');
 
-    $table->addColumn('staff', __('Staff'))
+    $table->addColumn('students', __('Students'))
         ->width('10%');
 
     $table->addColumn('active', __('Active'))

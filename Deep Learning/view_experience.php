@@ -33,6 +33,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php') =
         ->add(__m('Explore'), 'view_event.php', ['deepLearningEventID' => $deepLearningEventID, 'sidebar' => 'false'])
         ->add(__m('View Experience'));
 
+    $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
+    if (empty($highestAction)) {
+        $page->addError(__('You do not have access to this action.'));
+        return;
+    }
+
     $eventGateway = $container->get(EventGateway::class);
     $experienceGateway = $container->get(ExperienceGateway::class);
 
@@ -49,10 +55,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php') =
         return;
     }
 
-    if ($experience['status'] != 'Published') {
+    if ($experience['active'] != 'Y') {
         $page->addError(__('You do not have access to this action.'));
         return;
     }
+
     $page->writeFromTemplate('experience.twig.html', [
         'event'      => $event,
         'experience' => $experience,

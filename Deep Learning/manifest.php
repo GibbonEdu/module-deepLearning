@@ -77,7 +77,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningUnitAuthor` (
     `deepLearningUnitAuthorID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `deepLearningUnitID` INT(10) UNSIGNED ZEROFILL NOT NULL,
     `gibbonPersonID` INT(10) UNSIGNED ZEROFILL NOT NULL,
-    `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `timestamp` TIMESTAMP NULL,
     PRIMARY KEY (`deepLearningUnitAuthorID`),
     UNIQUE KEY (`gibbonPersonID`, `deepLearningUnitID`)
 ) ENGINE=InnoDB";
@@ -117,6 +117,8 @@ $moduleTables[] = "CREATE TABLE `deepLearningExperience` (
     `name` VARCHAR(90) NOT NULL,
     `active` ENUM('Y','N') NOT NULL DEFAULT 'Y',
     `cost` INT(10) NULL,
+    `location` VARCHAR(255) NULL,
+    `provider` VARCHAR(255) NULL,
     `enrolmentMin` INT(3) NOT NULL,
     `enrolmentMax` INT(3) NOT NULL,
     `gibbonYearGroupIDList` VARCHAR(255) NULL,

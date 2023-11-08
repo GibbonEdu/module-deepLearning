@@ -132,7 +132,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         $customBlocks->addBlock($person['deepLearningUnitAuthorID'], [
             'deepLearningUnitAuthorID' => $person['deepLearningUnitAuthorID'],
             'gibbonPersonID'           => $person['gibbonPersonID'],
-            'lastEdit'                 => __m('Last Edit').': '.Format::dateTime($person['timestamp']),
+            'lastEdit'                 => !empty($person['timestamp']) ? __m('Last Edit').': '.Format::dateTime($person['timestamp']) : '',
         ]);
     }
 

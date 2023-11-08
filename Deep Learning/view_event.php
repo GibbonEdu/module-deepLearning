@@ -31,6 +31,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php') =
 
     $deepLearningEventID = $_REQUEST['deepLearningEventID'] ?? '';
 
+    $canViewInactive = isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php', 'Deep Learning Events_viewInactive');
+
     $eventGateway = $container->get(EventGateway::class);
     $experienceGateway = $container->get(ExperienceGateway::class);
 
@@ -53,7 +55,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php') =
 
     // Query experiences
     $criteria = $experienceGateway->newQueryCriteria()
-        ->filterBy('status', 'Published')
+        ->filterBy('active', 'Y')
         ->sortBy(['name'])
         ->fromPOST();
 

@@ -64,11 +64,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
     $row = $form->addRow();
         $row->addLabel('deepLearningEventID', __('Event'))->description(__m('Each experience is part of a Deep Learning event.'));
-        $row->addSelect('deepLearningEventID')->fromResults($events, 'groupBy')->required();
+        $row->addSelect('deepLearningEventID')->fromResults($events, 'groupBy')->required()->placeholder();
 
     $row = $form->addRow();
         $row->addLabel('deepLearningUnitID', __('Unit'))->description(__m('Must be unique within this Deep Learning event.'));
-        $row->addSelect('deepLearningUnitID')->fromResults($units)->required();
+        $row->addSelect('deepLearningUnitID')->fromResults($units)->required()->placeholder();
 
     // STAFF
     $form->addRow()->addHeading(__('Staff'));

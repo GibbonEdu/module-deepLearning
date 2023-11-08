@@ -18,8 +18,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Services\Format;
-use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 use Gibbon\Data\Validator;
+use Gibbon\Module\DeepLearning\Domain\EventGateway;
+use Gibbon\Module\DeepLearning\Domain\UnitGateway;
+use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
+use Gibbon\Module\DeepLearning\Domain\StaffGateway;
 
 require_once '../../gibbon.php';
 
@@ -39,16 +42,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     exit;
 } else {
     // Proceed!
+    $partialFail = false;
+
     $experienceGateway = $container->get(ExperienceGateway::class);
     $eventGateway = $container->get(EventGateway::class);
     $unitGateway = $container->get(UnitGateway::class);
+    $staffGateway = $container->get(StaffGateway::class);
 
     $data = [
         'name'                   => $_POST['name'] ?? '',
         'active'                 => $_POST['active'] ?? 'N',
         'cost'                   => !empty($_POST['cost']) ? $_POST['cost'] : null,
+        'location'               => $_POST['location'] ?? null,
+        'provider'               => $_POST['provider'] ?? null,
         'enrolmentMin'           => $_POST['enrolmentMin'] ?? null,
         'enrolmentMax'           => $_POST['enrolmentMax'] ?? null,
+        'gibbonYearGroupIDList'  => !empty($_POST['gibbonYearGroupIDList'])? implode(',', $_POST['gibbonYearGroupIDList']) : '',
         'gibbonPersonIDModified' => $session->get('gibbonPersonID'),
     ];
 
@@ -78,17 +87,29 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
     // Update the staff records
     $staff = $_POST['staff'] ?? '';
+    $staffIDs = [];
     foreach ($staff as $person) {
         $staffData = [
-            'deepLearningExperienceID' => $deepLearningExperienceID,
+            'deepLearningExperienceID' => $params['deepLearningExperienceID'],
             'gibbonPersonID'           => $person['gibbonPersonID'],
             'role'                     => $person['role'] ?? 'Assistant',
             'canEdit'                  => $person['canEdit'] ?? 'N',
         ];
-        $deepLearningStaffID = $staffGateway->insertAndUpdate($staffData, $staffData);
 
-        $partialFail = !$deepLearningStaffID;
+        $deepLearningStaffID = $person['deepLearningStaffID'] ?? '';
+
+        if (!empty($deepLearningStaffID)) {
+            $partialFail &= !$staffGateway->update($deepLearningStaffID, $staffData);
+        } else {
+            $deepLearningStaffID = $staffGateway->insert($staffData);
+            $partialFail &= !$deepLearningStaffID;
+        }
+
+        $staffIDs[] = str_pad($deepLearningStaffID, 12, '0', STR_PAD_LEFT);
     }
+
+    // Cleanup staff that have been deleted
+    $staffGateway->deleteStaffNotInList($params['deepLearningExperienceID'], $staffIDs);
 
     $URL .= !$updated || $partialFail
         ? "&return=warning1"

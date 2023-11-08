@@ -42,4 +42,14 @@ class StaffGateway extends QueryableGateway
 
         return $this->db()->select($sql, $data);
     }
+
+    public function deleteStaffNotInList($deepLearningExperienceID, $staffIDList)
+    {
+        $staffIDList = is_array($staffIDList) ? implode(',', $staffIDList) : $staffIDList;
+
+        $data = ['deepLearningExperienceID' => $deepLearningExperienceID, 'staffIDList' => $staffIDList];
+        $sql = "DELETE FROM deepLearningStaff WHERE deepLearningExperienceID=:deepLearningExperienceID AND NOT FIND_IN_SET(deepLearningStaffID, :staffIDList)";
+
+        return $this->db()->delete($sql, $data);
+    }
 }
