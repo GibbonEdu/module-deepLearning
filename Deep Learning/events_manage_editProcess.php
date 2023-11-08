@@ -95,7 +95,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         }
 
     } else {
-      $data['backgroundImage'] = $_POST['backgroundImage'];
+        $data['backgroundImage'] = $_POST['backgroundImage'] ?? '';
     }
 
     // Update the record

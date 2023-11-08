@@ -21,6 +21,9 @@ use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
+use Gibbon\Http\Url;
+use Gibbon\Module\DeepLearning\Domain\StaffGateway;
+use Gibbon\Module\DeepLearning\Domain\UnitGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_manage_edit.php') == false) {
     // Access denied
@@ -28,10 +31,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 } else {
     // Proceed!
     $deepLearningExperienceID = $_GET['deepLearningExperienceID'] ?? '';
+    $params = [
+        'gibbonSchoolYearID' => $_REQUEST['gibbonSchoolYearID'] ?? $session->get('gibbonSchoolYearID'),
+        'search'             => $_REQUEST['search'] ?? ''
+    ];
 
     $page->breadcrumbs
-        ->add(__m('Manage Experiences'), 'experience_manage.php')
+        ->add(__m('Manage Experiences'), 'experience_manage.php', $params)
         ->add(__m('Edit Experience'));
+
+    if (!empty($params['search'])) {
+        $page->navigator->addSearchResultsAction(Url::fromModuleRoute('Deep Learning', 'experience_manage.php')->withQueryParams($params));
+    }
 
     if (empty($deepLearningExperienceID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
@@ -39,13 +50,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     }
 
     $values = $container->get(ExperienceGateway::class)->getByID($deepLearningExperienceID);
-
     if (empty($values)) {
         $page->addError(__('The specified record cannot be found.'));
         return;
     }
 
     $event = $container->get(EventGateway::class)->getByID($values['deepLearningEventID']);
+    $unit = $container->get(UnitGateway::class)->getByID($values['deepLearningUnitID']);
 
     $form = Form::create('experience', $session->get('absoluteURL').'/modules/'.$session->get('module').'/experience_manage_editProcess.php');
 
@@ -60,12 +71,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         $row->addTextField('event')->required()->setValue($event['name'])->readOnly();
 
     $row = $form->addRow();
+        $row->addLabel('unit', __('Unit'));
+        $row->addTextField('unit')->required()->setValue($unit['name'])->readOnly();
+
+    $row = $form->addRow();
         $row->addLabel('name', __m('Experience Name'))->description(__m('Must be unique within this Deep Learning event.'));
         $row->addTextField('name')->required()->maxLength(90);
 
-    $row = $form->addRow();
-        $row->addLabel('status', __('Status'));
-        $row->addSelect('status')->fromArray(['Draft' => __m('Draft'), 'Published' => __m('Published')])->required();
+        $row = $form->addRow();
+        $row->addLabel('active', __('Active'))->description(__m('Inactive experiences are only visible to users with view permissions.'));
+        $row->addYesNo('active')->required()->selected('N');
 
     // ENROLMENT
     $form->addRow()->addHeading(__('Enrolment'));
@@ -82,27 +97,37 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         $row->addLabel('enrolmentMax', __('Maximum Enrolment'))->description(__('Enrolment should not exceed this number of students.'));
         $row->addNumber('enrolmentMax')->onlyInteger(true)->minimum(0)->maximum(999)->maxLength(3)->required();
 
+    // STAFF
+    $form->addRow()->addHeading(__('Staff'));
 
-    // DISPLAY
-    $form->addRow()->addHeading(__('Display'));
+    // Custom Block Template
+    $addBlockButton = $form->getFactory()->createButton(__m('Add Staff'))->addClass('addBlock');
 
+    $roles = ['Trip Leader' => __m('Trip Leader'), 'Teacher' => __('Teacher'), 'Assistant' => __('Assistant')];
+    $blockTemplate = $form->getFactory()->createTable()->setClass('blank');
+    $row = $blockTemplate->addRow()->addClass('w-full flex justify-between items-center mt-1 ml-2');
+        $row->addSelectStaff('gibbonPersonID')->photo(true, 'small')->setClass('flex-1 mr-1')->required()->placeholder();
+        $row->addSelect('role')->fromArray($roles)->setClass('w-48 mr-1')->required()->placeholder();
+        $row->addCheckbox('canEdit')->setLabelClass('w-32')->alignLeft()->setValue('Y')->checked('Y')->description(__m('Can Edit?'))
+            ->append("<input type='hidden' id='deepLearningStaffID' name='deepLearningStaffID' value=''/>");
+
+    // Custom Blocks
     $row = $form->addRow();
-        $row->addLabel('headerImage', __m('Header Image'))->description(__m('A header image to display on the experience page.'));
-        $row->addFileUpload('headerImageFile')
-            ->accepts('.jpg,.jpeg,.gif,.png')
-            ->setAttachment('headerImage', $session->get('absoluteURL'), $values['headerImage']);
+    $customBlocks = $row->addCustomBlocks('staff', $session)
+        ->fromTemplate($blockTemplate)
+        ->settings(array('inputNameStrategy' => 'object', 'addOnEvent' => 'click'))
+        ->placeholder(__m('Add a Trip Leader...'))
+        ->addToolInput($addBlockButton);
 
-    $row = $form->addRow();
-        $col = $row->addColumn()->setClass('');
-        $col->addLabel('description', __('Description'));
-        $col->addEditor('description', $guid);
-
-    $row = $form->addRow()->addClass('tags');
-        $col = $row->addColumn();
-        $col->addLabel('tags', __('Tags'));
-        $col->addFinder('tags')
-            ->setParameter('hintText', __('Type a tag...'))
-            ->setParameter('allowFreeTagging', true);
+    $staff = $container->get(StaffGateway::class)->selectStaffByExperience($deepLearningExperienceID);
+    while ($person = $staff->fetch()) {
+        $customStaff->addBlock($person['deepLearningStaffID'], [
+            'deepLearningStaffID' => $person['deepLearningStaffID'],
+            'gibbonPersonID'      => $person['gibbonPersonID'],
+            'role'                => $person['role'] ?? 'Assistant',
+            'canEdit'             => $person['canEdit'] ?? 'N',
+        ]);
+    }
 
     $row = $form->addRow();
         $row->addFooter();

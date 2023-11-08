@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
@@ -29,24 +30,58 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     $page->breadcrumbs
         ->add(__m('Manage Experiences'));
 
-    // Query majors
-    $experienceGateway = $container->get(ExperienceGateway::class);
+    $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
+    if (empty($highestAction)) {
+        $page->addError(__('You do not have access to this action.'));
+        return;
+    }
 
+    $params = [
+        'gibbonSchoolYearID' => $_REQUEST['gibbonSchoolYearID'] ?? $session->get('gibbonSchoolYearID'),
+        'search'             => $_REQUEST['search'] ?? ''
+    ];
+
+    $page->navigator->addSchoolYearNavigation($params['gibbonSchoolYearID']);
+
+    // Setup criteria
+    $experienceGateway = $container->get(ExperienceGateway::class);
     $criteria = $experienceGateway->newQueryCriteria()
+        ->searchBy($experienceGateway->getSearchableColumns(), $params['search'])
         ->sortBy(['name'])
         ->fromPOST();
 
-    $experiences = $experienceGateway->queryExperiences($criteria);
+    // Search
+    $form = Form::create('filters', $session->get('absoluteURL').'/index.php', 'get');
+    $form->setClass('noIntBorder fullWidth');
+
+    $form->addHiddenValue('q', '/modules/Deep Learning/experience_manage.php');
+
+    $row = $form->addRow();
+        $row->addLabel('search', __('Search For'))->description(__m('Unit Name, Experience Name'));
+        $row->addTextField('search')->setValue($criteria->getSearchText())->maxLength(20);
+
+    $row = $form->addRow();
+        $row->addFooter();
+        $row->addSearchSubmit($gibbon->session, 'Clear Filters', ['view', 'sidebar']);
+
+    echo $form->getOutput();
+
+    // Query experiences
+    $gibbonPersonID = $highestAction == 'Manage Experiences_my' ? $session->get('gibbonPersonID') : null;
+    $experiences = $experienceGateway->queryExperiences($criteria, $params['gibbonSchoolYearID'], $gibbonPersonID);
 
     // Render table
-    $table = DataTable::createPaginated('majors', $criteria);
+    $table = DataTable::createPaginated('experiences', $criteria);
 
-    $table->addHeaderAction('add', __('Add'))
-        ->setURL('/modules/Deep Learning/experience_manage_add.php')
-        ->displayLabel();
+    if ($highestAction == 'Manage Experiences_all') {
+        $table->addHeaderAction('add', __('Add'))
+            ->setURL('/modules/Deep Learning/experience_manage_add.php')
+            ->addParams($params)
+            ->displayLabel();
+    }
 
     $table->modifyRows(function($values, $row) {
-        if ($values['status'] == 'Draft') $row->addClass('dull');
+        if ($values['active'] == 'N') $row->addClass('error');
         return $row;
     });
 
@@ -54,28 +89,32 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         ->width('10%');
 
     $table->addColumn('name', __('Name'))
-        ->context('primary')
-        ->format(function ($values) {
-            $output = $values['name'];
-            if ($values['status'] == 'Draft') {
-                $output .= Format::tag(__('Draft'), 'message ml-2');
-            }
-            return $output;
-        });
+        ->context('primary');
 
     $table->addColumn('students', __('Students'))
         ->width('10%');
 
+    $table->addColumn('staff', __('Staff'))
+        ->width('10%');
+
+    $table->addColumn('active', __('Active'))
+        ->format(Format::using('yesNo', 'active'))
+        ->width('10%');
+
     // ACTIONS
     $table->addActionColumn()
+        ->addParam('search', $criteria->getSearchText(true))
+        ->addParam('gibbonSchoolYearID', $params['gibbonSchoolYearID'])
         ->addParam('deepLearningExperienceID')
-        ->format(function ($experience, $actions) {
+        ->format(function ($experience, $actions) use ($highestAction) {
             $actions->addAction('edit', __('Edit'))
                     ->setURL('/modules/Deep Learning/experience_manage_edit.php');
 
-            $actions->addAction('delete', __('Delete'))
-                    ->setURL('/modules/Deep Learning/experience_manage_delete.php');
+            if ($highestAction == 'Manage Experiences_all') {
+                $actions->addAction('delete', __('Delete'))
+                        ->setURL('/modules/Deep Learning/experience_manage_delete.php');
+            }
         });
 
-    echo $table->render($experiences);
+    echo $table->render($experiences ?? []);
 }

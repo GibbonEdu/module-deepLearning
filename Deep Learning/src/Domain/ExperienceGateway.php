@@ -29,13 +29,13 @@ class ExperienceGateway extends QueryableGateway
 
     private static $tableName = 'deepLearningExperience';
     private static $primaryKey = 'deepLearningExperienceID';
-    private static $searchableColumns = [''];
+    private static $searchableColumns = ['deepLearningExperience.name'];
 
     /**
      * @param QueryCriteria $criteria
      * @return DataSet
      */
-    public function queryExperiences(QueryCriteria $criteria)
+    public function queryExperiences(QueryCriteria $criteria, $gibbonSchoolYearID, $gibbonPersonID = null)
     {
         $query = $this
             ->newQuery()
@@ -46,11 +46,21 @@ class ExperienceGateway extends QueryableGateway
                 'deepLearningEvent.deepLearningEventID',
                 'deepLearningExperience.deepLearningExperienceID',
                 'deepLearningExperience.name',
-                'deepLearningExperience.status',
+                'deepLearningExperience.active',
+                'deepLearningStaff.canEdit',
+                'deepLearningStaff.role',
             ])
             ->from($this->getTableName())
-            ->innerJoin('deepLearningEvent', 'deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID');
+            ->innerJoin('deepLearningEvent', 'deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID')
+            ->leftJoin('deepLearningStaff', 'deepLearningStaff.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID')
+            ->where('deepLearningEvent.gibbonSchoolYearID=:gibbonSchoolYearID')
+            ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID)
+            ->groupBy(['deepLearningEventID','name']);
 
+        if (!empty($gibbonPersonID)) {
+            $query->where('deepLearningStaff.gibbonPersonID=:gibbonPersonID')
+                ->bindValue('gibbonPersonID', $gibbonPersonID);
+        }
 
         return $this->runQuery($query, $criteria);
     }
@@ -71,19 +81,20 @@ class ExperienceGateway extends QueryableGateway
                 'deepLearningEvent.deepLearningEventID',
                 'deepLearningExperience.deepLearningExperienceID',
                 'deepLearningExperience.name',
-                'deepLearningExperience.status',
-                'deepLearningExperience.headerImage',
+                'deepLearningExperience.active',
+                'deepLearningUnit.headerImage',
             ])
             ->from($this->getTableName())
             ->innerJoin('deepLearningEvent', 'deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID')
+            ->innerJoin('deepLearningUnit', 'deepLearningUnit.deepLearningUnitID=deepLearningExperience.deepLearningUnitID')
             ->where('deepLearningExperience.deepLearningEventID=:deepLearningEventID')
             ->bindValue('deepLearningEventID', $deepLearningEventID);
 
         $criteria->addFilterRules([
-            'status' => function ($query, $status) {
+            'active' => function ($query, $active) {
                 return $query
-                    ->where('deepLearningExperience.status = :status')
-                    ->bindValue('status', $status);
+                    ->where('deepLearningExperience.active = :active')
+                    ->bindValue('active', $active);
             },
         ]);
 

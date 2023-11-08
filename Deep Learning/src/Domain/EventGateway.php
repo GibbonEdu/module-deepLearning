@@ -29,7 +29,7 @@ class EventGateway extends QueryableGateway
 
     private static $tableName = 'deepLearningEvent';
     private static $primaryKey = 'deepLearningEventID';
-    private static $searchableColumns = [''];
+    private static $searchableColumns = ['deepLearningEvent.name'];
 
     /**
      * @param QueryCriteria $criteria

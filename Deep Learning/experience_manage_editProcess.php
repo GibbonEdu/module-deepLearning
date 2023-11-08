@@ -25,73 +25,73 @@ require_once '../../gibbon.php';
 
 $_POST = $container->get(Validator::class)->sanitize($_POST, ['description' => 'HTML']);
 
-$deepLearningExperienceID = $_POST['deepLearningExperienceID'] ?? '';
+$params = [
+    'deepLearningExperienceID' => $_REQUEST['deepLearningExperienceID'] ?? '',
+    'gibbonSchoolYearID'       => $_REQUEST['gibbonSchoolYearID'] ?? $session->get('gibbonSchoolYearID'),
+    'search'                   => $_REQUEST['search'] ?? ''
+];
 
-$URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/experience_manage_edit.php&deepLearningExperienceID='.$deepLearningExperienceID;
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/experience_manage_edit.php&'.http_build_query($params);
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_manage_edit.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
     exit;
 } else {
-
     // Proceed!
     $experienceGateway = $container->get(ExperienceGateway::class);
+    $eventGateway = $container->get(EventGateway::class);
+    $unitGateway = $container->get(UnitGateway::class);
 
     $data = [
         'name'                   => $_POST['name'] ?? '',
-        'status'                 => $_POST['status'] ?? 'Draft',
-        'cost'                   => $_POST['cost'] ?? null,
-        'sequenceNumber'         => 0,
+        'active'                 => $_POST['active'] ?? 'N',
+        'cost'                   => !empty($_POST['cost']) ? $_POST['cost'] : null,
         'enrolmentMin'           => $_POST['enrolmentMin'] ?? null,
         'enrolmentMax'           => $_POST['enrolmentMax'] ?? null,
         'gibbonPersonIDModified' => $session->get('gibbonPersonID'),
     ];
 
     // Validate the required values are present
-    if (empty($deepLearningExperienceID) || empty($data['name']) ) {
+    if (empty($params['deepLearningExperienceID']) || empty($data['name']) ) {
         $URL .= '&return=error1';
         header("Location: {$URL}");
         exit;
     }
 
     // Validate the database relationships exist
-    if (!$experienceGateway->exists($deepLearningExperienceID)) {
+    if (!$experienceGateway->exists($params['deepLearningExperienceID'])) {
         $URL .= '&return=error2';
         header("Location: {$URL}");
         exit;
     }
 
     // Validate that this record is unique
-    if (!$experienceGateway->unique($data, ['name', 'deepLearningEventID'], $deepLearningExperienceID)) {
+    if (!$experienceGateway->unique($data, ['name', 'deepLearningEventID'], $params['deepLearningExperienceID'])) {
         $URL .= '&return=error7';
         header("Location: {$URL}");
         exit;
     }
 
-    // Move attached file, if there is one
-    if (!empty($_FILES['headerImageFile']['tmp_name'])) {
-        $fileUploader = new Gibbon\FileUploader($pdo, $session);
-        $fileUploader->getFileExtensions('Graphics/Design');
+    // Update the record
+    $updated = $experienceGateway->update($params['deepLearningExperienceID'], $data);
 
-        $file = $_FILES['headerImageFile'] ?? null;
+    // Update the staff records
+    $staff = $_POST['staff'] ?? '';
+    foreach ($staff as $person) {
+        $staffData = [
+            'deepLearningExperienceID' => $deepLearningExperienceID,
+            'gibbonPersonID'           => $person['gibbonPersonID'],
+            'role'                     => $person['role'] ?? 'Assistant',
+            'canEdit'                  => $person['canEdit'] ?? 'N',
+        ];
+        $deepLearningStaffID = $staffGateway->insertAndUpdate($staffData, $staffData);
 
-        // Upload the file, return the /uploads relative path
-        $data['headerImage'] = $fileUploader->uploadFromPost($file, $data['name']);
-
-        if (empty($data['headerImage'])) {
-            $partialFail = true;
-        }
-
-    } else {
-      $data['headerImage'] = $_POST['headerImage'];
+        $partialFail = !$deepLearningStaffID;
     }
 
-    // Update the record
-    $updated = $experienceGateway->update($deepLearningExperienceID, $data);
-
-    $URL .= !$updated
-        ? "&return=error2"
+    $URL .= !$updated || $partialFail
+        ? "&return=warning1"
         : "&return=success0";
 
     header("Location: {$URL}");

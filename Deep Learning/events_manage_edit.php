@@ -91,18 +91,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     $row = $form->addRow();
     $customBlocks = $row->addCustomBlocks('dates', $session, $canDelete)
         ->fromTemplate($blockTemplate)
-        ->settings(array('inputNameStrategy' => 'object', 'addOnEvent' => 'click'))
+        ->settings(['inputNameStrategy' => 'object', 'addOnEvent' => 'click'])
         ->placeholder(__('Event dates will be listed here...'))
         ->addToolInput($addBlockButton);
 
     $dataBlocks = $container->get(EventDateGateway::class)->selectDates($deepLearningEventID);
     while ($rowBlocks = $dataBlocks->fetch()) {
-      $smart = array(
-        'name' => $rowBlocks['name'],
-        'eventDate' => Format::date($rowBlocks['eventDate']),
-        'deepLearningEventDateID' => $rowBlocks['deepLearningEventDateID']
-      );
-      $customBlocks->addBlock($rowBlocks['deepLearningEventDateID'], $smart);
+        $customBlocks->addBlock($rowBlocks['deepLearningEventDateID'], [
+            'name' => $rowBlocks['name'],
+            'eventDate' => Format::date($rowBlocks['eventDate']),
+            'deepLearningEventDateID' => $rowBlocks['deepLearningEventDateID'],
+        ]);
     }
 
     // DISPLAY

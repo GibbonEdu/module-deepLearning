@@ -19,13 +19,21 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Services\Format;
 use Gibbon\Data\Validator;
+use Gibbon\Module\DeepLearning\Domain\UnitGateway;
+use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
+use Gibbon\Module\DeepLearning\Domain\StaffGateway;
 
 require_once '../../gibbon.php';
 
 $_POST = $container->get(Validator::class)->sanitize($_POST, ['description' => 'HTML']);
 
-$URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/experience_manage_add.php';
+$params = [
+    'gibbonSchoolYearID' => $_REQUEST['gibbonSchoolYearID'] ?? $session->get('gibbonSchoolYearID'),
+    'search'             => $_REQUEST['search'] ?? ''
+];
+
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/experience_manage_add.php&'.http_build_query($params);
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_manage_add.php') == false) {
     $URL .= '&return=error0';
@@ -33,26 +41,40 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     exit;
 } else {
     // Proceed!
-    $experienceGateway = $container->get(ExperienceGateway::class);
+    $partialFail = false;
 
+    $experienceGateway = $container->get(ExperienceGateway::class);
+    $staffGateway = $container->get(StaffGateway::class);
+    $settingGateway = $container->get(SettingGateway::class);
+    
     $data = [
         'deepLearningEventID'    => $_POST['deepLearningEventID'] ?? '',
-        'name'                   => $_POST['name'] ?? '',
-        'status'                 => 'Draft',
-        'cost'                   => $_POST['cost'] ?? null,
-        'sequenceNumber'         => 0,
-        'enrolmentMin'           => 0,
-        'enrolmentMax'           => 0,
+        'deepLearningUnitID'     => $_POST['deepLearningUnitID'] ?? '',
         'gibbonPersonIDCreated'  => $session->get('gibbonPersonID'),
         'gibbonPersonIDModified' => $session->get('gibbonPersonID'),
     ];
 
     // Validate the required values are present
-    if (empty($data['deepLearningEventID']) || empty($data['name'])) {
+    if (empty($data['deepLearningEventID']) || empty($data['deepLearningUnitID'])) {
         $URL .= '&return=error1';
         header("Location: {$URL}");
         exit;
     }
+
+    // Validate that the relational data exists
+    $event = $container->get(EventGateway::class)->getByID($data['deepLearningEventID']);
+    $unit = $container->get(UnitGateway::class)->getByID($data['deepLearningUnitID']);
+    if (empty($event) || empty($unit)) {
+        $URL .= '&return=error2';
+        header("Location: {$URL}");
+        exit;
+    }
+
+    // Set the default values for the experience
+    $data['name'] = $unit['name'];
+    $data['cost'] = $unit['cost'];
+    $data['enrolmentMin'] = $settingGateway->getSettingByScope('Deep Learning', 'enrolmentMin');
+    $data['enrolmentMax'] = $settingGateway->getSettingByScope('Deep Learning', 'enrolmentMax');
 
     // Validate that this record is unique
     if (!$experienceGateway->unique($data, ['name', 'deepLearningEventID'])) {
@@ -61,26 +83,30 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         exit;
     }
 
-    // Move attached file, if there is one
-    if (!empty($_FILES['headerImageFile']['tmp_name'])) {
-        $fileUploader = new Gibbon\FileUploader($pdo, $session);
-        $fileUploader->getFileExtensions('Graphics/Design');
-
-        $file = $_FILES['headerImageFile'] ?? null;
-
-        // Upload the file, return the /uploads relative path
-        $data['headerImage'] = $fileUploader->uploadFromPost($file, $data['name']);
-
-        if (empty($data['headerImage'])) {
-            $partialFail = true;
-        }
-
-    }
     // Create the record
     $deepLearningExperienceID = $experienceGateway->insert($data);
 
-    $URL .= !$deepLearningExperienceID
-        ? "&return=error2"
+    if (empty($deepLearningExperienceID)) {
+        $URL .= '&return=error2';
+        header("Location: {$URL}");
+        exit;
+    }
+
+    // Create the staff records
+    $staff = $_POST['staff'] ?? '';
+    foreach ($staff as $person) {
+        $deepLearningStaffID = $staffGateway->insert([
+            'deepLearningExperienceID' => $deepLearningExperienceID,
+            'gibbonPersonID'           => $person['gibbonPersonID'],
+            'role'                     => $person['role'] ?? 'Assistant',
+            'canEdit'                  => $person['canEdit'] ?? 'N',
+        ]);
+
+        $partialFail = !$deepLearningStaffID;
+    }
+    
+    $URL .= $partialFail
+        ? "&return=warning1"
         : "&return=success0&editID=$deepLearningExperienceID";
 
     header("Location: {$URL}");

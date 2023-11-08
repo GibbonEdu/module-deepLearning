@@ -45,7 +45,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningEvent` (
 ) ENGINE=InnoDB";
 
 $moduleTables[] = "CREATE TABLE `deepLearningEventDate` (
-    `deepLearningEventDateID` INT(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `deepLearningEventDateID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `deepLearningEventID` INT(10) UNSIGNED ZEROFILL NOT NULL,
     `eventDate` DATE NOT NULL,
     `name` VARCHAR(60) NOT NULL,
@@ -55,24 +55,72 @@ $moduleTables[] = "CREATE TABLE `deepLearningEventDate` (
     UNIQUE KEY (`eventDate`, `deepLearningEventID`)
 ) ENGINE=InnoDB";
 
-$moduleTables[] = "CREATE TABLE `deepLearningExperience` (
-    `deepLearningExperienceID` INT(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
-    `deepLearningEventID` INT(10) UNSIGNED ZEROFILL NOT NULL,
-    `deepLearningExperienceIDOrigin` INT(10) UNSIGNED ZEROFILL NULL,
-    `tripPlannerRequestID` INT(7) UNSIGNED ZEROFILL NULL,
+$moduleTables[] = "CREATE TABLE `deepLearningUnit` (
+    `deepLearningUnitID` INT(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(90) NOT NULL,
-    `description` TEXT NULL,
     `status` ENUM('Draft','Published') NOT NULL DEFAULT 'Draft',
     `cost` INT(10) NULL,
-    `tags` TEXT NULL,
+    `majors` VARCHAR(255) NULL,
+    `minors` VARCHAR(255) NULL,
     `headerImage` VARCHAR(255) NULL,
-    `enrolmentMin` INT(3) NOT NULL,
-    `enrolmentMax` INT(3) NOT NULL,
-    `sequenceNumber` INT(6) NOT NULL,
-    `gibbonYearGroupIDList` VARCHAR(255) NULL,
+    `description` TEXT NULL,
+    `teachersNotes` TEXT NULL,
     `timestampCreated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `timestampModified` TIMESTAMP NULL,
     `gibbonPersonIDCreated` INT(10) UNSIGNED ZEROFILL NOT NULL,
+    `gibbonPersonIDModified` INT(10) UNSIGNED ZEROFILL NOT NULL,
+    PRIMARY KEY (`deepLearningUnitID`),
+    UNIQUE KEY (`name`)
+) ENGINE=InnoDB";
+
+$moduleTables[] = "CREATE TABLE `deepLearningUnitAuthor` (
+    `deepLearningUnitAuthorID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `deepLearningUnitID` INT(10) UNSIGNED ZEROFILL NOT NULL,
+    `gibbonPersonID` INT(10) UNSIGNED ZEROFILL NOT NULL,
+    `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`deepLearningUnitAuthorID`),
+    UNIQUE KEY (`gibbonPersonID`, `deepLearningUnitID`)
+) ENGINE=InnoDB";
+
+$moduleTables[] = "CREATE TABLE `deepLearningUnitBlock` (
+    `deepLearningUnitBlockID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `deepLearningUnitID` INT(10) UNSIGNED ZEROFILL NOT NULL,
+    `deepLearningEventDateID` INT(12) UNSIGNED ZEROFILL NULL,
+    `title` VARCHAR(120) NOT NULL,
+    `type` ENUM('Text','Photo','Video','Location') NOT NULL DEFAULT 'Text',
+    `length` VARCHAR(3) NULL,
+    `content` TEXT NULL,
+    `sequenceNumber` INT(6) NOT NULL,
+    PRIMARY KEY (`deepLearningUnitBlockID`)
+) ENGINE=InnoDB";
+
+$moduleTables[] = "CREATE TABLE `deepLearningUnitPhoto` (
+    `deepLearningUnitPhotoID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `deepLearningUnitID` INT(10) UNSIGNED ZEROFILL NOT NULL,
+    `filePath` VARCHAR(255) NOT NULL,
+    `caption` VARCHAR(120) NULL,
+    `sequenceNumber` INT(6) NOT NULL,
+    PRIMARY KEY (`deepLearningUnitPhotoID`)
+) ENGINE=InnoDB";
+
+$moduleTables[] = "CREATE TABLE `deepLearningUnitTag` (
+    `deepLearningUnitTagID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `tag` VARCHAR(60) NOT NULL,
+    PRIMARY KEY (`deepLearningUnitTagID`),
+    UNIQUE KEY (`tag`)
+) ENGINE=InnoDB";
+
+$moduleTables[] = "CREATE TABLE `deepLearningExperience` (
+    `deepLearningExperienceID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `deepLearningEventID` INT(10) UNSIGNED ZEROFILL NOT NULL,
+    `deepLearningUnitID` INT(10) UNSIGNED ZEROFILL NOT NULL,
+    `name` VARCHAR(90) NOT NULL,
+    `active` ENUM('Y','N') NOT NULL DEFAULT 'Y',
+    `cost` INT(10) NULL,
+    `enrolmentMin` INT(3) NOT NULL,
+    `enrolmentMax` INT(3) NOT NULL,
+    `gibbonYearGroupIDList` VARCHAR(255) NULL,
+    `timestampModified` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `gibbonPersonIDModified` INT(10) UNSIGNED ZEROFILL NOT NULL,
     PRIMARY KEY (`deepLearningExperienceID`),
     UNIQUE KEY (`name`, `deepLearningEventID`)
@@ -80,50 +128,38 @@ $moduleTables[] = "CREATE TABLE `deepLearningExperience` (
 
 $moduleTables[] = "CREATE TABLE `deepLearningExperienceVenue` (
     `deepLearningExperienceVenueID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
-    `deepLearningExperienceID` INT(10) UNSIGNED ZEROFILL NOT NULL,
-    `deepLearningEventDateID` INT(10) UNSIGNED ZEROFILL NOT NULL,
+    `deepLearningExperienceID` INT(12) UNSIGNED ZEROFILL NOT NULL,
+    `deepLearningEventDateID` INT(12) UNSIGNED ZEROFILL NOT NULL,
     `gibbonSpaceID` INT(10) UNSIGNED ZEROFILL DEFAULT NULL,
     `venueExternal` VARCHAR(255) NOT NULL,
+    `venueExternalUrl` VARCHAR(255) NOT NULL,
+    `description` TEXT NULL,
     `timeStart` TIME NULL,
     `timeEnd` TIME NULL,
     PRIMARY KEY (`deepLearningExperienceVenueID`)
 ) ENGINE=InnoDB";
 
-$moduleTables[] = "CREATE TABLE `deepLearningExperienceBlock` (
-    `deepLearningExperienceBlockID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
-    `deepLearningExperienceID` INT(10) UNSIGNED ZEROFILL NOT NULL,
-    `deepLearningEventDateID` INT(10) UNSIGNED ZEROFILL NULL,
-    `title` VARCHAR(120) NOT NULL,
-    `type` ENUM('Text','Photo','Video','Location') NOT NULL DEFAULT 'Text',
-    `length` VARCHAR(3) NULL,
-    `content` TEXT NULL,
-    `sequenceNumber` INT(6) NOT NULL,
-    PRIMARY KEY (`deepLearningExperienceBlockID`)
-) ENGINE=InnoDB";
-
-$moduleTables[] = "CREATE TABLE `deepLearningExperiencePhoto` (
-    `deepLearningExperiencePhotoID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
-    `deepLearningExperienceID` INT(10) UNSIGNED ZEROFILL NOT NULL,
-    `filePath` VARCHAR(255) NOT NULL,
-    `caption` VARCHAR(120) NULL,
-    `sequenceNumber` INT(6) NOT NULL,
-    PRIMARY KEY (`deepLearningExperiencePhotoID`)
+$moduleTables[] = "CREATE TABLE `deepLearningExperienceTrip` (
+    `deepLearningExperienceTripID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `deepLearningExperienceID` INT(12) UNSIGNED ZEROFILL NOT NULL,
+    `tripPlannerRequestID` INT(7) UNSIGNED ZEROFILL NULL,
+    PRIMARY KEY (`deepLearningExperienceTripID`)
 ) ENGINE=InnoDB";
 
 $moduleTables[] = "CREATE TABLE `deepLearningStaff` (
-    `deepLearningStaffID` INT(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
-    `deepLearningExperienceID` INT(10) UNSIGNED ZEROFILL NOT NULL,
-    `deepLearningEventDateID` INT(10) UNSIGNED ZEROFILL NULL,
+    `deepLearningStaffID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+    `deepLearningExperienceID` INT(12) UNSIGNED ZEROFILL NOT NULL,
     `gibbonPersonID` INT(10) UNSIGNED ZEROFILL NOT NULL,
-    `tripLeader` ENUM('Y','N') NOT NULL DEFAULT 'N', 
+    `canEdit` ENUM('Y','N') NOT NULL DEFAULT 'N', 
     `role` VARCHAR(60) NOT NULL,
+    `deepLearningEventDateIDList` VARCHAR(255) NULL,
     PRIMARY KEY (`deepLearningStaffID`),
     UNIQUE KEY (`gibbonPersonID`, `deepLearningExperienceID`)
 ) ENGINE=InnoDB";
 
 $moduleTables[] = "CREATE TABLE `deepLearningEnrolment` (
     `deepLearningEnrolmentID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
-    `deepLearningExperienceID` INT(10) UNSIGNED ZEROFILL NOT NULL,
+    `deepLearningExperienceID` INT(12) UNSIGNED ZEROFILL NOT NULL,
     `deepLearningSignUpID` INT(12) UNSIGNED DEFAULT NULL,
     `gibbonPersonID` INT(10) UNSIGNED ZEROFILL NOT NULL,
     `status` ENUM('Pending','Confirmed') NOT NULL DEFAULT 'Pending',
@@ -136,9 +172,9 @@ $moduleTables[] = "CREATE TABLE `deepLearningEnrolment` (
 
 $moduleTables[] = "CREATE TABLE `deepLearningSignUp` (
     `deepLearningSignUpID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
-    `deepLearningExperienceID` INT(10) UNSIGNED ZEROFILL NOT NULL,
+    `deepLearningExperienceID` INT(12) UNSIGNED ZEROFILL NOT NULL,
     `gibbonPersonID` INT(10) UNSIGNED ZEROFILL NOT NULL,
-    `choice` ENUM('1','2','3') NOT NULL DEFAULT '1',
+    `choice` INT(2) NOT NULL DEFAULT 1,
     `timestampCreated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `gibbonPersonIDCreated` INT(10) UNSIGNED ZEROFILL NOT NULL,
     PRIMARY KEY (`deepLearningSignUpID`),
@@ -147,6 +183,8 @@ $moduleTables[] = "CREATE TABLE `deepLearningSignUp` (
 
 // Add gibbonSettings entries
 $gibbonSetting[] = "INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Deep Learning', 'welcomeText', 'Welcome Text', '', '')";
+$gibbonSetting[] = "INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Deep Learning', 'enrolmentMin', 'Default Enrolment Min', 'Unit should not run below this number of students.', '4')";
+$gibbonSetting[] = "INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Deep Learning', 'enrolmentMax', 'Default Enrolment Max', 'Enrolment should not exceed this number of students.', '20')";
 
 // Action rows
 // One array per action
@@ -195,9 +233,49 @@ $actionRows[] = [
     'name'                      => 'Manage Experiences_my',
     'precedence'                => '0',
     'category'                  => 'Administration',
-    'description'               => 'Allows the user to manage Deep Learning experiences they have edit access to.',
+    'description'               => 'Allows the user to manage Deep Learning experiences they have been added to as staff.',
     'URLList'                   => 'experience_manage.php,experience_manage_add.php,experience_manage_delete.php,experience_manage_edit.php',
     'entryURL'                  => 'experience_manage.php',
+    'entrySidebar'              => 'Y',
+    'menuShow'                  => 'Y',
+    'defaultPermissionAdmin'    => 'N',
+    'defaultPermissionTeacher'  => 'Y',
+    'defaultPermissionStudent'  => 'N',
+    'defaultPermissionParent'   => 'N',
+    'defaultPermissionSupport'  => 'N',
+    'categoryPermissionStaff'   => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent'  => 'N',
+    'categoryPermissionOther'   => 'N',
+];
+
+$actionRows[] = [
+    'name'                      => 'Manage Units_all',
+    'precedence'                => '1',
+    'category'                  => 'Administration',
+    'description'               => 'Allows the user to manage all Deep Learning units.',
+    'URLList'                   => 'unit_manage.php,unit_manage_add.php,unit_manage_delete.php,unit_manage_edit.php',
+    'entryURL'                  => 'unit_manage.php',
+    'entrySidebar'              => 'Y',
+    'menuShow'                  => 'Y',
+    'defaultPermissionAdmin'    => 'Y',
+    'defaultPermissionTeacher'  => 'N',
+    'defaultPermissionStudent'  => 'N',
+    'defaultPermissionParent'   => 'N',
+    'defaultPermissionSupport'  => 'N',
+    'categoryPermissionStaff'   => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent'  => 'N',
+    'categoryPermissionOther'   => 'N',
+];
+
+$actionRows[] = [
+    'name'                      => 'Manage Units_my',
+    'precedence'                => '0',
+    'category'                  => 'Administration',
+    'description'               => 'Allows the user to manage Deep Learning units they are an author of.',
+    'URLList'                   => 'unit_manage.php,unit_manage_add.php,unit_manage_delete.php,unit_manage_edit.php',
+    'entryURL'                  => 'unit_manage.php',
     'entrySidebar'              => 'Y',
     'menuShow'                  => 'Y',
     'defaultPermissionAdmin'    => 'N',
