@@ -17,8 +17,10 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Services\Format;
 use Gibbon\Forms\Prefab\DeleteForm;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
+use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manage_delete.php') == false) {
     // Access denied
@@ -27,20 +29,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     // Proceed!
     $deepLearningEventID = $_GET['deepLearningEventID'] ?? '';
 
-    $eventGateway = $container->get(EventGateway::class);
-
     if (empty($deepLearningEventID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
         return;
     }
 
-    $values = $eventGateway->getByID($deepLearningEventID);
+    $values = $container->get(EventGateway::class)->getByID($deepLearningEventID);
+    $experiences = $container->get(ExperienceGateway::class)->selectExperiencesByEvent($deepLearningEventID)->fetchKeyPair();
 
     if (empty($values)) {
         $page->addError(__('The specified record cannot be found.'));
         return;
     }
 
-    $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/Deep Learning/events_manage_deleteProcess.php');
+    $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/Deep Learning/events_manage_deleteProcess.php', true, false);
+    $form->addRow()->addContent(__m('Deleting this event will also delete {count} experiences that are part of this event, and all associated data.', ['count' => Format::bold(count($experiences))]));
+
+    $form->addRow()->addConfirmSubmit();
+
     echo $form->getOutput();
 }

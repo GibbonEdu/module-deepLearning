@@ -35,31 +35,72 @@ class EventGateway extends QueryableGateway
      * @param QueryCriteria $criteria
      * @return DataSet
      */
-    public function queryEvents(QueryCriteria $criteria)
+    public function queryEvents(QueryCriteria $criteria, $gibbonSchoolYearID)
     {
         $query = $this
             ->newQuery()
             ->distinct()
             ->from($this->getTableName())
-            ->cols(['deepLearningEvent.deepLearningEventID',
-            'deepLearningEvent.name',
-            'deepLearningEvent.description',
-            'deepLearningEvent.backgroundImage',
-            'deepLearningEvent.active',
-            "COUNT(DISTINCT deepLearningExperience.deepLearningExperienceID) as experienceCount",
-            "GROUP_CONCAT(DISTINCT eventDate SEPARATOR ',') AS eventDates",
-            "GROUP_CONCAT(DISTINCT deepLearningExperience.name) AS experienceNames"])
+            ->cols([
+                'deepLearningEvent.deepLearningEventID',
+                'deepLearningEvent.name',
+                'deepLearningEvent.description',
+                'deepLearningEvent.backgroundImage',
+                'deepLearningEvent.active',
+                'deepLearningEvent.viewable',
+                'deepLearningEvent.accessOpenDate',
+                'deepLearningEvent.accessCloseDate',
+                "MIN(deepLearningEventDate.eventDate) as startDate",
+                "MAX(deepLearningEventDate.eventDate) as endDate",
+                "COUNT(DISTINCT deepLearningExperience.deepLearningExperienceID) as experienceCount",
+                "GROUP_CONCAT(DISTINCT deepLearningEventDate.eventDate SEPARATOR ',') AS eventDates",
+                "GROUP_CONCAT(DISTINCT deepLearningExperience.name) AS experienceNames",
+                "GROUP_CONCAT(DISTINCT gibbonYearGroup.nameShort ORDER BY gibbonYearGroup.sequenceNumber SEPARATOR ', ') AS yearGroups",
+                "COUNT(DISTINCT gibbonYearGroup.gibbonYearGroupID) as yearGroupCount"
+            ])
             ->leftJoin('deepLearningEventDate', 'deepLearningEvent.deepLearningEventID=deepLearningEventDate.deepLearningEventID')
             ->leftJoin('deepLearningExperience', 'deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID')
+            ->leftJoin('gibbonYearGroup', 'FIND_IN_SET(gibbonYearGroup.gibbonYearGroupID, deepLearningEvent.gibbonYearGroupIDList)')
+            ->where('deepLearningEvent.gibbonSchoolYearID=:gibbonSchoolYearID')
+            ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID)
             ->groupBy(['deepLearningEventID','name']);
+
+        $criteria->addFilterRules([
+            'active' => function ($query, $active) {
+                return $query
+                    ->where('deepLearningEvent.active = :active')
+                    ->bindValue('active', $active);
+            },
+        ]);
 
         return $this->runQuery($query, $criteria);
     }
 
-    public function selectEvents()
+    public function selectEventsBySchoolYear()
     {
-        $sql = "SELECT deepLearningEventID as value, name, description, backgroundImage, active FROM deepLearningEvent ORDER BY name";
+        $sql = "SELECT gibbonSchoolYear.name as groupBy, deepLearningEventID as value, deepLearningEvent.name 
+                FROM deepLearningEvent
+                JOIN gibbonSchoolYear ON (deepLearningEvent.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID) 
+                ORDER BY gibbonSchoolYear.sequenceNumber DESC, name";
 
         return $this->db()->select($sql);
+    }
+
+    public function getEventDetailsByID($deepLearningEventID)
+    {
+        $data = ['deepLearningEventID' => $deepLearningEventID];
+        $sql = "SELECT deepLearningEvent.*,
+                    gibbonSchoolYear.name as schoolYear, 
+                    GROUP_CONCAT(DISTINCT deepLearningEventDate.eventDate SEPARATOR ',') AS eventDates,
+                    GROUP_CONCAT(DISTINCT gibbonYearGroup.nameShort ORDER BY gibbonYearGroup.sequenceNumber SEPARATOR ', ') AS yearGroups,
+                    COUNT(DISTINCT gibbonYearGroup.gibbonYearGroupID) as yearGroupCount
+                FROM deepLearningEvent
+                JOIN gibbonSchoolYear ON (deepLearningEvent.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID) 
+                JOIN deepLearningEventDate ON (deepLearningEvent.deepLearningEventID=deepLearningEventDate.deepLearningEventID)
+                LEFT JOIN gibbonYearGroup ON (FIND_IN_SET(gibbonYearGroup.gibbonYearGroupID, deepLearningEvent.gibbonYearGroupIDList))
+                WHERE deepLearningEvent.deepLearningEventID=:deepLearningEventID
+                GROUP BY deepLearningEvent.deepLearningEventID";
+
+        return $this->db()->selectOne($sql, $data);
     }
 }

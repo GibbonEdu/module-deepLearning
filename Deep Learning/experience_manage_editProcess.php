@@ -19,8 +19,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Services\Format;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
+use Gibbon\Data\Validator;
 
 require_once '../../gibbon.php';
+
+$_POST = $container->get(Validator::class)->sanitize($_POST, ['description' => 'HTML']);
 
 $deepLearningExperienceID = $_POST['deepLearningExperienceID'] ?? '';
 
@@ -36,7 +39,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     $experienceGateway = $container->get(ExperienceGateway::class);
 
     $data = [
-        'name'          => $_POST['name'] ?? '',
+        'name'                   => $_POST['name'] ?? '',
+        'status'                 => $_POST['status'] ?? 'Draft',
+        'cost'                   => $_POST['cost'] ?? null,
+        'sequenceNumber'         => 0,
+        'enrolmentMin'           => $_POST['enrolmentMin'] ?? null,
+        'enrolmentMax'           => $_POST['enrolmentMax'] ?? null,
+        'gibbonPersonIDModified' => $session->get('gibbonPersonID'),
     ];
 
     // Validate the required values are present
@@ -54,10 +63,28 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     }
 
     // Validate that this record is unique
-    if (!$experienceGateway->unique($data, ['name'], $deepLearningExperienceID)) {
+    if (!$experienceGateway->unique($data, ['name', 'deepLearningEventID'], $deepLearningExperienceID)) {
         $URL .= '&return=error7';
         header("Location: {$URL}");
         exit;
+    }
+
+    // Move attached file, if there is one
+    if (!empty($_FILES['headerImageFile']['tmp_name'])) {
+        $fileUploader = new Gibbon\FileUploader($pdo, $session);
+        $fileUploader->getFileExtensions('Graphics/Design');
+
+        $file = $_FILES['headerImageFile'] ?? null;
+
+        // Upload the file, return the /uploads relative path
+        $data['headerImage'] = $fileUploader->uploadFromPost($file, $data['name']);
+
+        if (empty($data['headerImage'])) {
+            $partialFail = true;
+        }
+
+    } else {
+      $data['headerImage'] = $_POST['headerImage'];
     }
 
     // Update the record

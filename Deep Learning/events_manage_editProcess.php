@@ -17,17 +17,19 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Data\Validator;
 use Gibbon\Services\Format;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Module\DeepLearning\Domain\EventDateGateway;
 
 require_once '../../gibbon.php';
 
+$_POST = $container->get(Validator::class)->sanitize($_POST, ['description' => 'HTML']);
+
 $deepLearningEventID = $_POST['deepLearningEventID'] ?? '';
+$gibbonSchoolYearID = $_REQUEST['gibbonSchoolYearID'] ?? $session->get('gibbonSchoolYearID');
 
 $URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/events_manage_edit.php&deepLearningEventID='.$deepLearningEventID;
-
-$gibbonSchoolYearID = $_REQUEST['gibbonSchoolYearID'] ?? $session->get('gibbonSchoolYearID');
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manage_edit.php') == false) {
     $URL .= '&return=error0';
@@ -47,7 +49,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         'description'           => $_POST['description'] ?? '',
         'backgroundImage'       => $_POST['backgroundImage'] ?? '',
         'active'                => $_POST['active'] ?? '',
-        'gibbonYearGroupIDList' => !empty($_POST['gibbonYearGroupIDList'])? implode(',', $_POST['gibbonYearGroupIDList']) : [],
+        'viewable'              => $_POST['viewable'] ?? 'N',
+        'gibbonYearGroupIDList' => !empty($_POST['gibbonYearGroupIDList'])? implode(',', $_POST['gibbonYearGroupIDList']) : '',
+        'accessOpenDate'        => !empty($_POST['accessOpenDate'])
+                                ? Format::dateConvert($_POST['accessOpenDate']).' '.($_POST['accessOpenTime'] ?? '00:00')
+                                : null,
+        'accessCloseDate'        => !empty($_POST['accessCloseDate'])
+                                ? Format::dateConvert($_POST['accessCloseDate']).' '.($_POST['accessCloseTime'] ?? '00:00')
+                                : null,
     ];
 
     // Validate the required values are present
@@ -71,23 +80,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         exit;
     }
 
-    //Move attached file, if there is one
-    $attachment = null;
-    if (!empty($_FILES['file']['tmp_name'])) {
+    // Move attached file, if there is one
+    if (!empty($_FILES['backgroundImageFile']['tmp_name'])) {
         $fileUploader = new Gibbon\FileUploader($pdo, $session);
         $fileUploader->getFileExtensions('Graphics/Design');
 
-        $file = $_FILES['file'] ?? null;
+        $file = $_FILES['backgroundImageFile'] ?? null;
 
         // Upload the file, return the /uploads relative path
-        $data['backgroundImage'] = $fileUploader->uploadFromPost($file, $data, $data['backgroundImage']);
+        $data['backgroundImage'] = $fileUploader->uploadFromPost($file, $data['name']);
 
         if (empty($data['backgroundImage'])) {
             $partialFail = true;
         }
 
     } else {
-      $data['backgroundImage']=$_POST['backgroundImage'];
+      $data['backgroundImage'] = $_POST['backgroundImage'];
     }
 
     // Update the record
@@ -95,7 +103,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
 
     // Update blocks
     $dates = $_POST['dates'] ?? [];
-    $blockIDs = [];
+    $dateIDs = [];
 
     foreach ($dates as $i) {
         $data = [
@@ -104,22 +112,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
             'eventDate'           => Format::dateConvert($i['eventDate']) ?? '',
         ];
 
-        $deepLearningDateID = $i["deepLearningDateID"] ?? '';
+        $deepLearningEventDateID = $i['deepLearningEventDateID'] ?? '';
 
-        if (!empty($deepLearningDateID)) {
-            $partialFail &= !$dateGateway->update($deepLearningDateID, $data);
+        if (!empty($deepLearningEventDateID)) {
+            $partialFail &= !$dateGateway->update($deepLearningEventDateID, $data);
         } else {
-            $deepLearningDateID = $dateGateway->insert($data);
-            $partialFail &= !$deepLearningDateID;
+            $deepLearningEventDateID = $dateGateway->insert($data);
+            $partialFail &= !$deepLearningEventDateID;
         }
 
-        $blockIDs[] = str_pad($deepLearningDateID, 10, '0', STR_PAD_LEFT);
+        $dateIDs[] = str_pad($deepLearningEventDateID, 10, '0', STR_PAD_LEFT);
     }
 
     // Remove orphaned blocks
-    if (!empty($blockIDs)) {
-        $data = ['deepLearningEventID' => $deepLearningEventID, 'blockIDs' => implode(',', $blockIDs)];
-        $sql = "DELETE FROM deepLearningDate WHERE deepLearningEventID=:deepLearningEventID AND NOT FIND_IN_SET(deepLearningDateID, :blockIDs)";
+    if (!empty($dateIDs)) {
+        $data = ['deepLearningEventID' => $deepLearningEventID, 'dateIDs' => implode(',', $dateIDs)];
+        $sql = "DELETE FROM deepLearningDate WHERE deepLearningEventID=:deepLearningEventID AND NOT FIND_IN_SET(deepLearningEventDateID, :dateIDs)";
         $pdo->statement($sql, $data);
     }
 

@@ -1,0 +1,67 @@
+{#<!--
+Gibbon: the flexible, open school platform
+Founded by Ross Parker at ICHK Secondary. Built by Ross Parker, Sandra Kuipers and the Gibbon community (https://gibbonedu.org/about/)
+Copyright © 2010, Gibbon Foundation
+Gibbon™, Gibbon Education Ltd. (Hong Kong)
+
+This is a Gibbon template file, written in HTML and Twig syntax.
+For info about editing, see: https://twig.symfony.com/doc/2.x/
+-->#}
+
+{% if event %}
+<header class="mb-8">
+    <h2 class="text-center text-gray-900  text-3xl mt-0 mb-1">
+        {{ event.name }}
+    </h2>
+
+    <div class="text-center text-gray-600 text-xs font-thin mb-4">
+        {% for date in event.eventDates|split(',') %}
+            {{- formatUsing('dateReadable', date, '%b %e') -}}
+            {{- not loop.last ? ', ' -}}
+        {% endfor %}
+
+        &nbsp;&nbsp;•&nbsp;&nbsp;
+
+        {% if event.yearGroupCount >= 8 %}
+            {{ __m('All Year Groups') }}
+        {% else %}
+            {{ event.yearGroups|replace({'Y0':'Y'}) }}
+        {% endif %}
+    </div>
+
+    <div class="text-gray-800 text-xs">
+        {{ event.description|raw }}
+    </div>
+</header>
+{% endif %}
+
+{% if experiences is not empty %}
+    <section class="w-full grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for experience in experiences %}
+        <a class="flex flex-col justify-start relative " href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_experience.php&sidebar=false&deepLearningEventID={{ event.deepLearningEventID }}&deepLearningExperienceID={{ experience.deepLearningExperienceID }}">
+            <div class="absolute top-0 left-0 w-full h-40 sm:h-48 lg:h-56 rounded flex justify-center items-center group transition-all duration-150 hover:bg-blur">
+                <div href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_event.php&deepLearningEventID={{ event.deepLearningEventID }}" class="w-auto px-10 py-3 border border-white hover:bg-translucent hidden group-hover:block transition-all duration-150 rounded-sm text-center text-white text-base font-light">
+                    {{ __m('Learn More') }}
+                </div>
+            </div>
+            <div class="w-full h-40 sm:h-48 lg:h-56 rounded overflow-hidden">
+                {% if experience.headerImage %}
+                    <img src="{{ absoluteURL }}/{{ experience.headerImage }}" class="w-full max-w-full h-full" style="object-position: center; object-fit: cover;">
+                {% else %}
+                    <div class="w-full max-w-full h-full bg-gray-200"></div>
+                {% endif %}
+            </div>
+
+            <h3 class="normal-case text-base mt-3">
+                {{ experience.name }}
+            </h3>
+        </a>
+    {% endfor %}
+    </section>
+{% else %}
+    <div class="h-48 rounded-sm border bg-gray-100 shadow-inner overflow-hidden">
+        {% include 'components/blankSlate.twig.html' with {blankSlate: __m("There's nothing here yet. Check back soon!")} %}
+    </div>
+{% endif %}
+
+

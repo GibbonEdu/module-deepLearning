@@ -40,8 +40,52 @@ class ExperienceGateway extends QueryableGateway
         $query = $this
             ->newQuery()
             ->distinct()
+            ->cols([
+                'deepLearningEvent.name as eventName',
+                'deepLearningEvent.nameShort as eventNameShort',
+                'deepLearningEvent.deepLearningEventID',
+                'deepLearningExperience.deepLearningExperienceID',
+                'deepLearningExperience.name',
+                'deepLearningExperience.status',
+            ])
             ->from($this->getTableName())
-            ->cols(['deepLearningExperience.deepLearningExperienceID', 'name']);
+            ->innerJoin('deepLearningEvent', 'deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID');
+
+
+        return $this->runQuery($query, $criteria);
+    }
+
+    /**
+     * @param QueryCriteria $criteria
+     * @param string $deepLearningEventID
+     * @return DataSet
+     */
+    public function queryExperiencesByEvent(QueryCriteria $criteria, $deepLearningEventID)
+    {
+        $query = $this
+            ->newQuery()
+            ->distinct()
+            ->cols([
+                'deepLearningEvent.name as eventName',
+                'deepLearningEvent.nameShort as eventNameShort',
+                'deepLearningEvent.deepLearningEventID',
+                'deepLearningExperience.deepLearningExperienceID',
+                'deepLearningExperience.name',
+                'deepLearningExperience.status',
+                'deepLearningExperience.headerImage',
+            ])
+            ->from($this->getTableName())
+            ->innerJoin('deepLearningEvent', 'deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID')
+            ->where('deepLearningExperience.deepLearningEventID=:deepLearningEventID')
+            ->bindValue('deepLearningEventID', $deepLearningEventID);
+
+        $criteria->addFilterRules([
+            'status' => function ($query, $status) {
+                return $query
+                    ->where('deepLearningExperience.status = :status')
+                    ->bindValue('status', $status);
+            },
+        ]);
 
         return $this->runQuery($query, $criteria);
     }
@@ -61,5 +105,20 @@ class ExperienceGateway extends QueryableGateway
                 ORDER BY name";
 
         return $this->db()->select($sql, $data);
+    }
+
+    public function getExperienceDetailsByID($deepLearningExperienceID)
+    {
+        $data = ['deepLearningExperienceID' => $deepLearningExperienceID];
+        $sql = "SELECT 
+                    deepLearningEvent.deepLearningEventID,
+                    deepLearningEvent.name as eventName,
+                    deepLearningExperience.*
+                FROM deepLearningExperience
+                JOIN deepLearningEvent ON (deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID)
+                WHERE deepLearningExperience.deepLearningExperienceID=:deepLearningExperienceID
+                GROUP BY deepLearningExperience.deepLearningExperienceID";
+
+        return $this->db()->selectOne($sql, $data);
     }
 }

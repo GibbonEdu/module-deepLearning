@@ -48,10 +48,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         $row->addLabel('nameShort', __('Short Name'))->description(__('Must be unique for this school year.'));
         $row->addTextField('nameShort')->required()->maxLength(12);
 
-    // $row = $form->addRow();
-    //     $row->addLabel('description', __('Description'));
-    //     $row->addTextField('description');
-
     $row = $form->addRow();
         $row->addLabel('gibbonYearGroupIDList', __('Year Groups'));
         $row->addCheckboxYearGroup('gibbonYearGroupIDList')
@@ -77,19 +73,39 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         ->placeholder(__m('Event dates will be listed here...'))
         ->addToolInput($addBlockButton);
 
+    // DISPLAY
+    $form->addRow()->addHeading(__m('Display'));
+
+    $row = $form->addRow();
+        $row->addLabel('backgroundImage', __m('Header Image'))->description(__m('A header image for the event'));
+        $row->addFileUpload('backgroundImage')->accepts('.jpg,.jpeg,.gif,.png');
+    
+    $col = $form->addRow()->addColumn();
+        $col->addLabel('description', __m('Introduction'));
+        $col->addEditor('description', $guid)->showMedia(true);
+
     // ACCESS
     $form->addRow()->addHeading(__m('Access'));
 
     $row = $form->addRow();
-        $row->addLabel('active', __('Active'));
+        $row->addLabel('active', __('Active'))->description(__m('Inactive events are only visible to users with full Manage Events access.'));
         $row->addYesNo('active')->required()->selected('N');
 
-    // DISPLAY
-    // $form->addRow()->addHeading(__('Display'));
+    $row = $form->addRow();
+        $row->addLabel('viewable', __('Viewable'))->description(__m('Can users view and explore the experiences in this event?'));
+        $row->addYesNo('viewable')->required()->selected('N');
 
-    // $row = $form->addRow();
-    //     $row->addLabel('backgroundImage', __m('Header Image'))->description(__m('A header image for the event'));
-    //     $row->addFileUpload('backgroundImage')->accepts('.jpg,.jpeg,.gif,.png');
+    $row = $form->addRow();
+        $row->addLabel('accessOpenDate', __('Open Sign-up'))->prepend('1. ')->append('<br/>2. '.__m('Sign-up in unavailable until this date and time.'));
+        $col = $row->addColumn('accessOpenDate')->setClass('inline');
+        $col->addDate('accessOpenDate')->setValue(substr($values['accessOpenDate'] ?? '', 0, 11))->addClass('mr-2');
+        $col->addTime('accessOpenTime')->setValue(substr($values['accessOpenDate'] ?? '', 11, 5));
+
+    $row = $form->addRow();
+        $row->addLabel('accessCloseDate', __('Close Sign-up'))->prepend('1. ')->append('<br/>2. '.__m('Sign-up will automatically close on this date.'));
+        $col = $row->addColumn('accessCloseDate')->setClass('inline');
+        $col->addDate('accessCloseDate')->setValue(substr($values['accessCloseDate'] ?? '', 0, 11))->addClass('mr-2');
+        $col->addTime('accessCloseTime')->setValue(substr($values['accessCloseDate'] ?? '', 11, 5));
 
     $row = $form->addRow();
         $row->addFooter();

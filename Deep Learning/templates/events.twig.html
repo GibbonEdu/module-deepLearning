@@ -1,0 +1,67 @@
+{#<!--
+Gibbon: the flexible, open school platform
+Founded by Ross Parker at ICHK Secondary. Built by Ross Parker, Sandra Kuipers and the Gibbon community (https://gibbonedu.org/about/)
+Copyright © 2010, Gibbon Foundation
+Gibbon™, Gibbon Education Ltd. (Hong Kong)
+
+This is a Gibbon template file, written in HTML and Twig syntax.
+For info about editing, see: https://twig.symfony.com/doc/2.x/
+-->#}
+ 
+{% for event in events %}
+    {% set viewable = event.viewable == 'Y' and event.backgroundImage is not empty %}
+
+    <div class="w-full h-56 relative rounded mb-6">
+        <div class="absolute w-full h-full rounded overflow-hidden">
+            {% if viewable %}
+                <img src="{{ absoluteURL }}/{{ event.backgroundImage }}" class="w-full max-w-full h-full" style="object-position: center; object-fit: cover;" loading="eager">
+            {% else %}
+                <div class="w-full max-w-full h-full bg-gray-200"></div>
+            {% endif %}
+        </div>
+
+        <div class="w-2/5 sm:w-1/3 h-full flex flex-col justify-start p-6 rounded-l" style="background: rgba(0,0,0,0.15); -webkit-backdrop-filter: blur(12px)  brightness(120%); backdrop-filter: blur(12px) brightness(120%);">
+            <h2 class="{{ viewable ? 'text-white' : 'text-gray-600' }} text-base sm:text-xl mt-0 mb-2">
+                {{ event.name }}
+            </h2>
+            
+            <div class="{{ viewable ? 'text-white' : 'text-gray-600' }} text-xs font-thin">
+                {% for date in event.eventDates|split(',') %}
+                    {{- formatUsing('dateReadable', date, '%b %e') -}}
+                    {{- not loop.last ? ', ' -}}
+                {% endfor %}
+            </div>
+
+            <div class="flex-1">
+            </div>
+
+            {% if viewable %}
+                <a href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_event.php&sidebar=false&deepLearningEventID={{ event.deepLearningEventID }}" class="py-2 border border-white hover:bg-translucent transition duration-100 rounded-sm text-center text-white text-base font-light">
+                    {{ __m('Explore') }}
+                </a>
+            {% else %}
+                <div class="{{ viewable ? 'text-white font-light' : 'text-gray-600 font-thin' }} text-center text-white text-base italic">
+                    {{ __m('Upcoming Event') }}
+                </div>
+            {% endif %}
+            
+        </div>
+
+        <div class="absolute bottom-0 right-0 mb-6 mr-6">
+            <span class="tag text-white text-sm font-light" style="background: rgba(0,0,0,{{ viewable ? '0.65' : '0.2' }});">
+                {% if event.yearGroupCount >= 8 %}
+                    {{ __m('All Year Groups') }}
+                {% else %}
+                    {{ event.yearGroups|replace({'Y0':'Y'}) }}
+                {% endif %}
+            </span>
+        </div>
+        
+    </div>
+
+{% else %}
+    <div class="h-48 rounded-sm border bg-gray-100 shadow-inner overflow-hidden">
+        {% include 'components/blankSlate.twig.html' with {blankSlate: __m('There are no Deep Learning events yet. Check back soon!')} %}
+    </div>
+{% endfor %}
+

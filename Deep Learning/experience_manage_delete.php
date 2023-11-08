@@ -39,6 +39,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         return;
     }
 
-    $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/Deep Learning/experience_manage_deleteProcess.php');
+    $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/Deep Learning/experience_manage_deleteProcess.php', true);
     echo $form->getOutput();
 }

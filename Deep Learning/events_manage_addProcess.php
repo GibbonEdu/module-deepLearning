@@ -17,11 +17,14 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Data\Validator;
 use Gibbon\Services\Format;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Module\DeepLearning\Domain\EventDateGateway;
 
 require_once '../../gibbon.php';
+
+$_POST = $container->get(Validator::class)->sanitize($_POST, ['description' => 'HTML']);
 
 $URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/events_manage_add.php';
 
@@ -42,8 +45,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         'nameShort'             => $_POST['nameShort'] ?? '',
         'description'           => $_POST['description'] ?? '',
         'backgroundImage'       => $_POST['backgroundImage'] ?? '',
-        'active'                => $_POST['active'] ?? '',
-        'gibbonYearGroupIDList' => !empty($_POST['gibbonYearGroupIDList'])? implode(',', $_POST['gibbonYearGroupIDList']) : [],
+        'active'                => $_POST['active'] ?? 'N',
+        'viewable'              => $_POST['viewable'] ?? 'N',
+        'gibbonYearGroupIDList' => !empty($_POST['gibbonYearGroupIDList'])? implode(',', $_POST['gibbonYearGroupIDList']) : '',
+        'accessOpenDate'        => !empty($_POST['accessOpenDate'])
+                                ? Format::dateConvert($_POST['accessOpenDate']).' '.($_POST['accessOpenTime'] ?? '00:00')
+                                : null,
+        'accessCloseDate'        => !empty($_POST['accessCloseDate'])
+                                ? Format::dateConvert($_POST['accessCloseDate']).' '.($_POST['accessCloseTime'] ?? '00:00')
+                                : null,
     ];
 
     // Validate the required values are present
@@ -60,15 +70,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         exit;
     }
 
-    //Move attached file, if there is one
-    if (!empty($_FILES['backgroundImage']['tmp_name'])) {
+    // Move attached file, if there is one
+    if (!empty($_FILES['backgroundImageFile']['tmp_name'])) {
         $fileUploader = new Gibbon\FileUploader($pdo, $session);
         $fileUploader->getFileExtensions('Graphics/Design');
 
-        $file = $_FILES['backgroundImage'] ?? null;
+        $file = $_FILES['backgroundImageFile'] ?? null;
 
         // Upload the file, return the /uploads relative path
-        $data['backgroundImage'] = $fileUploader->uploadFromPost($file, $data, $data['name']);
+        $data['backgroundImage'] = $fileUploader->uploadFromPost($file, $data['name']);
 
         if (empty($data['backgroundImage'])) {
             $partialFail = true;
@@ -78,13 +88,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     // Create the record
     $deepLearningEventID = $eventGateway->insert($data);
 
-
-    $data = [];
-    $data['deepLearningEventID'] = $deepLearningEventID;
     $dates = $_POST['dates'] ?? [];
-    foreach ($dates as $date) {
-      $data['name'] = $date['name'];
-      $data['date'] = Format::dateConvert($date['date']);
+    foreach ($dates as $i) {
+        $data = [
+            'deepLearningEventID' => $deepLearningEventID,
+            'name'                => $i['name'] ?? '',
+            'eventDate'           => Format::dateConvert($i['eventDate']) ?? '',
+        ];
+
       $dateGateway->insert($data);
     }
 

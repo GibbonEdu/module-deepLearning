@@ -45,8 +45,26 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         ->setURL('/modules/Deep Learning/experience_manage_add.php')
         ->displayLabel();
 
+    $table->modifyRows(function($values, $row) {
+        if ($values['status'] == 'Draft') $row->addClass('dull');
+        return $row;
+    });
+
+    $table->addColumn('eventNameShort', __('Event'))
+        ->width('10%');
+
     $table->addColumn('name', __('Name'))
-        ->sortable(['deepLearningExperience.name']);
+        ->context('primary')
+        ->format(function ($values) {
+            $output = $values['name'];
+            if ($values['status'] == 'Draft') {
+                $output .= Format::tag(__('Draft'), 'message ml-2');
+            }
+            return $output;
+        });
+
+    $table->addColumn('students', __('Students'))
+        ->width('10%');
 
     // ACTIONS
     $table->addActionColumn()

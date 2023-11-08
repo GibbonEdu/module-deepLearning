@@ -29,14 +29,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     $page->breadcrumbs
         ->add(__m('Manage Events'));
 
+    $gibbonSchoolYearID = $_REQUEST['gibbonSchoolYearID'] ?? $session->get('gibbonSchoolYearID');
+    $page->navigator->addSchoolYearNavigation($gibbonSchoolYearID);
+
     // Query events
     $eventGateway = $container->get(EventGateway::class);
 
     $criteria = $eventGateway->newQueryCriteria()
-        ->sortBy(['name'])
+        ->sortBy(['startDate'])
         ->fromPOST();
 
-    $events = $eventGateway->queryEvents($criteria);
+    $events = $eventGateway->queryEvents($criteria, $gibbonSchoolYearID);
 
     // Render table
     $table = DataTable::createPaginated('events', $criteria);
@@ -47,6 +50,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
 
     $table->modifyRows(function($values, $row) {
         if ($values['active'] == 'N') $row->addClass('error');
+        if ($values['viewable'] == 'N') $row->addClass('dull');
         return $row;
     });
 
@@ -67,13 +71,24 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
             return implode('<br/>', $dates);
         });
 
+    $table->addColumn('signUp', __('Sign-up'))
+        ->sortable(['accessOpenDate'])
+        ->format(Format::using('dateRangeReadable', ['accessOpenDate', 'accessCloseDate']));
+
     // $table->addColumn('description', __('Description'))
     //     ->sortable(['deepLearningEvent.description']);
 
     $table->addColumn('experienceCount', __m('Experiences'))
-        ->sortable(['experienceCount']);
+        ->sortable(['experienceCount'])
+        ->width('12%');
 
-    $table->addColumn('active', __('Active'))->format(Format::using('yesNo', 'active'));
+    $table->addColumn('active', __('Active'))
+        ->format(Format::using('yesNo', 'active'))
+        ->width('10%');
+
+    $table->addColumn('viewable', __('Viewable'))
+        ->format(Format::using('yesNo', 'viewable'))
+        ->width('10%');
 
     // ACTIONS
     $table->addActionColumn()

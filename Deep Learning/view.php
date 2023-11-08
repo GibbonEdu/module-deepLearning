@@ -17,8 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Services\Format;
-use Gibbon\Tables\DataTable;
+use Gibbon\Module\DeepLearning\Domain\EventGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php') == false) {
     // Access denied
@@ -27,4 +26,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php') =
     // Proceed!
     $page->breadcrumbs
         ->add(__m('Deep Learning Events'));
+
+    // Query events
+    $eventGateway = $container->get(EventGateway::class);
+
+    $criteria = $eventGateway->newQueryCriteria()
+        ->filterBy('active', 'Y')
+        ->sortBy(['startDate'])
+        ->fromPOST();
+
+    $events = $eventGateway->queryEvents($criteria, $session->get('gibbonSchoolYearID'));
+
+    $page->writeFromTemplate('events.twig.html', [
+        'events' => $events->toArray(),
+    ]);
 }
