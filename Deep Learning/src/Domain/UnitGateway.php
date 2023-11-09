@@ -47,6 +47,7 @@ class UnitGateway extends QueryableGateway
                 'deepLearningUnit.minors',
                 'deepLearningUnit.status',
                 "GROUP_CONCAT(DISTINCT CONCAT(gibbonPerson.preferredName, ' ', gibbonPerson.surname) ORDER BY gibbonPerson.surname SEPARATOR '<br/>') as authors",
+                "(CASE WHEN deepLearningUnit.status = 'Retired' THEN 1 ELSE 0 END) as activeUnit",
             ])
             ->from($this->getTableName())
             ->leftJoin('deepLearningUnitAuthor', 'deepLearningUnitAuthor.deepLearningUnitID=deepLearningUnit.deepLearningUnitID')
@@ -54,14 +55,15 @@ class UnitGateway extends QueryableGateway
             ->groupBy(['deepLearningUnit.deepLearningUnitID']);
 
         if (!empty($gibbonPersonID)) {
-            $query->where('deepLearningUnitAuthor.gibbonPersonID=:gibbonPersonID')
+            $query->leftJoin('deepLearningUnitAuthor as authorship', 'authorship.deepLearningUnitID=deepLearningUnit.deepLearningUnitID')
+                ->where('authorship.gibbonPersonID=:gibbonPersonID')
                 ->bindValue('gibbonPersonID', $gibbonPersonID);
         }
 
         $criteria->addFilterRules([
             'status' => function ($query, $status) {
                 return $query
-                    ->where('deepLearningEvent.status = :status')
+                    ->where('deepLearningUnit.status = :status')
                     ->bindValue('status', ucfirst($status));
             },
         ]);

@@ -98,7 +98,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
                     ->setURL('/modules/Deep Learning/events_manage_edit.php');
 
             $actions->addAction('delete', __('Delete'))
-                    ->setURL('/modules/Deep Learning/events_manage_delete.php');
+                    ->setURL('/modules/Deep Learning/events_manage_delete.php')
+                    ->modalWindow(650, 400);
         });
 
     echo $table->render($events);

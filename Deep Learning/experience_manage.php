@@ -51,20 +51,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         ->fromPOST();
 
     // Search
-    $form = Form::create('filters', $session->get('absoluteURL').'/index.php', 'get');
-    $form->setClass('noIntBorder fullWidth');
+    if ($highestAction == 'Manage Experiences_all') {
+        $form = Form::create('filters', $session->get('absoluteURL').'/index.php', 'get');
+        $form->setClass('noIntBorder fullWidth');
 
-    $form->addHiddenValue('q', '/modules/Deep Learning/experience_manage.php');
+        $form->addHiddenValue('q', '/modules/Deep Learning/experience_manage.php');
 
-    $row = $form->addRow();
-        $row->addLabel('search', __('Search For'))->description(__m('Experience name, unit name'));
-        $row->addTextField('search')->setValue($criteria->getSearchText())->maxLength(20);
+        $row = $form->addRow();
+            $row->addLabel('search', __('Search For'))->description(__m('Experience name, unit name'));
+            $row->addTextField('search')->setValue($criteria->getSearchText())->maxLength(20);
 
-    $row = $form->addRow();
-        $row->addFooter();
-        $row->addSearchSubmit($gibbon->session, 'Clear Filters', ['view', 'sidebar']);
+        $row = $form->addRow();
+            $row->addFooter();
+            $row->addSearchSubmit($gibbon->session, 'Clear Filters', ['view', 'sidebar']);
 
-    echo $form->getOutput();
+        echo $form->getOutput();
+    }
 
     // Query experiences
     $gibbonPersonID = $highestAction == 'Manage Experiences_my' ? $session->get('gibbonPersonID') : null;
@@ -114,7 +116,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
             if ($highestAction == 'Manage Experiences_all') {
                 $actions->addAction('delete', __('Delete'))
-                        ->setURL('/modules/Deep Learning/experience_manage_delete.php');
+                        ->setURL('/modules/Deep Learning/experience_manage_delete.php')
+                        ->modalWindow(650, 400);
             }
         });
 

@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Prefab\DeleteForm;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
+use Gibbon\Services\Format;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_manage_delete.php') == false) {
     // Access denied
@@ -39,6 +40,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         return;
     }
 
-    $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/Deep Learning/experience_manage_deleteProcess.php', true);
+    $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/Deep Learning/experience_manage_deleteProcess.php', true, false);
+    $form->addRow()->addContent(Format::alert(__m('Experiences should be set inactive rather than deleted to prevent loss of data.')));
+    $form->addRow()->addConfirmSubmit();
+
     echo $form->getOutput();
 }

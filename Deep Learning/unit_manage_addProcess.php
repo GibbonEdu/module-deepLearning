@@ -45,6 +45,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         'name'                   => $_POST['name'] ?? '',
         'status'                 => $_POST['status'] ?? 'Draft',
         'cost'                   => !empty($_POST['cost']) ? $_POST['cost'] : null,
+        'location'               => $_POST['location'] ?? '',
+        'provider'               => $_POST['provider'] ?? '',
         'majors'                 => $_POST['majors'] ?? '',
         'minors'                 => $_POST['minors'] ?? '',
         'description'            => $_POST['description'] ?? '',

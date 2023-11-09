@@ -61,20 +61,31 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         $row->addTextField('name')->required()->maxLength(90);
 
     $row = $form->addRow();
-        $row->addLabel('status', __('Status'));
-        $row->addSelect('status')->fromArray(['Draft' => __m('Draft'), 'Published' => __m('Published')])->required();
+        $row->addLabel('status', __('Status'))->description(__m('Only published units will be available to run experiences.'));
+        $row->addSelect('status')->fromArray(['Draft' => __m('Draft'), 'Published' => __m('Published'), 'Retired' => __m('Retired')])->required();
+
+    // DEFAULTS
+    $form->addRow()->addHeading(__('Defaults'))->append(__m('Each experience can customise the final values.'));
+
+    $row = $form->addRow();
+        $row->addLabel('cost', __m('Cost'))->description(__m('Leave empty to not display a cost.'));
+        $row->addCurrency('cost')->maxLength(10);
+
+    $row = $form->addRow();
+        $row->addLabel('location', __m('Location'))->description(__m('The general location this experience will take place at.'));
+        $row->addTextField('location')->maxLength(255);
+
+    $row = $form->addRow();
+        $row->addLabel('provider', __m('Provider'))->description(__m('Leave blank if not using an external provider.'));
+        $row->addTextField('provider')->maxLength(255);
 
     // DISPLAY
-    $form->addRow()->addHeading(__('Display'));
+    $form->addRow()->addHeading(__('Display'))->append(__m('All experiences running this unit will use these images and descriptions.'));
 
     $row = $form->addRow();
         $row->addLabel('headerImage', __m('Header Image'))->description(__m('A header image to display on the experience page.'));
         $row->addFileUpload('headerImageFile')->accepts('.jpg,.jpeg,.gif,.png')
             ->setAttachment('headerImage', $session->get('absoluteURL'), $values['headerImage']);
-
-    $row = $form->addRow();
-        $row->addLabel('cost', __m('Estimated Cost'))->description(__m('Experiences can customise the actual cost.'));
-        $row->addCurrency('cost')->maxLength(10);
 
     $row = $form->addRow();
         $col = $row->addColumn()->setClass('');
@@ -100,7 +111,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
             ->setParameter('allowFreeTagging', true);
 
     // RESOURCES
-    $form->addRow()->addHeading(__('Resources'));
+    $form->addRow()->addHeading(__('Resources'))->append(__m('Instructions and files that will help a teacher run this unit.'));
 
     $row = $form->addRow();
         $col = $row->addColumn()->setClass('');
@@ -108,7 +119,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         $col->addEditor('teachersNotes', $guid);
 
     // AUTHORS
-    $form->addRow()->addHeading(__('Authors'));
+    $form->addRow()->addHeading(__('Authors'))->append(__m('All authors have edit access to this unit.'));
 
     // Custom Block Template
     $addBlockButton = $form->getFactory()->createButton(__m('Add Author'))->addClass('addBlock');
@@ -116,7 +127,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
     $blockTemplate = $form->getFactory()->createTable()->setClass('blank');
     $row = $blockTemplate->addRow()->addClass('w-full flex justify-between items-center mt-1 ml-2');
         $row->addSelectStaff('gibbonPersonID')->photo(true, 'small')->setClass('flex-1 mr-1')->required()->placeholder()
-            ->append("<input type='hidden' id='deepLearningUnitAuthorID' name='deepLearningUnitAuthorID' value=''/>");
+            ->append("<input type='hidden' id='deepLearningUnitAuthorID' name='deepLearningUnitAuthorID' value=''/>")
+            ->append("<input type='hidden' id='gibbonPersonIDOriginal' name='gibbonPersonIDOriginal' value=''/>");
         $row->addTextField('lastEdit')->readOnly()->setClass('text-xs text-gray-600 italic');
 
     // Custom Blocks
@@ -131,6 +143,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
     while ($person = $authors->fetch()) {
         $customBlocks->addBlock($person['deepLearningUnitAuthorID'], [
             'deepLearningUnitAuthorID' => $person['deepLearningUnitAuthorID'],
+            'gibbonPersonIDOriginal'   => $person['gibbonPersonID'],
             'gibbonPersonID'           => $person['gibbonPersonID'],
             'lastEdit'                 => !empty($person['timestamp']) ? __m('Last Edit').': '.Format::dateTime($person['timestamp']) : '',
         ]);

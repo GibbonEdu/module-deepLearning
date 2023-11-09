@@ -74,6 +74,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     // Set the default values for the experience
     $data['name'] = $unit['name'];
     $data['cost'] = $unit['cost'];
+    $data['location'] = $unit['location'];
+    $data['provider'] = $unit['provider'];
     $data['gibbonYearGroupIDList'] = $event['gibbonYearGroupIDList'];
     $data['enrolmentMin'] = $settingGateway->getSettingByScope('Deep Learning', 'enrolmentMin');
     $data['enrolmentMax'] = $settingGateway->getSettingByScope('Deep Learning', 'enrolmentMax');

@@ -80,12 +80,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         $row->addTextField('name')->required()->maxLength(90);
 
     $row = $form->addRow();
-        $row->addLabel('location', __m('Location'));
+        $row->addLabel('location', __m('Location'))->description(__m('The general location this experience will take place at.'));
         $row->addTextField('location')->maxLength(255);
 
     $row = $form->addRow();
-        $row->addLabel('location', __m('Provider'))->description(__m('Leave blank if not using an external provider.'));
-        $row->addTextField('location')->maxLength(255);
+        $row->addLabel('provider', __m('Provider'))->description(__m('Leave blank if not using an external provider.'));
+        $row->addTextField('provider')->maxLength(255);
 
     $row = $form->addRow();
         $row->addLabel('active', __('Active'))->description(__m('Inactive experiences are only visible to users with view permissions.'));
@@ -108,7 +108,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
     $yearGroups = $container->get(EventGateway::class)->selectYearGroupsByEvent($values['deepLearningEventID'])->fetchKeyPair();
     $row = $form->addRow();
-        $row->addLabel('gibbonYearGroupIDList', __('Year Groups'));
+        $row->addLabel('gibbonYearGroupIDList', __('Year Groups'))->description(__m('Defaults to the year groups for the event itself.'));
         $row->addCheckbox('gibbonYearGroupIDList')
             ->fromArray($yearGroups)
             ->addCheckAllNone()

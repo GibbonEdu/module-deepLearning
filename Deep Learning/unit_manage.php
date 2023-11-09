@@ -42,24 +42,26 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage.
     $unitGateway = $container->get(UnitGateway::class);
     $criteria = $unitGateway->newQueryCriteria()
         ->searchBy($unitGateway->getSearchableColumns(), $search)
-        ->sortBy(['name'])
+        ->sortBy(['activeUnit', 'name'])
         ->fromPOST();
 
     // Search
-    $form = Form::create('filters', $session->get('absoluteURL').'/index.php', 'get');
-    $form->setClass('noIntBorder fullWidth');
+    if ($highestAction == 'Manage Units_all') {
+        $form = Form::create('filters', $session->get('absoluteURL').'/index.php', 'get');
+        $form->setClass('noIntBorder fullWidth');
 
-    $form->addHiddenValue('q', '/modules/Deep Learning/unit_manage.php');
+        $form->addHiddenValue('q', '/modules/Deep Learning/unit_manage.php');
 
-    $row = $form->addRow();
-        $row->addLabel('search', __('Search For'))->description(__m('Unit name, majors, minors, authors'));
-        $row->addTextField('search')->setValue($criteria->getSearchText())->maxLength(20);
+        $row = $form->addRow();
+            $row->addLabel('search', __('Search For'))->description(__m('Unit name, majors, minors, authors'));
+            $row->addTextField('search')->setValue($criteria->getSearchText())->maxLength(20);
 
-    $row = $form->addRow();
-        $row->addFooter();
-        $row->addSearchSubmit($gibbon->session, 'Clear Filters', ['view', 'sidebar']);
+        $row = $form->addRow();
+            $row->addFooter();
+            $row->addSearchSubmit($gibbon->session, 'Clear Filters', ['view', 'sidebar']);
 
-    echo $form->getOutput();
+        echo $form->getOutput();
+    }
 
     // Query units
     $gibbonPersonID = $highestAction == 'Manage Units_my' ? $session->get('gibbonPersonID') : null;
@@ -67,7 +69,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage.
 
     // Render table
     $table = DataTable::createPaginated('units', $criteria);
-    $table->setTitle(__('Units'));
+    $table->setTitle($highestAction == 'Manage Units_all' ? __m('All Units') : __m('My Units'));
+    $table->setDescription(__m('Units are editable by the unit authors, as well as any staff who have edit access to their experience. They can also be edited by users will full edit access to the Manage Units action.'));
 
     $table->addHeaderAction('add', __('Add'))
         ->setURL('/modules/Deep Learning/unit_manage_add.php')
@@ -75,12 +78,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage.
 
     $table->modifyRows(function($values, $row) {
         if ($values['status'] == 'Draft') $row->addClass('dull');
+        if ($values['status'] == 'Retired') $row->addClass('error');
         return $row;
     });
 
     $table->addMetaData('filterOptions', [
         'status:draft' => __('Status').': '.__('Draft'),
         'status:published'  => __('Status').': '.__('Published'),
+        'status:retired'  => __('Status').': '.__('Retired'),
     ]);
 
     $table->addColumn('name', __m('Unit Name'))
@@ -88,15 +93,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage.
         ->format(function ($values) {
             $output = $values['name'];
             if ($values['status'] == 'Draft') {
-                $output .= Format::tag(__('Draft'), 'message ml-2');
+                $output .= Format::tag(__m('Draft'), 'message ml-2');
+            } elseif ($values['status'] == 'Retired') {
+                $output .= Format::tag(__m('Retired'), 'dull ml-2');
             }
             return $output;
         });
-
-    $table->addColumn('authors', __m('Author(s)'))
-        ->context('primary')
-        ->width('20%')
-        ->sortable(['authors']);
 
     $table->addColumn('majors', __m('Majors'))
         ->description(__m('Minors'))
@@ -109,6 +111,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage.
             return implode(', ', explode(',', $values['minors'] ?? ''));
         });
 
+    $table->addColumn('authors', __m('Author(s)'))
+        ->context('primary')
+        ->width('20%')
+        ->sortable(['authors']);
+
     // ACTIONS
     $table->addActionColumn()
         ->addParam('search', $criteria->getSearchText(true))
@@ -119,7 +126,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage.
 
             if ($highestAction == 'Manage Units_all') {
                 $actions->addAction('delete', __('Delete'))
-                        ->setURL('/modules/Deep Learning/unit_manage_delete.php');
+                        ->setURL('/modules/Deep Learning/unit_manage_delete.php')
+                        ->modalWindow(650, 400);
             }
         });
 

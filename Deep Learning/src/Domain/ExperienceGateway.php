@@ -90,7 +90,7 @@ class ExperienceGateway extends QueryableGateway
             ])
             ->from($this->getTableName())
             ->innerJoin('deepLearningEvent', 'deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID')
-            ->innerJoin('deepLearningUnit', 'deepLearningUnit.deepLearningUnitID=deepLearningExperience.deepLearningUnitID')
+            ->leftJoin('deepLearningUnit', 'deepLearningUnit.deepLearningUnitID=deepLearningExperience.deepLearningUnitID')
             ->where('deepLearningExperience.deepLearningEventID=:deepLearningEventID')
             ->bindValue('deepLearningEventID', $deepLearningEventID);
 

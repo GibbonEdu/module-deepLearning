@@ -46,6 +46,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         'name'                   => $_POST['name'] ?? '',
         'status'                 => $_POST['status'] ?? 'Draft',
         'cost'                   => !empty($_POST['cost']) ? $_POST['cost'] : null,
+        'location'               => $_POST['location'] ?? '',
+        'provider'               => $_POST['provider'] ?? '',
         'majors'                 => $_POST['majors'] ?? '',
         'minors'                 => $_POST['minors'] ?? '',
         'description'            => $_POST['description'] ?? '',
@@ -108,6 +110,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
 
         if ($person['gibbonPersonID'] == $session->get('gibbonPersonID')) {
             $authorData['timestamp'] = date('Y-m-d H:i:s');
+        } else if ($person['gibbonPersonIDOriginal'] != $person['gibbonPersonID']) {
+            $authorData['timestamp'] = null;
         }
         
         $deepLearningUnitAuthorID = $person['deepLearningUnitAuthorID'] ?? '';

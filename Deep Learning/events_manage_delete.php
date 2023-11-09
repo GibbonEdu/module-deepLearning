@@ -43,8 +43,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     }
 
     $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/Deep Learning/events_manage_deleteProcess.php', true, false);
-    $form->addRow()->addContent(__m('Deleting this event will also delete {count} experiences that are part of this event, and all associated data.', ['count' => Format::bold(count($experiences))]));
-
+    $form->addRow()->addContent(Format::alert(__m('Deleting this event will also delete {count} experiences that are part of this event, and all associated data. Events should be set inactive rather than deleted to prevent loss of data.', ['count' => Format::bold(count($experiences))])));
     $form->addRow()->addConfirmSubmit();
 
     echo $form->getOutput();

@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Prefab\DeleteForm;
 use Gibbon\Module\DeepLearning\Domain\UnitGateway;
+use Gibbon\Services\Format;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_delete.php') == false) {
     // Access denied
@@ -39,6 +40,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         return;
     }
 
-    $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/Deep Learning/unit_manage_deleteProcess.php', true);
+    $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/Deep Learning/unit_manage_deleteProcess.php', true, false);
+    $form->addRow()->addContent(Format::alert(__m('Unused units should be retired rather than deleted, to ensure that past experiences that ran this unit will still be visible in the system.')));
+    $form->addRow()->addConfirmSubmit();
+
     echo $form->getOutput();
 }

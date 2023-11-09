@@ -31,6 +31,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         ->add(__m('Manage Units'), 'unit_manage.php')
         ->add(__m('Add Unit'));
 
+    $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
+    if (empty($highestAction)) {
+        $page->addError(__('You do not have access to this action.'));
+        return;
+    }
+
     if (isset($_GET['editID'])) {
         $page->return->setEditLink($session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/unit_manage_edit.php&deepLearningUnitID='.$_GET['editID']);
     }
@@ -49,22 +55,38 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
 
     $row = $form->addRow();
         $row->addLabel('gibbonPersonIDCreated', __m('Unit Author'));
-        $row->addSelectStaff('gibbonPersonIDCreated')->photo(true, 'small')->required()->placeholder()->selected($session->get('gibbonPersonID'));
+        $row->addSelectStaff('gibbonPersonIDCreated')
+            ->photo(true, 'small')
+            ->required()
+            ->placeholder()
+            ->selected($session->get('gibbonPersonID'))
+            ->readOnly($highestAction == 'Manage Units_my');
 
     $row = $form->addRow();
-        $row->addLabel('status', __('Status'));
+        $row->addLabel('status', __('Status'))->description(__m('Only published units will be available to run experiences.'));
         $row->addSelect('status')->fromArray(['Draft' => __m('Draft'), 'Published' => __m('Published')])->required();
 
+    // DEFAULTS
+    $form->addRow()->addHeading(__('Defaults'))->append(__m('Each experience can customise the final values.'));
+
+    $row = $form->addRow();
+        $row->addLabel('cost', __m('Cost'))->description(__m('Leave empty to not display a cost.'));
+        $row->addCurrency('cost')->maxLength(10);
+
+    $row = $form->addRow();
+        $row->addLabel('location', __m('Location'))->description(__m('The general location this experience will take place at.'));
+        $row->addTextField('location')->maxLength(255);
+
+    $row = $form->addRow();
+        $row->addLabel('provider', __m('Provider'))->description(__m('Leave blank if not using an external provider.'));
+        $row->addTextField('provider')->maxLength(255);
+
     // DISPLAY
-    $form->addRow()->addHeading(__('Display'));
+    $form->addRow()->addHeading(__('Display'))->append(__m('All experiences running this unit will use these images and descriptions.'));
 
     $row = $form->addRow();
         $row->addLabel('headerImage', __m('Header Image'))->description(__m('A header image to display on the experience page.'));
         $row->addFileUpload('headerImageFile')->accepts('.jpg,.jpeg,.gif,.png');
-
-    $row = $form->addRow();
-        $row->addLabel('cost', __m('Estimated Cost'))->description(__m('Experiences can customise the actual cost.'));
-        $row->addCurrency('cost')->maxLength(10);
 
     $row = $form->addRow();
         $col = $row->addColumn()->setClass('');
@@ -90,7 +112,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
             ->setParameter('allowFreeTagging', true);
 
     // RESOURCES
-    $form->addRow()->addHeading(__('Resources'));
+    $form->addRow()->addHeading(__('Resources'))->append(__m('Instructions and files that will help a teacher run this unit.'));
 
     $row = $form->addRow();
         $col = $row->addColumn()->setClass('');

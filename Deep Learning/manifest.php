@@ -39,7 +39,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningEvent` (
     `accessOpenDate` DATETIME NULL,
     `accessCloseDate` DATETIME NULL,
     `backgroundImage` TEXT NULL,
-    `gibbonYearGroupIDList` VARCHAR(255) NULL, 
+    `gibbonYearGroupIDList` VARCHAR(255) NOT NULL, 
     PRIMARY KEY (`deepLearningEventID`),
     UNIQUE KEY (`name`, `gibbonSchoolYearID`)
 ) ENGINE=InnoDB";
@@ -58,10 +58,12 @@ $moduleTables[] = "CREATE TABLE `deepLearningEventDate` (
 $moduleTables[] = "CREATE TABLE `deepLearningUnit` (
     `deepLearningUnitID` INT(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(90) NOT NULL,
-    `status` ENUM('Draft','Published') NOT NULL DEFAULT 'Draft',
+    `status` ENUM('Draft','Published','Retired') NOT NULL DEFAULT 'Draft',
     `cost` INT(10) NULL,
-    `majors` VARCHAR(255) NULL,
-    `minors` VARCHAR(255) NULL,
+    `location` VARCHAR(255) NOT NULL,
+    `provider` VARCHAR(255) NOT NULL,
+    `majors` VARCHAR(255) NOT NULL,
+    `minors` VARCHAR(255) NOT NULL,
     `headerImage` VARCHAR(255) NULL,
     `description` TEXT NULL,
     `teachersNotes` TEXT NULL,
@@ -88,7 +90,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningUnitBlock` (
     `deepLearningEventDateID` INT(12) UNSIGNED ZEROFILL NULL,
     `title` VARCHAR(120) NOT NULL,
     `type` ENUM('Text','Photo','Video','Location') NOT NULL DEFAULT 'Text',
-    `length` VARCHAR(3) NULL,
+    `length` VARCHAR(3) NOT NULL,
     `content` TEXT NULL,
     `sequenceNumber` INT(6) NOT NULL,
     PRIMARY KEY (`deepLearningUnitBlockID`)
@@ -98,7 +100,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningUnitPhoto` (
     `deepLearningUnitPhotoID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `deepLearningUnitID` INT(10) UNSIGNED ZEROFILL NOT NULL,
     `filePath` VARCHAR(255) NOT NULL,
-    `caption` VARCHAR(120) NULL,
+    `caption` VARCHAR(120) NOT NULL,
     `sequenceNumber` INT(6) NOT NULL,
     PRIMARY KEY (`deepLearningUnitPhotoID`)
 ) ENGINE=InnoDB";
@@ -117,11 +119,11 @@ $moduleTables[] = "CREATE TABLE `deepLearningExperience` (
     `name` VARCHAR(90) NOT NULL,
     `active` ENUM('Y','N') NOT NULL DEFAULT 'Y',
     `cost` INT(10) NULL,
-    `location` VARCHAR(255) NULL,
-    `provider` VARCHAR(255) NULL,
+    `location` VARCHAR(255) NOT NULL,
+    `provider` VARCHAR(255) NOT NULL,
     `enrolmentMin` INT(3) NOT NULL,
     `enrolmentMax` INT(3) NOT NULL,
-    `gibbonYearGroupIDList` VARCHAR(255) NULL,
+    `gibbonYearGroupIDList` VARCHAR(255) NOT NULL,
     `timestampModified` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `gibbonPersonIDModified` INT(10) UNSIGNED ZEROFILL NOT NULL,
     PRIMARY KEY (`deepLearningExperienceID`),
@@ -154,7 +156,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningStaff` (
     `gibbonPersonID` INT(10) UNSIGNED ZEROFILL NOT NULL,
     `canEdit` ENUM('Y','N') NOT NULL DEFAULT 'N', 
     `role` VARCHAR(60) NOT NULL,
-    `deepLearningEventDateIDList` VARCHAR(255) NULL,
+    `deepLearningEventDateIDList` VARCHAR(255) NOT NULL,
     PRIMARY KEY (`deepLearningStaffID`),
     UNIQUE KEY (`gibbonPersonID`, `deepLearningExperienceID`)
 ) ENGINE=InnoDB";

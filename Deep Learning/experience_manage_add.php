@@ -23,6 +23,7 @@ use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitGateway;
 use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Forms\DatabaseFormFactory;
+use Gibbon\Services\Format;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_manage_add.php') == false) {
     // Access denied
@@ -69,6 +70,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     $row = $form->addRow();
         $row->addLabel('deepLearningUnitID', __('Unit'))->description(__m('Must be unique within this Deep Learning event.'));
         $row->addSelect('deepLearningUnitID')->fromResults($units)->required()->placeholder();
+
+    $row = $form->addRow();
+        $row->addContent(Format::alert(__m('Experience fields and settings will be filled in from the unit defaults when this experience is created.'), 'message'));
 
     // STAFF
     $form->addRow()->addHeading(__('Staff'));
