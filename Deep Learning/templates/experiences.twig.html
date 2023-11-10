@@ -10,11 +10,11 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
 {% if event %}
 <header class="mb-8">
-    <h2 class="text-center text-gray-900  text-3xl mt-0 mb-1">
+    <h1 class="text-center text-gray-900  text-3xl mt-6 mb-1">
         {{ event.name }}
-    </h2>
+    </h1>
 
-    <div class="text-center text-gray-600 text-xs font-thin mb-4">
+    <div class="text-center text-gray-600 text-xs font-thin mb-6">
         {% for date in event.eventDates|split(',') %}
             {{- formatUsing('dateReadable', date, '%b %e') -}}
             {{- not loop.last ? ', ' -}}
@@ -35,12 +35,31 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 </header>
 {% endif %}
 
+<section class="w-full mb-6 relative">
+    <div class="absolute w-full h-full rounded overflow-hidden" style="opacity: 0.6; background: url('{{ absoluteURL }}/{{ event.backgroundImage }}'); background-size: 150%; background-position: center;">
+    </div>
+
+    <div class="w-full py-3 bg-blur bg-translucent-gray rounded text-center text-gray-700 text-lg font-thin">
+    {% if event.accessOpenDate and event.accessCloseDate %}
+        {% if "now"|date("U") < event.accessOpenDate|date("U") %}
+            {{ __m('Sign up opens on') }} {{ event.accessOpenDate|date("M jS \\a\\t g:ia") }}
+        {% elseif "now"|date("U") > event.accessCloseDate|date("U") %}
+            {{ __m('Sign up closed on') }} {{ event.accessCloseDate|date("M jS \\a\\t g:ia") }}
+        {% else %}
+            {{ __m('Sign up is currently open, and will close on') }} {{ event.accessCloseDate|date("M jS \\a\\t g:ia") }}
+        {% endif %}
+    {% else %}
+        {{ __m('Sign up for this Deep Learning event is not available yet') }}
+    {% endif %}
+    </div>
+</section>
+
 {% if experiences is not empty %}
-    <section class="w-full grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <section class="w-full grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for experience in experiences %}
-        <a class="flex flex-col justify-start relative " href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_experience.php&sidebar=false&deepLearningEventID={{ event.deepLearningEventID }}&deepLearningExperienceID={{ experience.deepLearningExperienceID }}">
+        <a class="flex flex-col justify-start relative " href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_experience.php&sidebar=false&deepLearningEventID={{ experience.deepLearningEventID }}&deepLearningExperienceID={{ experience.deepLearningExperienceID }}">
             <div class="absolute top-0 left-0 w-full h-40 sm:h-48 lg:h-56 rounded flex justify-center items-center group transition-all duration-150 hover:bg-blur">
-                <div href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_event.php&deepLearningEventID={{ event.deepLearningEventID }}" class="w-auto px-10 py-3 border border-white hover:bg-translucent hidden group-hover:block transition-all duration-150 rounded-sm text-center text-white text-base font-light">
+                <div class="w-auto px-10 py-3 border border-white hover:bg-translucent hidden group-hover:block transition-all duration-150 rounded-sm text-center text-white text-base font-light">
                     {{ __m('Learn More') }}
                 </div>
             </div>

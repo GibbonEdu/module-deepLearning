@@ -29,6 +29,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
     $page->addError(__('You do not have access to this action.'));
 } else {
     // Proceed!
+    $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
+    if (empty($highestAction)) {
+        $page->addError(__('You do not have access to this action.'));
+        return;
+    }
+
     $deepLearningUnitID = $_GET['deepLearningUnitID'] ?? '';
 
     $page->breadcrumbs
@@ -40,10 +46,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         return;
     }
 
-    $values = $container->get(UnitGateway::class)->getByID($deepLearningUnitID);
+    $unitGateway = $container->get(UnitGateway::class);
+    $values = $unitGateway->getByID($deepLearningUnitID);
 
     if (empty($values)) {
         $page->addError(__('The specified record cannot be found.'));
+        return;
+    }
+
+    $canEditUnit = $unitGateway->getUnitEditAccess($deepLearningUnitID, $session->get('gibbonPersonID'));
+    if ($highestAction != 'Manage Units_all' && $canEditUnit != 'Y') {
+        $page->addError(__m('You do not have edit access to this record.'));
         return;
     }
 

@@ -41,16 +41,17 @@ class ExperienceGateway extends QueryableGateway
             ->newQuery()
             ->distinct()
             ->cols([
+                'deepLearningEvent.deepLearningEventID',
                 'deepLearningEvent.name as eventName',
                 'deepLearningEvent.nameShort as eventNameShort',
-                'deepLearningEvent.deepLearningEventID',
+                'deepLearningEvent.accessOpenDate',
+                'deepLearningEvent.accessCloseDate',
                 'deepLearningExperience.deepLearningExperienceID',
                 'deepLearningExperience.name',
                 'deepLearningExperience.active',
-                'deepLearningStaff.canEdit',
-                'deepLearningStaff.role',
                 "GROUP_CONCAT(DISTINCT CONCAT(gibbonPerson.preferredName, ' ', gibbonPerson.surname) ORDER BY gibbonPerson.surname SEPARATOR '<br/>') as tripLeaders",
                 "COUNT(DISTINCT deepLearningStaff.deepLearningStaffID) as staffCount",
+                "(SELECT COUNT(*) FROM deepLearningEnrolment WHERE deepLearningEnrolment.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID AND status='Confirmed') as studentCount",
             ])
             ->from($this->getTableName())
             ->innerJoin('deepLearningEvent', 'deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID')
@@ -62,7 +63,9 @@ class ExperienceGateway extends QueryableGateway
             ->groupBy(['deepLearningExperience.deepLearningExperienceID']);
 
         if (!empty($gibbonPersonID)) {
-            $query->where('deepLearningStaff.gibbonPersonID=:gibbonPersonID')
+            $query->cols(['staff.canEdit', 'staff.role'])
+                ->leftJoin('deepLearningStaff as staff', 'staff.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID')
+                ->where('staff.gibbonPersonID=:gibbonPersonID')
                 ->bindValue('gibbonPersonID', $gibbonPersonID);
         }
 
@@ -80,9 +83,11 @@ class ExperienceGateway extends QueryableGateway
             ->newQuery()
             ->distinct()
             ->cols([
+                'deepLearningEvent.deepLearningEventID',
                 'deepLearningEvent.name as eventName',
                 'deepLearningEvent.nameShort as eventNameShort',
-                'deepLearningEvent.deepLearningEventID',
+                'deepLearningEvent.accessOpenDate',
+                'deepLearningEvent.accessCloseDate',
                 'deepLearningExperience.deepLearningExperienceID',
                 'deepLearningExperience.name',
                 'deepLearningExperience.active',
@@ -128,11 +133,50 @@ class ExperienceGateway extends QueryableGateway
         $sql = "SELECT 
                     deepLearningEvent.deepLearningEventID,
                     deepLearningEvent.name as eventName,
-                    deepLearningExperience.*
+                    deepLearningEvent.accessOpenDate,
+                    deepLearningEvent.accessCloseDate,
+                    deepLearningExperience.*,
+                    deepLearningUnit.headerImage,
+                    deepLearningUnit.description,
+                    deepLearningUnit.majors,
+                    deepLearningUnit.minors,
+                    GROUP_CONCAT(DISTINCT gibbonYearGroup.nameShort ORDER BY gibbonYearGroup.sequenceNumber SEPARATOR ', ') AS yearGroups,
+                    COUNT(DISTINCT gibbonYearGroup.gibbonYearGroupID) as yearGroupCount
                 FROM deepLearningExperience
                 JOIN deepLearningEvent ON (deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID)
+                LEFT JOIN deepLearningUnit ON (deepLearningUnit.deepLearningUnitID=deepLearningExperience.deepLearningUnitID)
+                LEFT JOIN gibbonYearGroup ON (FIND_IN_SET(gibbonYearGroup.gibbonYearGroupID, deepLearningExperience.gibbonYearGroupIDList))
                 WHERE deepLearningExperience.deepLearningExperienceID=:deepLearningExperienceID
                 GROUP BY deepLearningExperience.deepLearningExperienceID";
+
+        return $this->db()->selectOne($sql, $data);
+    }
+
+    public function getExperienceEditAccess($deepLearningExperienceID, $gibbonPersonID)
+    {
+        $data = ['deepLearningExperienceID' => $deepLearningExperienceID, 'gibbonPersonID' => $gibbonPersonID];
+        $sql = "SELECT deepLearningStaff.canEdit
+                FROM deepLearningExperience
+                JOIN deepLearningStaff ON (deepLearningStaff.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID)
+                WHERE deepLearningExperience.deepLearningExperienceID=:deepLearningExperienceID
+                AND deepLearningStaff.gibbonPersonID=:gibbonPersonID
+                GROUP BY deepLearningExperience.deepLearningExperienceID";
+
+        return $this->db()->selectOne($sql, $data);
+    }
+
+    public function getNextExperienceByID($deepLearningExperienceID)
+    {
+        $data = array('deepLearningExperienceID' => $deepLearningExperienceID);
+        $sql = "SELECT * FROM deepLearningExperience WHERE name=(SELECT MIN(name) FROM deepLearningExperience WHERE name > (SELECT name FROM deepLearningExperience WHERE deepLearningExperienceID=:deepLearningExperienceID))";
+
+        return $this->db()->selectOne($sql, $data);
+    }
+
+    public function getPreviousExperienceByID($deepLearningExperienceID)
+    {
+        $data = array('deepLearningExperienceID' => $deepLearningExperienceID);
+        $sql = "SELECT * FROM deepLearningExperience WHERE name=(SELECT MAX(name) FROM deepLearningExperience WHERE name < (SELECT name FROM deepLearningExperience WHERE deepLearningExperienceID=:deepLearningExperienceID))";
 
         return $this->db()->selectOne($sql, $data);
     }

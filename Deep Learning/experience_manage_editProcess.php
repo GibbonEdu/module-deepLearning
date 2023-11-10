@@ -49,6 +49,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     $unitGateway = $container->get(UnitGateway::class);
     $staffGateway = $container->get(StaffGateway::class);
 
+    $highestAction = getHighestGroupedAction($guid, $_POST['address'], $connection2);
+    $canEditExperience = $experienceGateway->getExperienceEditAccess($params['deepLearningExperienceID'], $session->get('gibbonPersonID'));
+    if ($highestAction != 'Manage Experiences_all' && $canEditExperience != 'Y') {
+        $URL .= '&return=error0';
+        header("Location: {$URL}");
+        exit;
+    }
+    
     $data = [
         'name'                   => $_POST['name'] ?? '',
         'active'                 => $_POST['active'] ?? 'N',

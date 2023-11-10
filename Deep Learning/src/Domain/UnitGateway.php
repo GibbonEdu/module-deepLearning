@@ -56,7 +56,9 @@ class UnitGateway extends QueryableGateway
 
         if (!empty($gibbonPersonID)) {
             $query->leftJoin('deepLearningUnitAuthor as authorship', 'authorship.deepLearningUnitID=deepLearningUnit.deepLearningUnitID')
-                ->where('authorship.gibbonPersonID=:gibbonPersonID')
+                ->leftJoin('deepLearningExperience', 'deepLearningExperience.deepLearningUnitID=deepLearningUnit.deepLearningUnitID')
+                ->leftJoin('deepLearningStaff as staff', 'staff.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID')
+                ->where('(authorship.gibbonPersonID=:gibbonPersonID OR (staff.gibbonPersonID=:gibbonPersonID AND staff.canEdit="Y"))')
                 ->bindValue('gibbonPersonID', $gibbonPersonID);
         }
 
@@ -76,5 +78,19 @@ class UnitGateway extends QueryableGateway
         $sql = "SELECT deepLearningUnitID as value, name FROM deepLearningUnit WHERE status='Published' ORDER BY name";
 
         return $this->db()->select($sql);
+    }
+
+    public function getUnitEditAccess($deepLearningUnitID, $gibbonPersonID)
+    {
+        $data = ['deepLearningUnitID' => $deepLearningUnitID, 'gibbonPersonID' => $gibbonPersonID];
+        $sql = "SELECT (CASE WHEN authorship.deepLearningUnitAuthorID IS NOT NULL OR staff.canEdit='Y' THEN 'Y' ELSE 'N' END) as canEdit
+                FROM deepLearningUnit
+                LEFT JOIN deepLearningUnitAuthor AS authorship ON (authorship.deepLearningUnitID=deepLearningUnit.deepLearningUnitID AND authorship.gibbonPersonID=:gibbonPersonID)
+                LEFT JOIN deepLearningExperience ON (deepLearningExperience.deepLearningUnitID=deepLearningUnit.deepLearningUnitID)
+                LEFT JOIN deepLearningStaff AS staff ON (staff.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID AND staff.gibbonPersonID=:gibbonPersonID)
+                WHERE deepLearningUnit.deepLearningUnitID=:deepLearningUnitID
+                GROUP BY deepLearningUnit.deepLearningUnitID";
+
+        return $this->db()->selectOne($sql, $data);
     }
 }

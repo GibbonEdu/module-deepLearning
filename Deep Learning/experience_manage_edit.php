@@ -30,6 +30,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     $page->addError(__('You do not have access to this action.'));
 } else {
     // Proceed!
+    $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
+    if (empty($highestAction)) {
+        $page->addError(__('You do not have access to this action.'));
+        return;
+    }
+
     $deepLearningExperienceID = $_GET['deepLearningExperienceID'] ?? '';
     $params = [
         'gibbonSchoolYearID' => $_REQUEST['gibbonSchoolYearID'] ?? $session->get('gibbonSchoolYearID'),
@@ -49,9 +55,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         return;
     }
 
-    $values = $container->get(ExperienceGateway::class)->getByID($deepLearningExperienceID);
+    $experienceGateway = $container->get(ExperienceGateway::class);
+    $values = $experienceGateway->getByID($deepLearningExperienceID);
     if (empty($values)) {
         $page->addError(__('The specified record cannot be found.'));
+        return;
+    }
+
+    $canEditExperience = $experienceGateway->getExperienceEditAccess($deepLearningExperienceID, $session->get('gibbonPersonID'));
+    if ($highestAction != 'Manage Experiences_all' && $canEditExperience != 'Y') {
+        $page->addError(__m('You do not have edit access to this record.'));
         return;
     }
 

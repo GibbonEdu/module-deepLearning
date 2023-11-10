@@ -37,6 +37,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/settings.php
     $settingsToUpdate = [
         'Deep Learning' => [
             'welcomeText',
+            'signUpText',
+            'signUpChoices',
         ],
     ];
 

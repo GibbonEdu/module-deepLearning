@@ -27,4 +27,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/viewMyDL.php
     // Proceed!
     $page->breadcrumbs
         ->add(__m('My Deep Learning'));
+
+    $page->return->addReturns([
+        'error4' => __m('Sign up is currently not available for this Deep Learning event.'),
+        'error5' => __m('There was an error verifying your Deep Learning choices. Please try again.'),
+    ]);
 }

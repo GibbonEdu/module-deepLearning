@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
+use Gibbon\Domain\System\SettingGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php') == false) {
     // Access denied
@@ -38,6 +39,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php') =
     $events = $eventGateway->queryEvents($criteria, $session->get('gibbonSchoolYearID'));
 
     $page->writeFromTemplate('events.twig.html', [
+        'welcomeText' => $container->get(SettingGateway::class)->getSettingByScope('Deep Learning', 'welcomeText'),
         'events' => $events->toArray(),
     ]);
 }

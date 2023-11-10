@@ -20,7 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
 
-if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_event.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {

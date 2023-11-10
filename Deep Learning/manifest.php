@@ -177,18 +177,23 @@ $moduleTables[] = "CREATE TABLE `deepLearningEnrolment` (
 $moduleTables[] = "CREATE TABLE `deepLearningSignUp` (
     `deepLearningSignUpID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `deepLearningExperienceID` INT(12) UNSIGNED ZEROFILL NOT NULL,
+    `deepLearningEventID` INT(10) UNSIGNED ZEROFILL NOT NULL,
     `gibbonPersonID` INT(10) UNSIGNED ZEROFILL NOT NULL,
     `choice` INT(2) NOT NULL DEFAULT 1,
     `timestampCreated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `timestampModified` TIMESTAMP NULL,
     `gibbonPersonIDCreated` INT(10) UNSIGNED ZEROFILL NOT NULL,
+    `gibbonPersonIDModified` INT(10) UNSIGNED ZEROFILL NOT NULL,
     PRIMARY KEY (`deepLearningSignUpID`),
     UNIQUE KEY (`gibbonPersonID`, `choice`, `deepLearningExperienceID`)
 ) ENGINE=InnoDB;";
 
 // Add gibbonSettings entries
-$gibbonSetting[] = "INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Deep Learning', 'welcomeText', 'Welcome Text', '', '')";
+$gibbonSetting[] = "INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Deep Learning', 'welcomeText', 'Welcome Text', 'A short message displayed on the landing page for Deep Learning events.', '')";
+$gibbonSetting[] = "INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Deep Learning', 'signUpText', 'Sign Up Text', 'Instructions displayed on the sign up form.', 'Every effort is made to give students their first choice, however space and resources for many trips are limited, so students are asked to make a second and third choice.')";
 $gibbonSetting[] = "INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Deep Learning', 'enrolmentMin', 'Default Enrolment Min', 'Unit should not run below this number of students.', '4')";
 $gibbonSetting[] = "INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Deep Learning', 'enrolmentMax', 'Default Enrolment Max', 'Enrolment should not exceed this number of students.', '20')";
+$gibbonSetting[] = "INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Deep Learning', 'signUpChoices', 'Sign up Choices', 'How many choices can users make when signing up?', '3')";
 
 // Action rows
 // One array per action

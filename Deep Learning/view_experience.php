@@ -20,7 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 
-if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experience.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
@@ -39,6 +39,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php') =
         return;
     }
 
+    // Check records exist and are available
     $eventGateway = $container->get(EventGateway::class);
     $experienceGateway = $container->get(ExperienceGateway::class);
 
@@ -50,18 +51,36 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php') =
     $experience = $experienceGateway->getExperienceDetailsByID($deepLearningExperienceID);
     $event = $eventGateway->getEventDetailsByID($experience['deepLearningEventID'] ?? '');
 
-    if (empty($experience)) {
+    if (empty($experience) || empty($event)) {
         $page->addError(__('The specified record cannot be found.'));
         return;
     }
 
-    if ($experience['active'] != 'Y') {
+    if ($experience['active'] != 'Y' || $event['active'] != 'Y' || $event['viewable'] != 'Y') {
         $page->addError(__('You do not have access to this action.'));
         return;
+    }
+
+    // Check sign-up access
+    $canSignUp = isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php', 'Deep Learning Events_signUp');
+    $signUpIsOpen = false;
+
+    if (!empty($event['accessOpenDate']) && !empty($event['accessCloseDate'])) {
+        $accessOpenDate = DateTime::createFromFormat('Y-m-d H:i:s', $event['accessOpenDate'])->format('U');
+        $accessCloseDate = DateTime::createFromFormat('Y-m-d H:i:s', $event['accessCloseDate'])->format('U');
+        $now = (new DateTime('now'))->format('U');
+
+        $signUpIsOpen = $accessOpenDate <= $now && $accessCloseDate >= $now;
     }
 
     $page->writeFromTemplate('experience.twig.html', [
         'event'      => $event,
         'experience' => $experience,
+
+        'nextExperience' => $experienceGateway->getNextExperienceByID($deepLearningExperienceID),
+        'prevExperience' => $experienceGateway->getPreviousExperienceByID($deepLearningExperienceID),
+
+        'canSignUp'  => $canSignUp,
+        'signUpIsOpen' => $signUpIsOpen,
     ]);
 }

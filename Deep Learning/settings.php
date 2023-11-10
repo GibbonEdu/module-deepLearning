@@ -36,10 +36,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/settings.php
     $form->addHiddenValue('address', $session->get('address'));
 
     $setting = $settingGateway->getSettingByScope('Deep Learning', 'welcomeText', true);
-    
     $column = $form->addRow()->addColumn();
         $column->addLabel($setting['name'], __m($setting['nameDisplay']))->description(__m($setting['description']));
-        $column->addEditor($setting['name'], $guid)->setValue($setting['value']);
+        $column->addEditor($setting['name'], $guid)->setValue($setting['value'])->setRows(6);
+
+    $setting = $settingGateway->getSettingByScope('Deep Learning', 'signUpText', true);
+    $column = $form->addRow()->addColumn();
+        $column->addLabel($setting['name'], __m($setting['nameDisplay']))->description(__m($setting['description']));
+        $column->addEditor($setting['name'], $guid)->setValue($setting['value'])->setRows(6);
+
+    $setting = $settingGateway->getSettingByScope('Deep Learning', 'signUpChoices', true);
+    $row = $form->addRow();
+        $row->addLabel($setting['name'], __m($setting['nameDisplay']))->description(__m($setting['description']));
+        $row->addSelect($setting['name'])->fromArray(range(1, 5))->required()->selected($setting['value']);
 
     $row = $form->addRow();
         $row->addFooter();

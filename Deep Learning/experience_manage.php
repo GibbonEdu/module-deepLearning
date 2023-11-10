@@ -80,6 +80,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
             ->setURL('/modules/Deep Learning/experience_manage_add.php')
             ->addParams($params)
             ->displayLabel();
+    } else {
+        $table->setDescription(__m('This section shows all Deep Learning experiences that you are a member of.'));
     }
 
     $table->modifyRows(function($values, $row) {
@@ -98,7 +100,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     $table->addColumn('staffCount', __('Staff'))
         ->width('10%');
 
-    $table->addColumn('students', __('Students'))
+    $table->addColumn('studentCount', __('Students'))
         ->width('10%');
 
     $table->addColumn('active', __('Active'))
@@ -111,8 +113,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         ->addParam('gibbonSchoolYearID', $params['gibbonSchoolYearID'])
         ->addParam('deepLearningExperienceID')
         ->format(function ($experience, $actions) use ($highestAction) {
-            $actions->addAction('edit', __('Edit'))
-                    ->setURL('/modules/Deep Learning/experience_manage_edit.php');
+            if ($highestAction == 'Manage Experiences_all' || (!empty($experience['canEdit']) && $experience['canEdit'] == 'Y')) {
+                $actions->addAction('edit', __('Edit'))
+                        ->setURL('/modules/Deep Learning/experience_manage_edit.php');
+            }
 
             if ($highestAction == 'Manage Experiences_all') {
                 $actions->addAction('delete', __('Delete'))

@@ -11,14 +11,174 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 {% if event %}
 
 <header class="mb-8">
-    <h2 class="text-center text-gray-900 text-3xl mt-0 mb-1">
+    <h1 class="text-center text-gray-900 text-3xl mt-6 mb-1">
+        <a href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_event.php&sidebar=false&deepLearningEventID={{ event.deepLearningEventID }}" class="text-gray-900">
         {{ event.name }}
-    </h2>
+        </a>
+    </h1>
 
-    
+    <div class="text-center text-gray-600 text-xs font-thin mb-6">
+        {% for date in event.eventDates|split(',') %}
+            {{- formatUsing('dateReadable', date, '%b %e') -}}
+            {{- not loop.last ? ', ' -}}
+        {% endfor %}
+
+        &nbsp;&nbsp;•&nbsp;&nbsp;
+
+        {% if event.yearGroupCount >= 8 %}
+            {{ __m('All Year Groups') }}
+        {% else %}
+            {{ event.yearGroups|replace({'Y0':'Y'}) }}
+        {% endif %}
+    </div>
 </header>
-
 {% endif %}
+
+<section class="w-full grid grid-cols-3 grid-rows-2 grid-flow-col gap-6" style="height: 30vw">
+
+    <div class="col-span-1 row-span-2 rounded overflow-hidden">
+        {% if experience.headerImage %}
+            <img src="{{ absoluteURL }}/{{ experience.headerImage }}" class="w-full max-w-full h-full" style="object-position: center; object-fit: cover;">
+        {% endif %}
+    </div>
+
+    <div class="col-span-1 row-span-1 rounded overflow-hidden">
+        {% if experience.headerImage %}
+            <img src="{{ absoluteURL }}/{{ experience.headerImage }}" class="w-full max-w-full h-full" style="object-position: center; object-fit: cover;">
+        {% endif %}
+    </div>
+
+    <div class="col-span-1 row-span-1 rounded overflow-hidden">
+        {% if experience.headerImage %}
+            <img src="{{ absoluteURL }}/{{ experience.headerImage }}" class="w-full max-w-full h-full" style="object-position: center; object-fit: cover;">
+        {% endif %}
+    </div>
+
+    <div class="col-span-1 row-span-2 rounded overflow-hidden relative">
+        {% if experience.headerImage %}
+            <img src="{{ absoluteURL }}/{{ experience.headerImage }}" class="w-full max-w-full h-full" style="object-position: center; object-fit: cover;">
+        {% endif %}
+
+        <div class="absolute bottom-0 right-0 mb-6 mr-6">
+            <span class="tag text-white text-sm font-light" style="background: rgba(0,0,0,0.65)">
+                {% if experience.yearGroupCount >= 8 %}
+                    {{ __m('All Year Groups') }}
+                {% else %}
+                    {{ experience.yearGroups|replace({'Y0':'Y'}) }}
+                {% endif %}
+            </span>
+        </div>
+    </div>
+</section>
+
+<section class="w-full grid grid-cols-3 gap-6 mt-6">
+
+    <div class="col-span-2 border-r pr-12">
+        <h2 class="text-4xl text-gray-900 normal-case mt-0">
+            {{ experience.name }}
+        </h2>
+
+        <div class="text-gray-600 font-thin leading-snug">
+            <span class="text-xl">Major: {{ experience.majors|split(',')|join(', ') }}</span><br/>
+            <span class="text-base"></span>Minor: {{ experience.minors|split(',')|join(', ') }}</span>
+        </div>
+
+        <div class="mt-6 text-base font-normal leading-normal">
+            {{ experience.description|raw }}
+        </div>
+    </div>
+
+    <div class="col-span-1">
+
+        {% if canSignUp %}
+            {% if signUpIsOpen %}
+            <div class="mb-6 rounded overflow-hidden" style="background: url('{{ absoluteURL }}/{{ experience.headerImage }}'); background-size: 150%; background-position: center;">
+                <a href="{{ absoluteURL }}/fullscreen.php?q=/modules/Deep Learning/view_experience_signUp.php&deepLearningExperienceID={{ experience.deepLearningExperienceID }}&width=750&height=440" class="thickbox block px-10 py-4 rounded outline-inset bg-blue-500 bg-blur hover:bg-blur transition-all duration-300 text-center text-white text-xl font-light">
+                    {{ __m('Sign Up') }}
+                </a>
+            </div>
+            {% else %}
+            <div class="px-10 py-4 rounded bg-gray-300 text-center text-gray-600 text-lg font-thin italic">
+                {% if "now"|date("U") < event.accessOpenDate|date("U") %}
+                    {{ __m('Sign up opens') }} {{ event.accessOpenDate|date("M jS \\a\\t g:ia") }}
+                {% elseif "now"|date("U") > event.accessCloseDate|date("U") %}
+                    {{ __m('Sign up closed on') }} {{ event.accessCloseDate|date("M jS \\a\\t g:ia") }}
+                {% else %}
+                    {{ __m('Sign up is not available yet') }}
+                {% endif %}
+            </div>
+            {% endif %}
+        {% endif %}
+
+        {% if experience.cost %}
+        <div class="mb-6 text-4xl normal-case font-thin">
+            <h4 class="mt-0 mb-2 text-sm font-normal normal-case">
+                {{ __m('Cost') }}
+            </h4>
+            {{ formatUsing('currency', experience.cost, false, 0) }}
+        </div>
+        {% endif %}
+
+        {% if experience.location %}
+        <div class="mb-6 text-xl normal-case">
+            <h4 class="mt-0 mb-2 text-sm font-normal normal-case">
+                {{ __m('Location') }}
+            </h4>
+            {{ experience.location }}
+        </div>
+        {% endif %}
+
+        {% if experience.provider %}
+        <div class="mb-6 text-xl normal-case">
+            <h4 class="mt-0 mb-2 text-sm font-normal normal-case">
+                {{ __m('Provider') }}
+            </h4>
+            {{ experience.provider }}
+        </div>
+        {% endif %}
+
+        
+    </div>
+</section>
+
+<footer class="flex justify-between mt-6">
+    <div class="text-left">
+        {% if prevExperience %}
+        <div class="mb-1 text-sm text-gray-600 font-normal normal-case">
+            {{ __m('Previous') }}
+        </div>
+        <a class="text-xl text-gray-900 hover:text-blue-600" href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_experience.php&sidebar=false&deepLearningEventID={{ prevExperience.deepLearningEventID }}&deepLearningExperienceID={{ prevExperience.deepLearningExperienceID }}">
+            {{ prevExperience.name }}
+        </a>
+        {% else %}
+        <div class="mb-1 text-sm text-gray-600 font-normal normal-case">
+            {{ __m('Back') }}
+        </div>
+        <a class="text-xl text-gray-900 hover:text-blue-600" href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_event.php&sidebar=false&deepLearningEventID={{ experience.deepLearningEventID }}">
+            {{ event.name }}
+        </a>
+        {% endif %}
+    </div>
+    <div class="text-right">
+        {% if nextExperience %}
+        <div class="mb-1 text-sm text-gray-600 font-normal normal-case">
+            {{ __m('Next') }}
+        </div>
+        <a class="text-xl text-gray-900 hover:text-blue-600" href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_experience.php&sidebar=false&deepLearningEventID={{ nextExperience.deepLearningEventID }}&deepLearningExperienceID={{ nextExperience.deepLearningExperienceID }}">
+            {{ nextExperience.name }}
+        </a>
+        {% else %}
+        <div class="mb-1 text-sm text-gray-600 font-normal normal-case">
+            {{ __m('Back') }}
+        </div>
+        <a class="text-xl text-gray-900 hover:text-blue-600" href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_event.php&sidebar=false&deepLearningEventID={{ experience.deepLearningEventID }}">
+            {{ event.name }}
+        </a>
+        {% endif %}
+    </div>
+</footer>
+
+
 
 
 

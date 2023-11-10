@@ -17,16 +17,34 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
+.text-base p {
+    font-size: 1rem !important;
+}
+
 .bg-translucent {
     background-color: #fff4;
+}
+
+.bg-translucent-gray {
+    background-color: #0001;
 }
 
 .hover\:bg-translucent:hover {
     background-color: #fff4;
 }
 
+.bg-blur {
+    -webkit-backdrop-filter: blur(16px) brightness(120%);
+    backdrop-filter: blur(16px) brightness(160%);
+}
+
 .hover\:bg-blur:hover {
     background: rgba(0,0,0,0.15);
     -webkit-backdrop-filter: blur(12px) brightness(120%);
     backdrop-filter: blur(12px) brightness(120%);
+}
+
+.outline-inset:hover {
+    outline: 1px solid #fff;
+    outline-offset: -4px;
 }

@@ -42,6 +42,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
     $unitTagGateway = $container->get(UnitTagGateway::class);
     $unitAuthorGateway = $container->get(UnitAuthorGateway::class);
 
+    $highestAction = getHighestGroupedAction($guid, $_POST['address'], $connection2);
+    $canEditUnit = $unitGateway->getUnitEditAccess($deepLearningUnitID, $session->get('gibbonPersonID'));
+    if ($highestAction != 'Manage Units_all' && $canEditUnit != 'Y') {
+        $URL .= '&return=error0';
+        header("Location: {$URL}");
+        exit;
+    }
+
     $data = [
         'name'                   => $_POST['name'] ?? '',
         'status'                 => $_POST['status'] ?? 'Draft',
