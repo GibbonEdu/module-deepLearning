@@ -17,6 +17,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
+select[data-validation] option:first-child {
+    font-style: italic;
+}
+
 .text-base p {
     font-size: 1rem !important;
 }

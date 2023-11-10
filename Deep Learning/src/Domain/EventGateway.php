@@ -44,6 +44,7 @@ class EventGateway extends QueryableGateway
             ->cols([
                 'deepLearningEvent.deepLearningEventID',
                 'deepLearningEvent.name',
+                'deepLearningEvent.nameShort',
                 'deepLearningEvent.description',
                 'deepLearningEvent.backgroundImage',
                 'deepLearningEvent.active',

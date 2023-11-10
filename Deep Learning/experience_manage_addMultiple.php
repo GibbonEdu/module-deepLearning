@@ -37,11 +37,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
     $page->breadcrumbs
         ->add(__m('Manage Experiences'), 'experience_manage.php', $params)
-        ->add(__m('Add Experience'));
-
-    if (isset($_GET['editID'])) {
-        $page->return->setEditLink($session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/experience_manage_edit.php&deepLearningExperienceID='.$_GET['editID']);
-    }
+        ->add(__m('Add Multiple Experiences'));
 
     if (!empty($params['search'])) {
         $page->navigator->addSearchResultsAction(Url::fromModuleRoute('Deep Learning', 'experience_manage.php')->withQueryParams($params));
@@ -55,7 +51,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     $units = $container->get(UnitGateway::class)->selectPublishedUnits();
 
     // FORM
-    $form = Form::create('experience', $session->get('absoluteURL').'/modules/'.$session->get('module').'/experience_manage_addProcess.php');
+    $form = Form::create('experience', $session->get('absoluteURL').'/modules/'.$session->get('module').'/experience_manage_addMultipleProcess.php');
     $form->setFactory(DatabaseFormFactory::create($pdo));
 
     $form->addHiddenValue('address', $session->get('address'));
@@ -68,32 +64,26 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         $row->addLabel('deepLearningEventID', __('Event'))->description(__m('Each experience is part of a Deep Learning event.'));
         $row->addSelect('deepLearningEventID')->fromResults($events, 'groupBy')->required()->placeholder();
 
-    $row = $form->addRow();
-        $row->addLabel('deepLearningUnitID', __('Unit'))->description(__m('Must be unique within this Deep Learning event.'));
-        $row->addSelect('deepLearningUnitID')->fromResults($units)->required()->placeholder();
-
-    $row = $form->addRow();
-        $row->addContent(Format::alert(__m('Experience fields and settings will be filled in from the unit defaults when the experience is created.'), 'message'));
-
     // STAFF
-    $form->addRow()->addHeading(__('Staff'));
+    $form->addRow()->addHeading(__('Experiences'));
 
     // Custom Block Template
-    $addBlockButton = $form->getFactory()->createButton(__m('Add Staff'))->addClass('addBlock');
+    $addBlockButton = $form->getFactory()->createButton(__m('Add Experience'))->addClass('addBlock');
 
-    $roles = ['Trip Leader' => __m('Trip Leader'), 'Teacher' => __('Teacher'), 'Assistant' => __('Assistant')];
     $blockTemplate = $form->getFactory()->createTable()->setClass('blank');
-    $row = $blockTemplate->addRow()->addClass('w-full flex justify-between items-center mt-1 ml-2');
-        $row->addSelectStaff('gibbonPersonID')->photo(true, 'small')->setClass('flex-1 mr-1')->required()->placeholder();
-        $row->addSelect('role')->fromArray($roles)->setClass('w-48 mr-1')->required()->placeholder();
-        $row->addCheckbox('canEdit')->setLabelClass('w-32')->alignLeft()->setValue('Y')->checked('Y')->description(__m('Can Edit?'));
+    $row = $blockTemplate->addRow()->addClass('w-3/4 flex justify-start items-center mt-1 ml-2 pr-8');
+        $row->addSelect('deepLearningUnitID')->fromResults($units)->setClass('w-full')->required()->placeholder(__m('Unit'));
+        $row->addContent()->setClass('w-32');
+        $row->addSelectStaff('gibbonPersonID')->photo(true, 'small')->setClass('w-56')->required()->placeholder(__m('Trip Leader'));
 
     // Custom Blocks
-    $row = $form->addRow();
-    $customBlocks = $row->addCustomBlocks('staff', $session)
+    $col = $form->addRow()->addColumn();
+        $col->addContent(Format::alert(__m('Experience fields and settings will be filled in from the unit defaults when the experience is created.'), 'message'));
+
+    $customBlocks = $col->addCustomBlocks('experiences', $session)
         ->fromTemplate($blockTemplate)
-        ->settings(array('inputNameStrategy' => 'object', 'addOnEvent' => 'click'))
-        ->placeholder(__m('Add a Trip Leader...'))
+        ->settings(['inputNameStrategy' => 'object', 'addOnEvent' => 'click'])
+        ->placeholder(__m('Add an Experience...'))
         ->addToolInput($addBlockButton);
         
     $row = $form->addRow();

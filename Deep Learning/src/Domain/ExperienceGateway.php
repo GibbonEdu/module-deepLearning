@@ -29,7 +29,7 @@ class ExperienceGateway extends QueryableGateway
 
     private static $tableName = 'deepLearningExperience';
     private static $primaryKey = 'deepLearningExperienceID';
-    private static $searchableColumns = ['deepLearningExperience.name'];
+    private static $searchableColumns = ['deepLearningExperience.name', 'deepLearningEvent.name', 'deepLearningEvent.nameShort', 'deepLearningUnit.name'];
 
     /**
      * @param QueryCriteria $criteria
@@ -46,6 +46,7 @@ class ExperienceGateway extends QueryableGateway
                 'deepLearningEvent.nameShort as eventNameShort',
                 'deepLearningEvent.accessOpenDate',
                 'deepLearningEvent.accessCloseDate',
+                'deepLearningEvent.viewable',
                 'deepLearningExperience.deepLearningExperienceID',
                 'deepLearningExperience.name',
                 'deepLearningExperience.active',
@@ -55,6 +56,7 @@ class ExperienceGateway extends QueryableGateway
             ])
             ->from($this->getTableName())
             ->innerJoin('deepLearningEvent', 'deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID')
+            ->leftJoin('deepLearningUnit', 'deepLearningUnit.deepLearningUnitID=deepLearningExperience.deepLearningUnitID')
             ->leftJoin('deepLearningStaff', 'deepLearningStaff.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID')
             ->leftJoin('deepLearningStaff as tripLeader', 'tripLeader.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID AND tripLeader.role="Trip Leader"')
             ->leftJoin('gibbonPerson', 'gibbonPerson.gibbonPersonID=tripLeader.gibbonPersonID')

@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
+use Gibbon\Http\Url;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manage.php') == false) {
     // Access denied
@@ -60,7 +61,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
 
     $table->addColumn('name', __('Name'))
         ->sortable(['deepLearningEvent.name'])
-        ->context('primary');
+        ->context('primary')
+        ->format(function ($values) {
+            $url = Url::fromModuleRoute('Deep Learning', 'view_event.php')->withQueryParams(['deepLearningEventID' => $values['deepLearningEventID'], 'sidebar' => 'false']);
+            return $values['active'] == 'Y' && $values['viewable'] == 'Y' 
+                ? Format::link($url, $values['name'])
+                : $values['name'];
+        });
 
     $table->addColumn('dates', __('Dates'))
         ->sortable(['eventDates'])
@@ -79,7 +86,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         
     $table->addColumn('experienceCount', __m('Experiences'))
         ->sortable(['experienceCount'])
-        ->width('12%');
+        ->width('12%')
+        ->format(function ($values) {
+            $url = Url::fromModuleRoute('Deep Learning', 'experience_manage.php')->withQueryParams(['search' => $values['nameShort']]);
+
+            return intval($values['experienceCount']) > 0 
+                ? Format::link($url, $values['experienceCount'])
+                : $values['experienceCount'];
+        });
 
     $table->addColumn('active', __('Active'))
         ->format(Format::using('yesNo', 'active'))

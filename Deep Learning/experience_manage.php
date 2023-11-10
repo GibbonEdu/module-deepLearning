@@ -21,6 +21,7 @@ use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
+use Gibbon\Http\Url;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_manage.php') == false) {
     // Access denied
@@ -47,7 +48,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     $experienceGateway = $container->get(ExperienceGateway::class);
     $criteria = $experienceGateway->newQueryCriteria(true)
         ->searchBy($experienceGateway->getSearchableColumns(), $params['search'])
-        ->sortBy(['name'])
+        ->sortBy(['eventName', 'name'])
         ->fromPOST();
 
     // Search
@@ -58,7 +59,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         $form->addHiddenValue('q', '/modules/Deep Learning/experience_manage.php');
 
         $row = $form->addRow();
-            $row->addLabel('search', __('Search For'))->description(__m('Experience name, unit name'));
+            $row->addLabel('search', __('Search For'))->description(__m('Experience name, unit name, event name'));
             $row->addTextField('search')->setValue($criteria->getSearchText())->maxLength(20);
 
         $row = $form->addRow();
@@ -76,6 +77,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     $table = DataTable::createPaginated('experiences', $criteria);
 
     if ($highestAction == 'Manage Experiences_all') {
+
+        $table->addHeaderAction('addMultiple', __('Add Multiple'))
+            ->setURL('/modules/Deep Learning/experience_manage_addMultiple.php')
+            ->addParams($params)
+            ->displayLabel()
+            ->append('&nbsp;|&nbsp;');
+
         $table->addHeaderAction('add', __('Add'))
             ->setURL('/modules/Deep Learning/experience_manage_add.php')
             ->addParams($params)
@@ -93,7 +101,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         ->width('8%');
 
     $table->addColumn('name', __('Name'))
-        ->context('primary');
+        ->context('primary')
+        ->format(function ($values) {
+            $url = Url::fromModuleRoute('Deep Learning', 'view_experience.php')->withQueryParams(['deepLearningExperienceID' => $values['deepLearningExperienceID'], 'sidebar' => 'false']);
+            return $values['active'] == 'Y' && $values['viewable'] == 'Y' 
+                ? Format::link($url, $values['name'])
+                : $values['name'];
+        });
 
     $table->addColumn('tripLeaders', __m('Trip Leader(s)'));
 
