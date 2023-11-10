@@ -59,10 +59,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     });
 
     $table->addColumn('name', __('Name'))
-        ->sortable(['deepLearningEvent.name']);
+        ->sortable(['deepLearningEvent.name'])
+        ->context('primary');
 
     $table->addColumn('dates', __('Dates'))
         ->sortable(['eventDates'])
+        ->context('primary')
         ->format(function ($values) {
             $dates = array_map(function ($date) {
                 return Format::dateReadable($date);
@@ -74,10 +76,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     $table->addColumn('signUp', __('Sign-up'))
         ->sortable(['accessOpenDate'])
         ->format(Format::using('dateRangeReadable', ['accessOpenDate', 'accessCloseDate']));
-
-    // $table->addColumn('description', __('Description'))
-    //     ->sortable(['deepLearningEvent.description']);
-
+        
     $table->addColumn('experienceCount', __m('Experiences'))
         ->sortable(['experienceCount'])
         ->width('12%');

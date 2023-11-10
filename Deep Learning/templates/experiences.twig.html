@@ -9,24 +9,33 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 -->#}
 
 {% if event %}
-<header class="mb-8">
-    <h1 class="text-center text-gray-900  text-3xl mt-6 mb-1">
-        {{ event.name }}
-    </h1>
+<header class="mb-8 ">
+    
+    <div class="mb-8 relative rounded overflow-hidden" style="background: url('{{ absoluteURL }}/{{ event.backgroundImage }}'); background-size: 150%; background-position: center;">
+        <div class="absolute w-full h-full rounded bg-blur bg-translucent-gray overflow-hidden">
+        </div>
+    
+        <div class="my-8">
+            <h1 class="relative text-center text-white text-4xl mt-0 mb-1">
+                {{ event.name }}
+            </h1>
 
-    <div class="text-center text-gray-600 text-xs font-thin mb-6">
-        {% for date in event.eventDates|split(',') %}
-            {{- formatUsing('dateReadable', date, '%b %e') -}}
-            {{- not loop.last ? ', ' -}}
-        {% endfor %}
+            <div class="relative text-center text-white text-xs font-thin">
+                {% for date in event.eventDates|split(',') %}
+                    {{- formatUsing('dateReadable', date, '%b %e') -}}
+                    {{- not loop.last ? ', ' -}}
+                {% endfor %}
 
-        &nbsp;&nbsp;•&nbsp;&nbsp;
+                &nbsp;&nbsp;•&nbsp;&nbsp;
 
-        {% if event.yearGroupCount >= 8 %}
-            {{ __m('All Year Groups') }}
-        {% else %}
-            {{ event.yearGroups|replace({'Y0':'Y'}) }}
-        {% endif %}
+                {% if event.yearGroupCount >= 8 %}
+                    {{ __m('All Year Groups') }}
+                {% else %}
+                    {{ event.yearGroups|replace({'Y0':'Y'}) }}
+                {% endif %}
+            </div>
+        </div>
+
     </div>
 
     <div class="text-gray-800 text-xs">
@@ -35,24 +44,19 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 </header>
 {% endif %}
 
+{% if event.accessOpenDate and event.accessCloseDate %}
 <section class="w-full mb-6 relative">
-    <div class="absolute w-full h-full rounded overflow-hidden" style="opacity: 0.6; background: url('{{ absoluteURL }}/{{ event.backgroundImage }}'); background-size: 150%; background-position: center;">
-    </div>
-
-    <div class="w-full py-3 bg-blur bg-translucent-gray rounded text-center text-gray-700 text-lg font-thin">
-    {% if event.accessOpenDate and event.accessCloseDate %}
-        {% if "now"|date("U") < event.accessOpenDate|date("U") %}
-            {{ __m('Sign up opens on') }} {{ event.accessOpenDate|date("M jS \\a\\t g:ia") }}
-        {% elseif "now"|date("U") > event.accessCloseDate|date("U") %}
-            {{ __m('Sign up closed on') }} {{ event.accessCloseDate|date("M jS \\a\\t g:ia") }}
-        {% else %}
-            {{ __m('Sign up is currently open, and will close on') }} {{ event.accessCloseDate|date("M jS \\a\\t g:ia") }}
-        {% endif %}
+    <div class="w-full py-3 border border-gray-400 rounded text-center text-gray-700 text-lg font-thin">
+    {% if "now"|date("U") < event.accessOpenDate|date("U") %}
+        {{ __m('Sign up opens on') }} {{ event.accessOpenDate|date("M jS \\a\\t g:ia") }}
+    {% elseif "now"|date("U") > event.accessCloseDate|date("U") %}
+        {{ __m('Sign up closed on') }} {{ event.accessCloseDate|date("M jS \\a\\t g:ia") }}
     {% else %}
-        {{ __m('Sign up for this Deep Learning event is not available yet') }}
+        {{ __m('Sign up is currently open, and will close on') }} {{ event.accessCloseDate|date("M jS \\a\\t g:ia") }}
     {% endif %}
     </div>
 </section>
+{% endif %}
 
 {% if experiences is not empty %}
     <section class="w-full grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -78,7 +82,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
     {% endfor %}
     </section>
 {% else %}
-    <div class="h-48 rounded-sm border bg-gray-100 shadow-inner overflow-hidden">
+    <div class="h-48 rounded-sm border bg-gray-100 overflow-hidden">
         {% include 'components/blankSlate.twig.html' with {blankSlate: __m("There's nothing here yet. Check back soon!")} %}
     </div>
 {% endif %}

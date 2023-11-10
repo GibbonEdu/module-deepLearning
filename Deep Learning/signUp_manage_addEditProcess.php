@@ -29,14 +29,14 @@ require_once '../../gibbon.php';
 $_POST = $container->get(Validator::class)->sanitize($_POST, ['description' => 'HTML']);
 
 $params = [
-    'deepLearningEventID' => $_REQUEST['deepLearningEventID'] ?? '',
-    'deepLearningExperienceID' => $_REQUEST['deepLearningExperienceID'] ?? '',
+    'mode'                => $_POST['mode'] ?? '',
+    'deepLearningEventID' => $_POST['deepLearningEventID'] ?? '',
+    'gibbonPersonID'      => $_POST['gibbonPersonID'] ?? '',
 ];
 
-$URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/view_experience.php&sidebar=false&'.http_build_query($params);
-$URLSuccess = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/viewMyDL.php&'.http_build_query($params);
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/signUp_manage_addEdit.php&'.http_build_query($params);
 
-if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experience_signUp.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manage_addEdit.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
     exit;
@@ -48,18 +48,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
     $experienceGateway = $container->get(ExperienceGateway::class);
     $signUpGateway = $container->get(SignUpGateway::class);
     $settingGateway = $container->get(SettingGateway::class);
-    
-    $gibbonPersonID = $_POST['gibbonPersonID'] ?? '';
+
     $choices = $_POST['choices'] ?? [];
 
-    // Only users with manage permission can sign up a different user
-    $canManageSignUp = isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manage.php');
-    if (!$canManageSignUp) {
-        $gibbonPersonID = $session->get('gibbonPersonID');
-    }
-
     // Validate the required values are present
-    if (empty($choices) || empty($gibbonPersonID) || empty($params['deepLearningEventID'])) {
+    if (empty($choices) || empty($params['gibbonPersonID']) || empty($params['deepLearningEventID'])) {
         $URL .= '&return=error1';
         header("Location: {$URL}");
         exit;
@@ -73,23 +66,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
         exit;
     }
 
-    // Check that sign up is open based on the date
-    $signUpIsOpen = false;
-    if (!empty($event['accessOpenDate']) && !empty($event['accessCloseDate'])) {
-        $accessOpenDate = DateTime::createFromFormat('Y-m-d H:i:s', $event['accessOpenDate'])->format('U');
-        $accessCloseDate = DateTime::createFromFormat('Y-m-d H:i:s', $event['accessCloseDate'])->format('U');
-        $now = (new DateTime('now'))->format('U');
-
-        $signUpIsOpen = $accessOpenDate <= $now && $accessCloseDate >= $now;
-    }
-
-    if (!$signUpIsOpen) {
-        $URL .= '&return=error4';
-        header("Location: {$URL}");
-        exit;
-    }
-
-    $signUps = $signUpGateway->selectSignUpsByPerson($params['deepLearningEventID'], $gibbonPersonID)->fetchGroupedUnique();
+    $signUps = $signUpGateway->selectSignUpsByPerson($params['deepLearningEventID'], $params['gibbonPersonID'])->fetchGroupedUnique();
     $signUpChoices = $settingGateway->getSettingByScope('Deep Learning', 'signUpChoices');
 
     // Update the sign up choices
@@ -115,7 +92,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
         $signUpData = [
             'deepLearningExperienceID' => $deepLearningExperienceID,
             'deepLearningEventID'      => $params['deepLearningEventID'],
-            'gibbonPersonID'           => $gibbonPersonID,
+            'gibbonPersonID'           => $params['gibbonPersonID'],
             'choice'                   => $choice,
             'timestampModified'        => date('Y-m-d H:i:s'),
             'gibbonPersonIDModified'   => $session->get('gibbonPersonID'),
@@ -137,14 +114,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
     }
 
     // Cleanup sign ups that have been deleted
-    $signUpGateway->deleteSignUpsNotInList($params['deepLearningEventID'], $gibbonPersonID, $choiceIDs);
+    $signUpGateway->deleteSignUpsNotInList($params['deepLearningEventID'], $params['gibbonPersonID'], $choiceIDs);
 
-    if ($partialFail) {
-        $URL .= '&return=warning1';
-        header("Location: {$URL}");
-        exit;
-    }
+    $URL .= $partialFail
+        ? "&return=warning1"
+        : "&return=success0";
 
-    $URLSuccess .= '&return=success1';
-    header("Location: {$URLSuccess}");
+    header($params['mode'] == 'add'
+        ? "Location: {$URL}&editID={$params['deepLearningEventID']}&editID2={$params['gibbonPersonID']}"
+        : "Location: {$URL}"
+    );
 }

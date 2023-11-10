@@ -34,8 +34,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 }
 
 .bg-blur {
-    -webkit-backdrop-filter: blur(16px) brightness(120%);
-    backdrop-filter: blur(16px) brightness(160%);
+    -webkit-backdrop-filter: blur(22px) brightness(160%);
+    backdrop-filter: blur(22px) brightness(160%);
 }
 
 .hover\:bg-blur:hover {

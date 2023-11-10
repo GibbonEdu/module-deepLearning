@@ -58,7 +58,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage.
 
         $row = $form->addRow();
             $row->addFooter();
-            $row->addSearchSubmit($gibbon->session, 'Clear Filters', ['view', 'sidebar']);
+            $row->addSearchSubmit($session, 'Clear Filters', ['view', 'sidebar']);
 
         echo $form->getOutput();
     }

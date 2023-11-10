@@ -112,7 +112,10 @@ class ExperienceGateway extends QueryableGateway
 
     public function selectExperiences()
     {
-        $sql = "SELECT deepLearningExperienceID as value, name FROM deepLearningExperience ORDER BY name";
+        $sql = "SELECT deepLearningEvent.name as eventName, deepLearningEvent.deepLearningEventID, deepLearningExperience.deepLearningExperienceID, deepLearningExperience.name 
+                FROM deepLearningExperience 
+                JOIN deepLearningEvent ON (deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID)
+                ORDER BY deepLearningEvent.name, deepLearningExperience.name";
 
         return $this->db()->select($sql);
     }

@@ -45,7 +45,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
     // Setup criteria
     $experienceGateway = $container->get(ExperienceGateway::class);
-    $criteria = $experienceGateway->newQueryCriteria()
+    $criteria = $experienceGateway->newQueryCriteria(true)
         ->searchBy($experienceGateway->getSearchableColumns(), $params['search'])
         ->sortBy(['name'])
         ->fromPOST();
@@ -63,7 +63,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
         $row = $form->addRow();
             $row->addFooter();
-            $row->addSearchSubmit($gibbon->session, 'Clear Filters', ['view', 'sidebar']);
+            $row->addSearchSubmit($session, 'Clear Filters', ['view', 'sidebar']);
 
         echo $form->getOutput();
     }
@@ -90,7 +90,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     });
 
     $table->addColumn('eventNameShort', __('Event'))
-        ->width('10%');
+        ->width('8%');
 
     $table->addColumn('name', __('Name'))
         ->context('primary');

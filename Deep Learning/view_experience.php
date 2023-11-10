@@ -33,6 +33,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
         ->add(__m('Explore'), 'view_event.php', ['deepLearningEventID' => $deepLearningEventID, 'sidebar' => 'false'])
         ->add(__m('View Experience'));
 
+    $page->return->addReturns([
+        'error4' => __m('Sign up is currently not available for this Deep Learning event.'),
+        'error5' => __m('There was an error verifying your Deep Learning choices. Please try again.'),
+    ]);
+
     $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
     if (empty($highestAction)) {
         $page->addError(__('You do not have access to this action.'));

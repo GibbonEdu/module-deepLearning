@@ -85,17 +85,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
     $form->addHiddenValue('address', $session->get('address'));
     $form->addHiddenValue('gibbonPersonID', $session->get('gibbonPersonID'));
     $form->addHiddenValue('deepLearningEventID', $experience['deepLearningEventID']);
+    $form->addHiddenValue('deepLearningExperienceID', $deepLearningExperienceID);
 
     for ($i = 1; $i <= $signUpChoices; $i++) {
         $row = $form->addRow();
-        $row->addLabel("choices[{$i}]", $choiceList[$i]);
+        $row->addLabel("choices[{$i}]", $choiceList[$i] ?? $i);
         $row->addSelect("choices[{$i}]")
             ->fromArray($experiences)
             ->setID("choices{$i}")
             ->addClass('signUpChoice')
             ->required()
             ->placeholder()
-            ->selected($choice[$i]);
+            ->selected($choice[$i] ?? '');
     }
 
     $row = $form->addRow();

@@ -9,32 +9,38 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 -->#}
 
 {% if event %}
+<header class="mb-8 ">
+    
+    <a class="block mb-8 relative rounded overflow-hidden" style="background: url('{{ absoluteURL }}/{{ event.backgroundImage }}'); background-size: 150%; background-position: center;" href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_event.php&sidebar=false&deepLearningEventID={{ event.deepLearningEventID }}">
+        <div class="absolute w-full h-full rounded bg-blur bg-translucent-gray overflow-hidden">
+        </div>
+    
+        <div class="my-8">
+            <h1 class="relative text-center text-white text-4xl mt-0 mb-1">
+                {{ event.name }}
+            </h1>
 
-<header class="mb-8">
-    <h1 class="text-center text-gray-900 text-3xl mt-6 mb-1">
-        <a href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_event.php&sidebar=false&deepLearningEventID={{ event.deepLearningEventID }}" class="text-gray-900">
-        {{ event.name }}
-        </a>
-    </h1>
+            <div class="relative text-center text-white text-xs font-thin">
+                {% for date in event.eventDates|split(',') %}
+                    {{- formatUsing('dateReadable', date, '%b %e') -}}
+                    {{- not loop.last ? ', ' -}}
+                {% endfor %}
 
-    <div class="text-center text-gray-600 text-xs font-thin mb-6">
-        {% for date in event.eventDates|split(',') %}
-            {{- formatUsing('dateReadable', date, '%b %e') -}}
-            {{- not loop.last ? ', ' -}}
-        {% endfor %}
+                &nbsp;&nbsp;•&nbsp;&nbsp;
 
-        &nbsp;&nbsp;•&nbsp;&nbsp;
+                {% if event.yearGroupCount >= 8 %}
+                    {{ __m('All Year Groups') }}
+                {% else %}
+                    {{ event.yearGroups|replace({'Y0':'Y'}) }}
+                {% endif %}
+            </div>
+        </div>
 
-        {% if event.yearGroupCount >= 8 %}
-            {{ __m('All Year Groups') }}
-        {% else %}
-            {{ event.yearGroups|replace({'Y0':'Y'}) }}
-        {% endif %}
-    </div>
+    </a>
 </header>
 {% endif %}
 
-<section class="w-full grid grid-cols-3 grid-rows-2 grid-flow-col gap-6" style="height: 30vw">
+<section class="w-full grid grid-cols-3 grid-rows-2 grid-flow-col gap-6" style="height: 20vw">
 
     <div class="col-span-1 row-span-2 rounded overflow-hidden">
         {% if experience.headerImage %}
@@ -93,7 +99,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         {% if canSignUp %}
             {% if signUpIsOpen %}
             <div class="mb-6 rounded overflow-hidden" style="background: url('{{ absoluteURL }}/{{ experience.headerImage }}'); background-size: 150%; background-position: center;">
-                <a href="{{ absoluteURL }}/fullscreen.php?q=/modules/Deep Learning/view_experience_signUp.php&deepLearningExperienceID={{ experience.deepLearningExperienceID }}&width=750&height=440" class="thickbox block px-10 py-4 rounded outline-inset bg-blue-500 bg-blur hover:bg-blur transition-all duration-300 text-center text-white text-xl font-light">
+                <a href="{{ absoluteURL }}/fullscreen.php?q=/modules/Deep Learning/view_experience_signUp.php&deepLearningEventID={{ experience.deepLearningEventID }}&deepLearningExperienceID={{ experience.deepLearningExperienceID }}&width=750&height=440" class="thickbox block px-10 py-4 rounded outline-inset bg-blue-500 bg-blur hover:bg-blur transition-all duration-300 text-center text-white text-xl font-light">
                     {{ __m('Sign Up') }}
                 </a>
             </div>

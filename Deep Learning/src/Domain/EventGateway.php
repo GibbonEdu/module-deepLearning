@@ -78,10 +78,12 @@ class EventGateway extends QueryableGateway
 
     public function selectEventsBySchoolYear()
     {
-        $sql = "SELECT gibbonSchoolYear.name as groupBy, deepLearningEventID as value, deepLearningEvent.name 
+        $sql = "SELECT gibbonSchoolYear.name as groupBy, deepLearningEvent.deepLearningEventID as value, deepLearningEvent.name 
                 FROM deepLearningEvent
+                JOIN deepLearningEventDate ON (deepLearningEventDate.deepLearningEventID=deepLearningEvent.deepLearningEventID)
                 JOIN gibbonSchoolYear ON (deepLearningEvent.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID) 
-                ORDER BY gibbonSchoolYear.sequenceNumber DESC, name";
+                WHERE deepLearningEvent.active='Y'
+                ORDER BY gibbonSchoolYear.sequenceNumber DESC, deepLearningEventDate.eventDate, deepLearningEvent.name";
 
         return $this->db()->select($sql);
     }
