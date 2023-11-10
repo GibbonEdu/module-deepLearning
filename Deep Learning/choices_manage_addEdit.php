@@ -21,10 +21,10 @@ use Gibbon\Forms\Form;
 use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
-use Gibbon\Module\DeepLearning\Domain\SignUpGateway;
+use Gibbon\Module\DeepLearning\Domain\ChoiceGateway;
 use Gibbon\Forms\DatabaseFormFactory;
 
-if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manage_addEdit.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_manage_addEdit.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
@@ -36,8 +36,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manag
     ];
 
     $page->breadcrumbs
-        ->add(__m('Manage Sign Up'), 'signUp_manage.php')
-        ->add($params['mode'] == 'add' ? __m('Add Sign Up') : __m('Edit Sign Up'));
+        ->add(__m('Manage Choices'), 'choices_manage.php')
+        ->add($params['mode'] == 'add' ? __m('Add Choices') : __m('Edit Choices'));
      
     $page->return->addReturns([
         'error4' => __m('Sign up is currently not available for this Deep Learning event.'),
@@ -45,12 +45,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manag
     ]);
 
     if ($params['mode'] == 'add' && isset($_GET['editID']) && isset($_GET['editID2'])) {
-        $page->return->setEditLink($session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/signUp_manage_addEdit.php&mode=edit&deepLearningEventID='.$_GET['editID'].'&gibbonPersonID='.$_GET['editID2']);
+        $page->return->setEditLink($session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/choices_manage_addEdit.php&mode=edit&deepLearningEventID='.$_GET['editID'].'&gibbonPersonID='.$_GET['editID2']);
     }
 
     $eventGateway = $container->get(EventGateway::class);
     $experienceGateway = $container->get(ExperienceGateway::class);
-    $signUpGateway = $container->get(SignUpGateway::class);
+    $choiceGateway = $container->get(ChoiceGateway::class);
     $settingGateway = $container->get(SettingGateway::class);
 
     // Get events and experiences
@@ -65,15 +65,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manag
     $choiceList = [1 => __m('First Choice'), 2 => __m('Second Choice'), 3 => __m('Third Choice'), 4 => __m('Fourth Choice'), 5 => __m('Fifth Choice')];
 
     if ($params['mode'] == 'edit') {    
-        $signUps = $signUpGateway->selectSignUpsByPerson($params['deepLearningEventID'], $params['gibbonPersonID'])->fetchGroupedUnique();
+        $choices = $choiceGateway->selectChoicesByPerson($params['deepLearningEventID'], $params['gibbonPersonID'])->fetchGroupedUnique();
         $choice = [];
         for ($i = 1; $i <= $signUpChoices; $i++) {
-            $choice[$i] = $signUps[$i]['deepLearningExperienceID'] ?? $choices[$i-1] ?? '';
+            $choice[$i] = $choices[$i]['deepLearningExperienceID'] ?? $choices[$i-1] ?? '';
         }
     }
 
     // FORM
-    $form = Form::create('signUp', $session->get('absoluteURL').'/modules/'.$session->get('module').'/signUp_manage_addEditProcess.php');
+    $form = Form::create('choices', $session->get('absoluteURL').'/modules/'.$session->get('module').'/choices_manage_addEditProcess.php');
     $form->setFactory(DatabaseFormFactory::create($pdo));
 
     $form->addHiddenValue('address', $session->get('address'));
@@ -102,7 +102,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manag
         $row->addSelect("choices[{$i}]")
             ->fromArray($experienceList)
             ->setID("choices{$i}")
-            ->addClass('signUpChoice')
+            ->addClass('choicesChoice')
             ->chainedTo('deepLearningEventID', $experienceChainedTo)
             ->required()
             ->placeholder()
@@ -118,10 +118,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manag
 ?>
 
 <script>
-$(document).on('change input', '.signUpChoice', function () {
+$(document).on('change input', '.choicesChoice', function () {
     var currentChoice = this;
 
-    $('.signUpChoice').not(this).each(function() {
+    $('.choicesChoice').not(this).each(function() {
         if ($(currentChoice).val() == $(this).val()) {
             $(this).val($(this).find("option:first-child").val());
         }

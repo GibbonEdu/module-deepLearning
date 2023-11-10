@@ -19,26 +19,26 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
-use Gibbon\Module\DeepLearning\Domain\SignUpGateway;
+use Gibbon\Module\DeepLearning\Domain\ChoiceGateway;
 use Gibbon\Forms\Form;
 
-if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manage.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_manage.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
     // Proceed!
     $page->breadcrumbs
-        ->add(__m('Manage Sign Up'));
+        ->add(__m('Manage Choices'));
 
     $params = [
         'search' => $_REQUEST['search'] ?? ''
     ];
 
     // CRITERIA
-    $signUpGateway = $container->get(SignUpGateway::class);
+    $choiceGateway = $container->get(ChoiceGateway::class);
 
-    $criteria = $signUpGateway->newQueryCriteria(true)
-        ->searchBy($signUpGateway->getSearchableColumns(), $params['search'])
+    $criteria = $choiceGateway->newQueryCriteria(true)
+        ->searchBy($choiceGateway->getSearchableColumns(), $params['search'])
         ->sortBy(['surname', 'preferredName'])
         ->fromPOST();
 
@@ -46,7 +46,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manag
     $form = Form::create('filters', $session->get('absoluteURL').'/index.php', 'get');
     $form->setClass('noIntBorder fullWidth');
 
-    $form->addHiddenValue('q', '/modules/Deep Learning/signUp_manage.php');
+    $form->addHiddenValue('q', '/modules/Deep Learning/choices_manage.php');
 
     $row = $form->addRow();
         $row->addLabel('search', __('Search For'))->description(__m('Preferred name, surname, experience name, event name'));
@@ -58,13 +58,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manag
 
     echo $form->getOutput();
 
-    $signUps = $signUpGateway->querySignUps($criteria, $session->get('gibbonSchoolYearID'));
+    $choices = $choiceGateway->queryChoices($criteria, $session->get('gibbonSchoolYearID'));
 
     // TABLE
-    $table = DataTable::createPaginated('signUps', $criteria);
+    $table = DataTable::createPaginated('choices', $criteria);
 
     $table->addHeaderAction('add', __('Add'))
-        ->setURL('/modules/Deep Learning/signUp_manage_addEdit.php')
+        ->setURL('/modules/Deep Learning/choices_manage_addEdit.php')
         ->addParam('mode', 'add')
         ->displayLabel();
 
@@ -98,12 +98,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manag
         ->addParam('gibbonPersonID')
         ->format(function ($values, $actions) {
             $actions->addAction('edit', __('Edit'))
-                    ->setURL('/modules/Deep Learning/signUp_manage_addEdit.php')
+                    ->setURL('/modules/Deep Learning/choices_manage_addEdit.php')
                     ->addParam('mode', 'edit');
 
             $actions->addAction('delete', __('Delete'))
-                    ->setURL('/modules/Deep Learning/signUp_manage_delete.php');
+                    ->setURL('/modules/Deep Learning/choices_manage_delete.php');
         });
 
-    echo $table->render($signUps);
+    echo $table->render($choices);
 }

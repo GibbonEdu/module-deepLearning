@@ -164,7 +164,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningStaff` (
 $moduleTables[] = "CREATE TABLE `deepLearningEnrolment` (
     `deepLearningEnrolmentID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `deepLearningExperienceID` INT(12) UNSIGNED ZEROFILL NOT NULL,
-    `deepLearningSignUpID` INT(12) UNSIGNED DEFAULT NULL,
+    `deepLearningChoiceID` INT(12) UNSIGNED DEFAULT NULL,
     `gibbonPersonID` INT(10) UNSIGNED ZEROFILL NOT NULL,
     `status` ENUM('Pending','Confirmed') NOT NULL DEFAULT 'Pending',
     `notes` TEXT NULL,
@@ -174,8 +174,8 @@ $moduleTables[] = "CREATE TABLE `deepLearningEnrolment` (
     UNIQUE KEY (`gibbonPersonID`, `deepLearningExperienceID`)
 ) ENGINE=InnoDB;";
 
-$moduleTables[] = "CREATE TABLE `deepLearningSignUp` (
-    `deepLearningSignUpID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+$moduleTables[] = "CREATE TABLE `deepLearningChoice` (
+    `deepLearningChoiceID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `deepLearningExperienceID` INT(12) UNSIGNED ZEROFILL NOT NULL,
     `deepLearningEventID` INT(10) UNSIGNED ZEROFILL NOT NULL,
     `gibbonPersonID` INT(10) UNSIGNED ZEROFILL NOT NULL,
@@ -184,7 +184,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningSignUp` (
     `timestampModified` TIMESTAMP NULL,
     `gibbonPersonIDCreated` INT(10) UNSIGNED ZEROFILL NOT NULL,
     `gibbonPersonIDModified` INT(10) UNSIGNED ZEROFILL NOT NULL,
-    PRIMARY KEY (`deepLearningSignUpID`),
+    PRIMARY KEY (`deepLearningChoiceID`),
     UNIQUE KEY (`gibbonPersonID`, `choice`, `deepLearningExperienceID`)
 ) ENGINE=InnoDB;";
 
@@ -299,12 +299,12 @@ $actionRows[] = [
 ];
 
 $actionRows[] = [
-    'name'                      => 'Manage Sign Up',
+    'name'                      => 'Manage Choices',
     'precedence'                => '0',
     'category'                  => 'Enrolment',
     'description'               => 'Manage sign ups and enrolments for Deep Learning experiences.',
-    'URLList'                   => 'signUp_manage.php,signUp_manage_generate.php,signUp_manage_addEdit.php,signUp_manage_delete.php',
-    'entryURL'                  => 'signUp_manage.php',
+    'URLList'                   => 'choices_manage.php,choices_manage_generate.php,choices_manage_addEdit.php,choices_manage_delete.php',
+    'entryURL'                  => 'choices_manage.php',
     'entrySidebar'              => 'Y',
     'menuShow'                  => 'Y',
     'defaultPermissionAdmin'    => 'Y',

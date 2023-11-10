@@ -18,9 +18,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Prefab\DeleteForm;
-use Gibbon\Module\DeepLearning\Domain\SignUpGateway;
+use Gibbon\Module\DeepLearning\Domain\ChoiceGateway;
 
-if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manage_delete.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_manage_delete.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
@@ -33,12 +33,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manag
         return;
     }
 
-    $signUps = $container->get(SignUpGateway::class)->selectSignUpsByPerson($deepLearningEventID, $gibbonPersonID);
-    if (empty($signUps)) {
+    $choices = $container->get(ChoiceGateway::class)->selectChoicesByPerson($deepLearningEventID, $gibbonPersonID);
+    if (empty($choices)) {
         $page->addError(__('The specified record cannot be found.'));
         return;
     }
 
-    $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/Deep Learning/signUp_manage_deleteProcess.php');
+    $form = DeleteForm::createForm($session->get('absoluteURL').'/modules/Deep Learning/choices_manage_deleteProcess.php');
     echo $form->getOutput();
 }

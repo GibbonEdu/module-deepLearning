@@ -23,19 +23,19 @@ use Gibbon\Domain\Traits\TableAware;
 use Gibbon\Domain\QueryCriteria;
 use Gibbon\Domain\QueryableGateway;
 
-class SignUpGateway extends QueryableGateway
+class ChoiceGateway extends QueryableGateway
 {
     use TableAware;
 
-    private static $tableName = 'deepLearningSignUp';
-    private static $primaryKey = 'deepLearningSignUpID';
+    private static $tableName = 'deepLearningChoice';
+    private static $primaryKey = 'deepLearningChoiceID';
     private static $searchableColumns = ['gibbonPerson.preferredName', 'gibbonPerson.surname', 'deepLearningEvent.name', 'deepLearningExperience.name'];
 
     /**
      * @param QueryCriteria $criteria
      * @return DataSet
      */
-    public function querySignUps(QueryCriteria $criteria, $gibbonSchoolYearID)
+    public function queryChoices(QueryCriteria $criteria, $gibbonSchoolYearID)
     {
         $query = $this
             ->newQuery()
@@ -45,22 +45,22 @@ class SignUpGateway extends QueryableGateway
                 'deepLearningEvent.deepLearningEventID',
                 'deepLearningEvent.name as eventName',
                 'deepLearningEvent.nameShort as eventNameShort',
-                'deepLearningSignUp.gibbonPersonID',
-                'deepLearningSignUp.timestampModified',
+                'deepLearningChoice.gibbonPersonID',
+                'deepLearningChoice.timestampModified',
                 'gibbonPerson.preferredName',
                 'gibbonPerson.surname',
                 'gibbonFormGroup.nameShort as formGroup',
-                "GROUP_CONCAT(deepLearningExperience.name ORDER BY deepLearningSignUp.choice SEPARATOR ',') as choices",
+                "GROUP_CONCAT(deepLearningExperience.name ORDER BY deepLearningChoice.choice SEPARATOR ',') as choices",
                 
             ])
-            ->innerJoin('deepLearningExperience', 'deepLearningExperience.deepLearningExperienceID=deepLearningSignUp.deepLearningExperienceID')
+            ->innerJoin('deepLearningExperience', 'deepLearningExperience.deepLearningExperienceID=deepLearningChoice.deepLearningExperienceID')
             ->innerJoin('deepLearningEvent', 'deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID')
-            ->innerJoin('gibbonPerson', 'gibbonPerson.gibbonPersonID=deepLearningSignUp.gibbonPersonID')
+            ->innerJoin('gibbonPerson', 'gibbonPerson.gibbonPersonID=deepLearningChoice.gibbonPersonID')
             ->leftJoin('gibbonStudentEnrolment', 'gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID AND gibbonStudentEnrolment.gibbonSchoolYearID=deepLearningEvent.gibbonSchoolYearID')
             ->leftJoin('gibbonFormGroup', 'gibbonFormGroup.gibbonFormGroupID=gibbonStudentEnrolment.gibbonFormGroupID')
             ->where('deepLearningEvent.gibbonSchoolYearID=:gibbonSchoolYearID')
             ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID)
-            ->groupBy(['deepLearningSignUp.gibbonPersonID']);
+            ->groupBy(['deepLearningChoice.gibbonPersonID']);
 
         return $this->runQuery($query, $criteria);
     }
@@ -69,7 +69,7 @@ class SignUpGateway extends QueryableGateway
      * @param QueryCriteria $criteria
      * @return DataSet
      */
-    public function querySignUpsByPerson(QueryCriteria $criteria, $gibbonSchoolYearID, $gibbonPersonID)
+    public function queryChoicesByPerson(QueryCriteria $criteria, $gibbonSchoolYearID, $gibbonPersonID)
     {
         $query = $this
             ->newQuery()
@@ -79,47 +79,47 @@ class SignUpGateway extends QueryableGateway
                 'deepLearningEvent.deepLearningEventID',
                 'deepLearningEvent.name as eventName',
                 'deepLearningEvent.nameShort as eventNameShort',
-                'deepLearningSignUp.gibbonPersonID',
-                'deepLearningSignUp.timestampModified',
+                'deepLearningChoice.gibbonPersonID',
+                'deepLearningChoice.timestampModified',
                 'gibbonPerson.preferredName',
                 'gibbonPerson.surname',
-                "GROUP_CONCAT(deepLearningExperience.name ORDER BY deepLearningSignUp.choice SEPARATOR ',') as choices",
+                "GROUP_CONCAT(deepLearningExperience.name ORDER BY deepLearningChoice.choice SEPARATOR ',') as choices",
                 
             ])
-            ->innerJoin('deepLearningExperience', 'deepLearningExperience.deepLearningExperienceID=deepLearningSignUp.deepLearningExperienceID')
+            ->innerJoin('deepLearningExperience', 'deepLearningExperience.deepLearningExperienceID=deepLearningChoice.deepLearningExperienceID')
             ->innerJoin('deepLearningEvent', 'deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID')
-            ->innerJoin('gibbonPerson', 'gibbonPerson.gibbonPersonID=deepLearningSignUp.gibbonPersonID')
+            ->innerJoin('gibbonPerson', 'gibbonPerson.gibbonPersonID=deepLearningChoice.gibbonPersonID')
             ->where('deepLearningEvent.gibbonSchoolYearID=:gibbonSchoolYearID')
             ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID)
-            ->where('deepLearningSignUp.gibbonPersonID=:gibbonPersonID')
+            ->where('deepLearningChoice.gibbonPersonID=:gibbonPersonID')
             ->bindValue('gibbonPersonID', $gibbonPersonID)
-            ->groupBy(['deepLearningSignUp.gibbonPersonID']);
+            ->groupBy(['deepLearningChoice.gibbonPersonID']);
 
         return $this->runQuery($query, $criteria);
     }
 
-    public function selectSignUpsByPerson($deepLearningEventID, $gibbonPersonID)
+    public function selectChoicesByPerson($deepLearningEventID, $gibbonPersonID)
     {
         $data = ['deepLearningEventID' => $deepLearningEventID, 'gibbonPersonID' => $gibbonPersonID];
-        $sql = "SELECT deepLearningSignUp.choice as groupBy, deepLearningSignUp.*
-                FROM deepLearningSignUp
-                JOIN deepLearningExperience ON (deepLearningExperience.deepLearningExperienceID=deepLearningSignUp.deepLearningExperienceID)
+        $sql = "SELECT deepLearningChoice.choice as groupBy, deepLearningChoice.*
+                FROM deepLearningChoice
+                JOIN deepLearningExperience ON (deepLearningExperience.deepLearningExperienceID=deepLearningChoice.deepLearningExperienceID)
                 WHERE deepLearningExperience.deepLearningEventID=:deepLearningEventID
-                AND deepLearningSignUp.gibbonPersonID=:gibbonPersonID
-                ORDER BY deepLearningSignUp.choice";
+                AND deepLearningChoice.gibbonPersonID=:gibbonPersonID
+                ORDER BY deepLearningChoice.choice";
 
         return $this->db()->select($sql, $data);
     }
 
-    public function deleteSignUpsNotInList($deepLearningEventID, $gibbonPersonID, $choiceIDs)
+    public function deleteChoicesNotInList($deepLearningEventID, $gibbonPersonID, $choiceIDs)
     {
         $choiceIDs = is_array($choiceIDs) ? implode(',', $choiceIDs) : $choiceIDs;
 
         $data = ['deepLearningEventID' => $deepLearningEventID, 'gibbonPersonID' => $gibbonPersonID, 'choiceIDs' => $choiceIDs];
-        $sql = "DELETE FROM deepLearningSignUp 
+        $sql = "DELETE FROM deepLearningChoice 
                 WHERE deepLearningEventID=:deepLearningEventID 
                 AND gibbonPersonID=:gibbonPersonID
-                AND NOT FIND_IN_SET(deepLearningSignUpID, :choiceIDs)";
+                AND NOT FIND_IN_SET(deepLearningChoiceID, :choiceIDs)";
 
         return $this->db()->delete($sql, $data);
     }

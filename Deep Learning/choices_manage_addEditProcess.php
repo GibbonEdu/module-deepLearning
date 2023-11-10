@@ -20,7 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Services\Format;
 use Gibbon\Data\Validator;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
-use Gibbon\Module\DeepLearning\Domain\SignUpGateway;
+use Gibbon\Module\DeepLearning\Domain\ChoiceGateway;
 use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 
@@ -34,9 +34,9 @@ $params = [
     'gibbonPersonID'      => $_POST['gibbonPersonID'] ?? '',
 ];
 
-$URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/signUp_manage_addEdit.php&'.http_build_query($params);
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/choices_manage_addEdit.php&'.http_build_query($params);
 
-if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manage_addEdit.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_manage_addEdit.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
     exit;
@@ -46,7 +46,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manag
 
     $eventGateway = $container->get(EventGateway::class);
     $experienceGateway = $container->get(ExperienceGateway::class);
-    $signUpGateway = $container->get(SignUpGateway::class);
+    $choiceGateway = $container->get(ChoiceGateway::class);
     $settingGateway = $container->get(SettingGateway::class);
 
     $choices = $_POST['choices'] ?? [];
@@ -66,7 +66,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manag
         exit;
     }
 
-    $signUps = $signUpGateway->selectSignUpsByPerson($params['deepLearningEventID'], $params['gibbonPersonID'])->fetchGroupedUnique();
+    $existingChoices = $choiceGateway->selectChoicesByPerson($params['deepLearningEventID'], $params['gibbonPersonID'])->fetchGroupedUnique();
     $signUpChoices = $settingGateway->getSettingByScope('Deep Learning', 'signUpChoices');
 
     // Update the sign up choices
@@ -89,7 +89,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manag
         }
 
         // Prepare data to insert or update
-        $signUpData = [
+        $choicesData = [
             'deepLearningExperienceID' => $deepLearningExperienceID,
             'deepLearningEventID'      => $params['deepLearningEventID'],
             'gibbonPersonID'           => $params['gibbonPersonID'],
@@ -98,23 +98,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manag
             'gibbonPersonIDModified'   => $session->get('gibbonPersonID'),
         ];
 
-        $deepLearningSignUpID = $signUps[$choice]['deepLearningSignUpID'] ?? '';
+        $deepLearningChoiceID = $existingChoices[$choice]['deepLearningChoiceID'] ?? '';
 
-        if (!empty($deepLearningSignUpID)) {
-            $partialFail &= !$signUpGateway->update($deepLearningSignUpID, $signUpData);
+        if (!empty($deepLearningChoiceID)) {
+            $partialFail &= !$choiceGateway->update($deepLearningChoiceID, $choicesData);
         } else {
-            $signUpData['timestampCreated'] = date('Y-m-d H:i:s');
-            $signUpData['gibbonPersonIDCreated'] = $session->get('gibbonPersonID');
+            $choicesData['timestampCreated'] = date('Y-m-d H:i:s');
+            $choicesData['gibbonPersonIDCreated'] = $session->get('gibbonPersonID');
 
-            $deepLearningSignUpID = $signUpGateway->insert($signUpData);
-            $partialFail &= !$deepLearningSignUpID;
+            $deepLearningChoiceID = $choiceGateway->insert($choicesData);
+            $partialFail &= !$deepLearningChoiceID;
         }
 
-        $choiceIDs[] = str_pad($deepLearningSignUpID, 12, '0', STR_PAD_LEFT);
+        $choiceIDs[] = str_pad($deepLearningChoiceID, 12, '0', STR_PAD_LEFT);
     }
 
     // Cleanup sign ups that have been deleted
-    $signUpGateway->deleteSignUpsNotInList($params['deepLearningEventID'], $params['gibbonPersonID'], $choiceIDs);
+    $choiceGateway->deleteChoicesNotInList($params['deepLearningEventID'], $params['gibbonPersonID'], $choiceIDs);
 
     $URL .= $partialFail
         ? "&return=warning1"

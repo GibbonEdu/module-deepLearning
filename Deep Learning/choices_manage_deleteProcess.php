@@ -17,16 +17,16 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Module\DeepLearning\Domain\SignUpGateway;
+use Gibbon\Module\DeepLearning\Domain\ChoiceGateway;
 
 require_once '../../gibbon.php';
 
 $deepLearningEventID = $_POST['deepLearningEventID'] ?? '';
 $gibbonPersonID = $_POST['gibbonPersonID'] ?? '';
 
-$URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/signUp_manage.php';
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/choices_manage.php';
 
-if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manage_delete.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_manage_delete.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
     exit;
@@ -36,16 +36,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manag
     exit;
 } else {
     // Proceed!
-    $signUpGateway = $container->get(SignUpGateway::class);
+    $choiceGateway = $container->get(ChoiceGateway::class);
 
-    $signUps = $container->get(SignUpGateway::class)->selectSignUpsByPerson($deepLearningEventID, $gibbonPersonID);
-    if (empty($signUps)) {
+    $choices = $container->get(ChoiceGateway::class)->selectChoicesByPerson($deepLearningEventID, $gibbonPersonID);
+    if (empty($choices)) {
         $URL .= '&return=error2';
         header("Location: {$URL}");
         exit;
     }
 
-    $deleted = $signUpGateway->deleteWhere(['deepLearningEventID' => $deepLearningEventID, 'gibbonPersonID' => $gibbonPersonID]);
+    $deleted = $choiceGateway->deleteWhere(['deepLearningEventID' => $deepLearningEventID, 'gibbonPersonID' => $gibbonPersonID]);
 
     $URL .= !$deleted
         ? '&return=error2'
