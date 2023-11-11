@@ -18,8 +18,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Module\DeepLearning\Domain\ChoiceGateway;
+use Gibbon\Data\Validator;
 
 require_once '../../gibbon.php';
+
+$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 $deepLearningEventID = $_POST['deepLearningEventID'] ?? '';
 $gibbonPersonID = $_POST['gibbonPersonID'] ?? '';

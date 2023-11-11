@@ -27,7 +27,7 @@ use Gibbon\Module\DeepLearning\Domain\StaffGateway;
 
 require_once '../../gibbon.php';
 
-$_POST = $container->get(Validator::class)->sanitize($_POST, ['description' => 'HTML']);
+$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 $params = [
     'gibbonSchoolYearID' => $_REQUEST['gibbonSchoolYearID'] ?? $session->get('gibbonSchoolYearID'),

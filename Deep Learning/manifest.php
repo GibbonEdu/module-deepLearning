@@ -164,14 +164,15 @@ $moduleTables[] = "CREATE TABLE `deepLearningStaff` (
 $moduleTables[] = "CREATE TABLE `deepLearningEnrolment` (
     `deepLearningEnrolmentID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `deepLearningExperienceID` INT(12) UNSIGNED ZEROFILL NOT NULL,
-    `deepLearningChoiceID` INT(12) UNSIGNED DEFAULT NULL,
+    `deepLearningEventID` INT(10) UNSIGNED ZEROFILL NOT NULL,
+    `deepLearningChoiceID` INT(12) UNSIGNED ZEROFILL NULL,
     `gibbonPersonID` INT(10) UNSIGNED ZEROFILL NOT NULL,
     `status` ENUM('Pending','Confirmed') NOT NULL DEFAULT 'Pending',
     `notes` TEXT NULL,
     `timestampCreated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `gibbonPersonIDCreated` INT(10) UNSIGNED ZEROFILL NOT NULL,
     PRIMARY KEY (`deepLearningEnrolmentID`),
-    UNIQUE KEY (`gibbonPersonID`, `deepLearningExperienceID`)
+    UNIQUE KEY (`gibbonPersonID`, `deepLearningEventID`)
 ) ENGINE=InnoDB;";
 
 $moduleTables[] = "CREATE TABLE `deepLearningChoice` (
@@ -185,7 +186,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningChoice` (
     `gibbonPersonIDCreated` INT(10) UNSIGNED ZEROFILL NOT NULL,
     `gibbonPersonIDModified` INT(10) UNSIGNED ZEROFILL NOT NULL,
     PRIMARY KEY (`deepLearningChoiceID`),
-    UNIQUE KEY (`gibbonPersonID`, `choice`, `deepLearningExperienceID`)
+    UNIQUE KEY (`gibbonPersonID`, `choice`, `deepLearningEventID`)
 ) ENGINE=InnoDB;";
 
 // Add gibbonSettings entries

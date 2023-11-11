@@ -32,7 +32,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
     $params = [
         'mode'                    => $_REQUEST['mode'] ?? '',
         'deepLearningEnrolmentID' => $_REQUEST['deepLearningEnrolmentID'] ?? '',
-        'deepLearningEventID'     => $_REQUEST['deepLearningEventID'] ?? '',
     ];
 
     $page->breadcrumbs
@@ -46,20 +45,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
     $eventGateway = $container->get(EventGateway::class);
     $experienceGateway = $container->get(ExperienceGateway::class);
     $enrolmentGateway = $container->get(EnrolmentGateway::class);
-    $settingGateway = $container->get(SettingGateway::class);
 
-    // Get events and experiences
-    $events = $eventGateway->selectEventsBySchoolYear($session->get('gibbonSchoolYearID'));
-    $experiences = $experienceGateway->selectExperiences()->fetchAll();
-
-    $experienceList = array_combine(array_column($experiences, 'deepLearningExperienceID'), array_column($experiences, 'name'));
-    $experienceChainedTo = array_combine(array_column($experiences, 'deepLearningExperienceID'), array_column($experiences, 'deepLearningEventID'));
-
-    $enrolmentChoices = $settingGateway->getSettingByScope('Deep Learning', 'enrolmentChoices');
-
+    // Get existing enrolment, if any
     $values = $params['mode'] == 'edit'
         ? $enrolmentGateway->getByID($params['deepLearningEnrolmentID'])
         : [];
+
+    // Get events and experiences
+    $events = $eventGateway->selectEventsBySchoolYear($session->get('gibbonSchoolYearID'));
+
+    if ($params['mode'] == 'edit') {
+        $experience = $experienceGateway->getExperienceDetailsByID($values['deepLearningExperienceID']);
+        $experienceList = $experienceGateway->selectExperiencesByEvent($experience['deepLearningEventID'])->fetchKeyPair();
+    } else {
+        $experiences = $experienceGateway->selectExperiences()->fetchAll();
+        $experienceList = array_combine(array_column($experiences, 'deepLearningExperienceID'), array_column($experiences, 'name'));
+        $experienceChainedTo = array_combine(array_column($experiences, 'deepLearningExperienceID'), array_column($experiences, 'deepLearningEventID'));
+    }
 
     // FORM
     $form = Form::create('enrolment', $session->get('absoluteURL').'/modules/'.$session->get('module').'/enrolment_manage_byPerson_addEditProcess.php');
@@ -68,14 +70,24 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
     $form->addHiddenValue('address', $session->get('address'));
     $form->addHiddenValue('mode', $params['mode']);
     
-    $row = $form->addRow();
+    if ($params['mode'] == 'edit') {
+        $form->addHiddenValue('deepLearningEnrolmentID', $params['deepLearningEnrolmentID']);
+        $form->addHiddenValue('deepLearningEventID', $experience['deepLearningEventID']);
+
+        $row = $form->addRow();
+        $row->addLabel('event', __('Event'));
+        $row->addTextField('event')->readOnly()->setValue($experience['eventName']);
+
+    } else {
+        $row = $form->addRow();
         $row->addLabel('deepLearningEventID', __('Event'));
         $row->addSelect('deepLearningEventID')
             ->fromResults($events, 'groupBy')
             ->required()
             ->placeholder()
-            ->selected($params['deepLearningEventID'] ?? '')
+            ->selected($experience['deepLearningEventID'] ?? '')
             ->readOnly($params['mode'] == 'edit');
+    }
 
     $row = $form->addRow();
         $row->addLabel('gibbonPersonID', __('Person'));
@@ -86,11 +98,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
 
     $row = $form->addRow();
         $row->addLabel('deepLearningExperienceID', __('Experience'));
-        $row->addSelect('deepLearningExperienceID')
+        $select = $row->addSelect('deepLearningExperienceID')
             ->fromArray($experienceList)
-            ->chainedTo('deepLearningEventID', $experienceChainedTo)
             ->required()
             ->placeholder();
+
+    if ($params['mode'] == 'add') {
+        $select->chainedTo('deepLearningEventID', $experienceChainedTo);
+    }
 
     $row = $form->addRow();
         $row->addLabel('status', __('Status'));

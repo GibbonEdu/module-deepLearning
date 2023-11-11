@@ -46,12 +46,12 @@ class EnrolmentGateway extends QueryableGateway
                 'deepLearningEvent.name as eventName',
                 'deepLearningEvent.nameShort as eventNameShort',
                 'deepLearningExperience.name',
+                'deepLearningEnrolment.deepLearningEnrolmentID',
                 'deepLearningEnrolment.gibbonPersonID',
                 'deepLearningEnrolment.timestampCreated',
                 'gibbonPerson.preferredName',
                 'gibbonPerson.surname',
                 'gibbonFormGroup.nameShort as formGroup',
-                
             ])
             ->innerJoin('deepLearningExperience', 'deepLearningExperience.deepLearningExperienceID=deepLearningEnrolment.deepLearningExperienceID')
             ->innerJoin('deepLearningEvent', 'deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID')

@@ -26,7 +26,7 @@ use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 
 require_once '../../gibbon.php';
 
-$_POST = $container->get(Validator::class)->sanitize($_POST, ['description' => 'HTML']);
+$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 $params = [
     'deepLearningEventID' => $_REQUEST['deepLearningEventID'] ?? '',
