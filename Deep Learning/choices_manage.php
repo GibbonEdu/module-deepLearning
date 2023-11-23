@@ -68,8 +68,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
         ->addParam('mode', 'add')
         ->displayLabel();
 
-    $table->addColumn('eventNameShort', __('Event'))
-        ->width('8%');
+    $table->addColumn('image_240', __('Photo'))
+        ->context('primary')
+        ->width('8%')
+        ->notSortable()
+        ->format(Format::using('userPhoto', ['image_240', 'xs']));
 
     $table->addColumn('student', __('Person'))
         ->sortable(['gibbonPerson.surname', 'gibbonPerson.preferredName'])
@@ -80,17 +83,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
 
     $table->addColumn('formGroup', __('FormGroup'))->context('secondary');
 
+    $table->addColumn('eventNameShort', __('Event'))
+        ->width('8%');
+
     $table->addColumn('choices', __('Choices'))
         ->context('primary')
+        ->width('30%')
         ->format(function ($values) {
             $choices = explode(',', $values['choices']);
             return Format::list($choices, 'ol', 'ml-2 my-0 text-xs');
         });
 
     $table->addColumn('timestampModified', __('When'))
-        ->format(Format::using('dateTimeReadable', 'timestampModified'))
-        ->width('20%');
-
+        ->format(Format::using('dateReadable', 'timestampModified'))
+        ->width('15%');
 
     // ACTIONS
     $table->addActionColumn()

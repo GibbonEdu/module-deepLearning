@@ -24,15 +24,24 @@ require_once '../../gibbon.php';
 
 $_POST = $container->get(Validator::class)->sanitize($_POST);
 
-$deepLearningEnrolmentID = $_POST['deepLearningEnrolmentID'] ?? '';;
+$params = [
+    'origin'                  => $_POST['origin'] ?? '',
+    'deepLearningEventID'     => $_POST['deepLearningEventID'] ?? '',
+    'deepLearningEnrolmentID' => $_POST['deepLearningEnrolmentID'] ?? '',
+];
 
-$URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/enrolment_manage_byPerson.php';
+$deepLearningEnrolmentID = $_POST['deepLearningEnrolmentID'] ?? '';
+$origin = $_POST['origin'] ?? '';
+
+$URL = $params['origin'] == 'byEvent'
+    ? $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/enrolment_manage_byEvent.php&'.http_build_query($params)
+    : $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/enrolment_manage_byPerson.php&'.http_build_query($params);
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_manage_byPerson_delete.php') == false) {
     $URL .= '&return=error0';
     header("Location: {$URL}");
     exit;
-} elseif (empty($deepLearningEnrolmentID)) {
+} elseif (empty($params['deepLearningEnrolmentID'])) {
     $URL .= '&return=error1';
     header("Location: {$URL}");
     exit;
@@ -40,14 +49,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
     // Proceed!
     $enrolmentGateway = $container->get(EnrolmentGateway::class);
 
-    $values = $container->get(EnrolmentGateway::class)->getByID($deepLearningEnrolmentID);
+    $values = $container->get(EnrolmentGateway::class)->getByID($params['deepLearningEnrolmentID']);
     if (empty($values)) {
         $URL .= '&return=error2';
         header("Location: {$URL}");
         exit;
     }
 
-    $deleted = $enrolmentGateway->delete($deepLearningEnrolmentID);
+    $deleted = $enrolmentGateway->delete($params['deepLearningEnrolmentID']);
 
     $URL .= !$deleted
         ? '&return=error2'

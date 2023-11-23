@@ -47,7 +47,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     $enrolmentMin = $settingGateway->getSettingByScope('Deep Learning', 'enrolmentMin');
     $enrolmentMax = $settingGateway->getSettingByScope('Deep Learning', 'enrolmentMax');
 
-    $events = $container->get(EventGateway::class)->selectEventsBySchoolYear();
+    $events = $container->get(EventGateway::class)->selectAllEvents();
     $units = $container->get(UnitGateway::class)->selectPublishedUnits();
 
     // FORM

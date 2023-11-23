@@ -77,7 +77,7 @@ class EventGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
-    public function selectEventsBySchoolYear()
+    public function selectAllEvents()
     {
         $sql = "SELECT gibbonSchoolYear.name as groupBy, deepLearningEvent.deepLearningEventID as value, deepLearningEvent.name 
                 FROM deepLearningEvent
@@ -87,6 +87,34 @@ class EventGateway extends QueryableGateway
                 ORDER BY gibbonSchoolYear.sequenceNumber DESC, deepLearningEventDate.eventDate, deepLearningEvent.name";
 
         return $this->db()->select($sql);
+    }
+
+    public function selectEventsBySchoolYear($gibbonSchoolYearID)
+    {
+        $data = ['gibbonSchoolYearID' => $gibbonSchoolYearID];
+        $sql = "SELECT deepLearningEvent.deepLearningEventID as value, deepLearningEvent.name 
+                FROM deepLearningEvent
+                JOIN deepLearningEventDate ON (deepLearningEventDate.deepLearningEventID=deepLearningEvent.deepLearningEventID)
+                WHERE deepLearningEvent.active='Y'
+                AND deepLearningEvent.gibbonSchoolYearID=:gibbonSchoolYearID
+                ORDER BY deepLearningEventDate.eventDate, deepLearningEvent.name";
+
+        return $this->db()->select($sql, $data);
+    }
+
+    public function getNextActiveEvent($gibbonSchoolYearID)
+    {
+        $data = ['gibbonSchoolYearID' => $gibbonSchoolYearID, 'today' => date('Y-m-d')];
+        $sql = "SELECT MIN(deepLearningEvent.deepLearningEventID)
+                FROM deepLearningEvent
+                JOIN deepLearningEventDate ON (deepLearningEventDate.deepLearningEventID=deepLearningEvent.deepLearningEventID)
+                WHERE deepLearningEvent.active='Y'
+                AND deepLearningEvent.gibbonSchoolYearID=:gibbonSchoolYearID
+                AND deepLearningEventDate.eventDate>=:today
+                GROUP BY deepLearningEvent.deepLearningEventID
+                ORDER BY deepLearningEventDate.eventDate ASC, deepLearningEvent.name";
+
+        return $this->db()->selectOne($sql, $data);
     }
 
     public function selectYearGroupsByEvent($deepLearningEventID)

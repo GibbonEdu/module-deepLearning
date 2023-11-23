@@ -28,7 +28,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
 } else {
     // Proceed!
     $page->breadcrumbs
-        ->add(__m('Manage Enrolment'));
+        ->add(__m('Manage Enrolment by Person'));
 
     $params = [
         'search' => $_REQUEST['search'] ?? ''
@@ -66,10 +66,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
     $table->addHeaderAction('add', __('Add'))
         ->setURL('/modules/Deep Learning/enrolment_manage_byPerson_addEdit.php')
         ->addParam('mode', 'add')
+        ->addParam('search', $criteria->getSearchText(true))
         ->displayLabel();
 
-    $table->addColumn('eventNameShort', __('Event'))
-        ->width('8%');
+    $table->addColumn('image_240', __('Photo'))
+        ->context('primary')
+        ->width('8%')
+        ->notSortable()
+        ->format(Format::using('userPhoto', ['image_240', 'xs']));
 
     $table->addColumn('student', __('Person'))
         ->sortable(['gibbonPerson.surname', 'gibbonPerson.preferredName'])
@@ -78,18 +82,34 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
             return Format::nameLinked($values['gibbonPersonID'], '', $values['preferredName'], $values['surname'], 'Student', true, true);
         });
 
-    $table->addColumn('formGroup', __('FormGroup'))->context('secondary');
+    $table->addColumn('formGroup', __('Form Group'))
+        ->width('6%')
+        ->context('secondary');
 
-    $table->addColumn('name', __('Experience'))
-        ->context('primary');
+    $table->addColumn('eventNameShort', __m('Event'))
+        ->width('6%');
+        
+    $table->addColumn('name', __m('Experience'))
+        ->context('primary')
+        ->width('25%');
+
+    $choices = ['1' => __m('1st'), '2' => __m('2nd'), '3' => __m('3rd'), '4' => __m('4th'), '5' => __m('5th')];
+    $table->addColumn('status', __('Status'))
+        ->description(__m('Choice'))
+        ->context('secondary')
+        ->width('15%')
+        ->formatDetails(function ($values) use ($choices) {
+            return Format::small($choices[$values['choice']] ?? $values['choice']);
+        });
 
     $table->addColumn('timestampCreated', __('When'))
-        ->format(Format::using('dateTimeReadable', 'timestampCreated'))
-        ->width('20%');
+        ->format(Format::using('dateReadable', 'timestampCreated'))
+        ->width('15%');
 
 
     // ACTIONS
     $table->addActionColumn()
+        ->addParam('search', $criteria->getSearchText(true))
         ->addParam('deepLearningEnrolmentID')
         ->format(function ($values, $actions) {
             $actions->addAction('edit', __('Edit'))

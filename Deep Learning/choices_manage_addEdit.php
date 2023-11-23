@@ -54,7 +54,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
     $settingGateway = $container->get(SettingGateway::class);
 
     // Get events and experiences
-    $events = $eventGateway->selectEventsBySchoolYear($session->get('gibbonSchoolYearID'));
+    $events = $eventGateway->selectAllEvents($session->get('gibbonSchoolYearID'));
     $experiences = $experienceGateway->selectExperiences()->fetchAll();
 
     $experienceList = array_combine(array_column($experiences, 'deepLearningExperienceID'), array_column($experiences, 'name'));
