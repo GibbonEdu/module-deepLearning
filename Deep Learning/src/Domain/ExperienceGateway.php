@@ -93,6 +93,8 @@ class ExperienceGateway extends QueryableGateway
                 'deepLearningExperience.deepLearningExperienceID',
                 'deepLearningExperience.name',
                 'deepLearningExperience.active',
+                'deepLearningExperience.enrolmentMin',
+                'deepLearningExperience.enrolmentMax',
                 'deepLearningUnit.headerImage',
             ])
             ->from($this->getTableName())
@@ -125,8 +127,21 @@ class ExperienceGateway extends QueryableGateway
     public function selectExperiencesByEvent($deepLearningEventID)
     {
         $data = ['deepLearningEventID' => $deepLearningEventID];
-        $sql = "SELECT deepLearningExperienceID as value, name FROM deepLearningExperience 
+        $sql = "SELECT deepLearningExperienceID as value, name 
+                FROM deepLearningExperience 
                 WHERE deepLearningEventID=:deepLearningEventID
+                ORDER BY name";
+
+        return $this->db()->select($sql, $data);
+    }
+
+    public function selectExperienceDetailsByEvent($deepLearningEventID)
+    {
+        $data = ['deepLearningEventID' => $deepLearningEventID];
+        $sql = "SELECT deepLearningExperienceID as groupBy, deepLearningExperience.* 
+                FROM deepLearningExperience 
+                WHERE deepLearningEventID=:deepLearningEventID
+                AND deepLearningExperience.active='Y'
                 ORDER BY name";
 
         return $this->db()->select($sql, $data);

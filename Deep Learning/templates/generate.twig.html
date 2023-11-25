@@ -1,0 +1,183 @@
+{#<!--
+Gibbon: the flexible, open school platform
+Founded by Ross Parker at ICHK Secondary. Built by Ross Parker, Sandra Kuipers and the Gibbon community (https://gibbonedu.org/about/)
+Copyright © 2010, Gibbon Foundation
+Gibbon™, Gibbon Education Ltd. (Hong Kong)
+
+This is a Gibbon template file, written in HTML and Twig syntax.
+For info about editing, see: https://twig.symfony.com/doc/2.x/
+-->#}
+
+{% import _self as generate  %}
+
+<section id="generateGroups" class="flex font-sans">
+
+{% if experiences %}
+
+    <div id="experiences" class="experiencesContainer w-3/4">
+    {% for deepLearningExperienceID, experience in experiences %}
+        <div class="bg-gray-100 border p-3 mb-4 mr-4 rounded-sm">
+            <div class="flex justify-between items-center mb-2 text-xs text-gray-600">
+                <div class="flex-1 font-bold text-base text-gray-800">
+                    {{ experience.name }}
+                </div>
+
+                <div class="w-24">
+                    Min: {{ experience.enrolmentMin }}
+                </div>
+                <div class="w-24">
+                    Max: {{ experience.enrolmentMax }}
+                </div>
+                <div class="w-24">
+                    Current: <span class="enrolmentCount">{{ experience.enrolmentCount }}</span>
+                </div>
+                <div class="w-24 text-right">
+                    <span class="enrolmentStatus tag text-xxs ml-2"></span>
+                </div>
+
+            </div>
+
+            <div class="enrolmentGroup grid grid-cols-3 grid-flow-row items-start" data-group="{{ deepLearningExperienceID }}" data-min="{{ experience.enrolmentMin }}" data-max="{{ experience.enrolmentMax }}" style="min-height: 6rem;">
+
+                {% for person in groups[deepLearningExperienceID] %}
+                    {{ generate.enrolment(person) }}
+                {% endfor %}
+
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+
+
+<div id="unassigned" class="unassignedContainer w-1/4 bg-gray-100 border p-3 mb-4 pb-4 rounded-sm h-full sticky top-0">
+    
+    <div class="flex justify-between items-center mb-2 text-xs text-gray-600">
+        <h5 class="mt-0 p-0">
+            {{ __('Unassigned') }}
+        </h5>
+
+        <div class="w-24 text-right">
+            Current: <span class="enrolmentCount">0</span>
+        </div>
+    </div>
+
+
+    <div class="enrolmentGroup h-full" data-group="0" style="min-height: 8rem;">
+
+        {% for person in groups[0] %}
+            {{ generate.enrolment(person) }}
+        {% endfor %}
+
+    </div>  
+
+</div>
+
+{% endif %}
+
+</section>
+
+{% macro enrolment(person) %}
+    <div class="enrolmentPerson z-20 flex items-center justify-between bg-white shadow rounded-sm mb-2 p-3 text-sm border hover:bg-blue-100 hover:border-blue-500 cursor-move group" style="max-width: 18rem;" 
+        data-person="{{ person.gibbonPersonID }}"
+        data-choice1="{{ person.choice1 }}"
+        data-choice2="{{ person.choice2 }}"
+        data-choice3="{{ person.choice3 }}"
+        data-preferredName="{{ person.preferredName }}"
+        data-surname="{{ person.surname }}"
+        data-formGroup="{{ person.formGroup }}">
+        
+        <input type="hidden" name="person[{{ person.gibbonPersonID }}]" value="0">
+
+        <div>{{ person.preferredName }} {{ person.surname }} {{ person.formGroup ? " ("~person.formGroup~")" }}</div>
+
+        <span class="choiceTag tag dull text-xxs ml-2" title="1: {{ person.choice1Name }}<br/>2: {{ person.choice2Name }}<br/>3: {{ person.choice3Name }}<br/>">N/A</span>
+    </div>
+{% endmacro enrolment %}
+
+<script>
+function recalculateGroups() {
+
+    $('#generateGroups .enrolmentGroup').each(function (element) {
+        var enrolmentMax = $(this).data('max');
+        var enrolmentCount = $(this).parent().find('.enrolmentPerson:not(.ui-sortable-helper)').length;
+
+        $(this).parent().find('.enrolmentCount').first().html(enrolmentCount);
+
+        var enrolmentStatus = '';
+        var enrolmentStatusClass = '';
+
+        if (enrolmentCount < $(this).data('min')) {
+            enrolmentStatus = 'Low';
+            enrolmentStatusClass = 'warning';
+        } else if (enrolmentCount == $(this).data('max')) {
+            enrolmentStatus = 'Full';
+            enrolmentStatusClass = 'success';
+        } else if (enrolmentCount > $(this).data('max')) {
+            enrolmentStatus = 'Over';
+            enrolmentStatusClass = 'error';
+        } else {
+            enrolmentStatus = Math.round((enrolmentCount / enrolmentMax) * 100 )+'%';
+            enrolmentStatusClass = 'dull';
+        }
+        
+        $(this).parent().find('.enrolmentStatus').removeClass('warning error success dull').addClass(enrolmentStatusClass);
+        $(this).parent().find('.enrolmentStatus').first().html(enrolmentStatus);
+    });
+}
+
+function recalculateStatus(person, group) {
+    var person = $(person);
+    var personChoice = person.find('input[name^="person"]').first();
+    personChoice.val($(group).data('group'));
+
+    // Update the display of the person itself 
+    if ($(group).data('group') == $(person).data('choice1')) {
+        $('span.choiceTag', person).removeClass('dull message warning error success').addClass('success').html('1st');
+    } else if ($(group).data('group') == $(person).data('choice2')) {
+        $('span.choiceTag', person).removeClass('dull message warning error success').addClass('message').html('2nd');
+    } else if ($(group).data('group') == $(person).data('choice3')) {
+        $('span.choiceTag', person).removeClass('dull message warning error success').addClass('warning').html('3rd');
+    } else {
+        $('span.choiceTag', person).removeClass('dull message warning error success').addClass('error').html('N/A');
+    }
+}
+
+$('#generateGroups .enrolmentGroup').sortable({
+    tolerance: 5,
+    cursor: "move",
+    items: ".enrolmentPerson",
+    connectWith: ".enrolmentGroup",
+    zIndex: 20,
+    // containment: "#generateGroups",
+    
+});
+
+$('#generateGroups .enrolmentGroup').droppable({
+    accept: '.enrolmentPerson',
+
+    over: function(event, ui) {
+        $(this).addClass('bg-gray-200');
+    },
+    out: function(event, ui) {
+        $(this).removeClass('bg-gray-200');
+    },
+    deactivate: function(event, ui) {
+        $(this).removeClass('bg-gray-200');
+    },
+    drop: function(event, ui) {
+        recalculateStatus(ui.draggable, this);
+
+        // Update the group counts
+        recalculateGroups();
+    },
+});
+
+$(document).ready(function(){
+    recalculateGroups();
+
+    $('#generateGroups .enrolmentPerson').each(function (element) {
+        recalculateStatus(this, $(this).parent());
+    });
+});
+    
+</script>

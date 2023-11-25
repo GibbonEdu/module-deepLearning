@@ -63,6 +63,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
     // TABLE
     $table = DataTable::createPaginated('choices', $criteria);
 
+    $table->addHeaderAction('generate', __m('Generate Enrolment Groups'))
+        ->setURL('/modules/Deep Learning/choices_manage_generate.php')
+        ->addParam('sidebar', 'false')
+        ->setIcon('run')
+        ->displayLabel()
+        ->append('&nbsp;|&nbsp;');
+
     $table->addHeaderAction('add', __('Add'))
         ->setURL('/modules/Deep Learning/choices_manage_addEdit.php')
         ->addParam('mode', 'add')

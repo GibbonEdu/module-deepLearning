@@ -98,6 +98,53 @@ class ChoiceGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
+    public function selectChoiceCountsByEvent($deepLearningEventID)
+    {
+        $data = ['deepLearningEventID' => $deepLearningEventID];
+        $sql = "SELECT deepLearningExperience.deepLearningExperienceID as groupBy,
+                    deepLearningExperience.deepLearningExperienceID,
+                    COUNT(DISTINCT CASE WHEN deepLearningChoice.choice=1 THEN deepLearningChoice.deepLearningChoiceID END) as choice1,
+                    COUNT(DISTINCT CASE WHEN deepLearningChoice.choice=2 THEN deepLearningChoice.deepLearningChoiceID END) as choice2,
+                    COUNT(DISTINCT CASE WHEN deepLearningChoice.choice=3 THEN deepLearningChoice.deepLearningChoiceID END) as choice3,
+                    COUNT(DISTINCT CASE WHEN deepLearningChoice.choice=4 THEN deepLearningChoice.deepLearningChoiceID END) as choice4,
+                    COUNT(DISTINCT CASE WHEN deepLearningChoice.choice=5 THEN deepLearningChoice.deepLearningChoiceID END) as choice5
+                FROM deepLearningExperience
+                LEFT JOIN deepLearningChoice ON (deepLearningChoice.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID)
+                WHERE deepLearningExperience.deepLearningEventID=:deepLearningEventID
+                GROUP BY deepLearningExperience.deepLearningExperienceID";
+
+        return $this->db()->select($sql, $data);
+    }
+
+    public function selectChoicesByEvent($deepLearningEventID)
+    {
+        $data = ['deepLearningEventID' => $deepLearningEventID, 'today' => date('Y-m-d')];
+        $sql = "SELECT deepLearningChoice.gibbonPersonID as groupBy,
+                    deepLearningChoice.gibbonPersonID,
+                    deepLearningChoice.timestampCreated,
+                    gibbonPerson.surname,
+                    gibbonPerson.preferredName,
+                    gibbonFormGroup.name as formGroup,
+                    MIN(CASE WHEN deepLearningChoice.choice=1 THEN deepLearningChoice.deepLearningExperienceID END) as choice1,
+                    MIN(CASE WHEN deepLearningChoice.choice=2 THEN deepLearningChoice.deepLearningExperienceID END) as choice2,
+                    MIN(CASE WHEN deepLearningChoice.choice=3 THEN deepLearningChoice.deepLearningExperienceID END) as choice3,
+                    MIN(CASE WHEN deepLearningChoice.choice=4 THEN deepLearningChoice.deepLearningExperienceID END) as choice4,
+                    MIN(CASE WHEN deepLearningChoice.choice=5 THEN deepLearningChoice.deepLearningExperienceID END) as choice5
+                FROM deepLearningChoice
+                JOIN deepLearningEvent ON (deepLearningEvent.deepLearningEventID=deepLearningChoice.deepLearningEventID)
+                JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=deepLearningChoice.gibbonPersonID)
+                LEFT JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID AND gibbonStudentEnrolment.gibbonSchoolYearID=deepLearningEvent.gibbonSchoolYearID)
+                LEFT JOIN gibbonFormGroup ON (gibbonFormGroup.gibbonFormGroupID=gibbonStudentEnrolment.gibbonFormGroupID)
+                WHERE deepLearningEvent.deepLearningEventID=:deepLearningEventID
+                AND gibbonPerson.status = 'Full'
+                AND (gibbonPerson.dateStart IS NULL OR gibbonPerson.dateStart <= :today)
+                AND (gibbonPerson.dateEnd IS NULL OR gibbonPerson.dateEnd >= :today)
+                GROUP BY deepLearningChoice.gibbonPersonID
+                ORDER BY gibbonFormGroup.name, gibbonPerson.surname, gibbonPerson.preferredName";
+
+        return $this->db()->select($sql, $data);
+    }
+
     public function selectChoicesByPerson($deepLearningEventID, $gibbonPersonID)
     {
         $data = ['deepLearningEventID' => $deepLearningEventID, 'gibbonPersonID' => $gibbonPersonID];
@@ -109,6 +156,18 @@ class ChoiceGateway extends QueryableGateway
                 ORDER BY deepLearningChoice.choice";
 
         return $this->db()->select($sql, $data);
+    }
+
+    public function getChoiceByExperienceAndPerson($deepLearningExperienceID, $gibbonPersonID)
+    {
+        $data = ['deepLearningExperienceID' => $deepLearningExperienceID, 'gibbonPersonID' => $gibbonPersonID];
+        $sql = "SELECT *
+                FROM deepLearningChoice
+                WHERE deepLearningChoice.deepLearningExperienceID=:deepLearningExperienceID
+                AND deepLearningChoice.gibbonPersonID=:gibbonPersonID
+                LIMIT 1";
+
+        return $this->db()->selectOne($sql, $data);
     }
 
     public function deleteChoicesNotInList($deepLearningEventID, $gibbonPersonID, $choiceIDs)

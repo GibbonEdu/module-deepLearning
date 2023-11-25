@@ -104,7 +104,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
                 </a>
             </div>
             {% else %}
-            <div class="px-10 py-4 rounded bg-gray-300 text-center text-gray-600 text-lg font-thin italic">
+            <div class="mb-6 px-10 py-4 rounded bg-gray-300 text-center text-gray-600 text-lg font-thin italic">
                 {% if "now"|date("U") < event.accessOpenDate|date("U") %}
                     {{ __m('Sign up opens') }} {{ event.accessOpenDate|date("M jS \\a\\t g:ia") }}
                 {% elseif "now"|date("U") > event.accessCloseDate|date("U") %}

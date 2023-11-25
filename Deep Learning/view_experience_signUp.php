@@ -21,7 +21,7 @@ use Gibbon\Forms\Form;
 use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
-use Gibbon\Module\DeepLearning\Domain\SignUpGateway;
+use Gibbon\Module\DeepLearning\Domain\ChoiceGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experience_signUp.php') == false) {
     // Access denied
@@ -32,7 +32,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
 
     $eventGateway = $container->get(EventGateway::class);
     $experienceGateway = $container->get(ExperienceGateway::class);
-    $signUpGateway = $container->get(SignUpGateway::class);
+    $choiceGateway = $container->get(ChoiceGateway::class);
     $settingGateway = $container->get(SettingGateway::class);
 
     if (empty($deepLearningExperienceID)) {
@@ -65,7 +65,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
 
     // Get experiences
     $experiences = $experienceGateway->selectExperiencesByEvent($experience['deepLearningEventID'])->fetchKeyPair();
-    $signUps = $signUpGateway->selectSignUpsByPerson($experience['deepLearningEventID'], $session->get('gibbonPersonID'))->fetchGroupedUnique();
+    $Choices = $choiceGateway->selectChoicesByPerson($experience['deepLearningEventID'], $session->get('gibbonPersonID'))->fetchGroupedUnique();
 
     $signUpText = $settingGateway->getSettingByScope('Deep Learning', 'signUpText');
     $signUpChoices = $settingGateway->getSettingByScope('Deep Learning', 'signUpChoices');
@@ -73,7 +73,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
     $choiceList = [1 => __m('First Choice'), 2 => __m('Second Choice'), 3 => __m('Third Choice'), 4 => __m('Fourth Choice'), 5 => __m('Fifth Choice')];
     $choice = [];
     for ($i = 1; $i <= $signUpChoices; $i++) {
-        $choice[$i] = $signUps[$i]['deepLearningExperienceID'] ?? '';
+        $choice[$i] = $Choices[$i]['deepLearningExperienceID'] ?? '';
         if ($i == 1 && empty($choice[$i])) $choice[$i] = $deepLearningExperienceID;
     }
     

@@ -20,7 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Services\Format;
 use Gibbon\Data\Validator;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
-use Gibbon\Module\DeepLearning\Domain\SignUpGateway;
+use Gibbon\Module\DeepLearning\Domain\ChoiceGateway;
 use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 
@@ -46,15 +46,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
 
     $eventGateway = $container->get(EventGateway::class);
     $experienceGateway = $container->get(ExperienceGateway::class);
-    $signUpGateway = $container->get(SignUpGateway::class);
+    $choiceGateway = $container->get(ChoiceGateway::class);
     $settingGateway = $container->get(SettingGateway::class);
     
     $gibbonPersonID = $_POST['gibbonPersonID'] ?? '';
     $choices = $_POST['choices'] ?? [];
 
     // Only users with manage permission can sign up a different user
-    $canManageSignUp = isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manage.php');
-    if (!$canManageSignUp) {
+    $canManageChoice = isActionAccessible($guid, $connection2, '/modules/Deep Learning/signUp_manage.php');
+    if (!$canManageChoice) {
         $gibbonPersonID = $session->get('gibbonPersonID');
     }
 
@@ -89,7 +89,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
         exit;
     }
 
-    $signUps = $signUpGateway->selectSignUpsByPerson($params['deepLearningEventID'], $gibbonPersonID)->fetchGroupedUnique();
+    $Choices = $choiceGateway->selectChoicesByPerson($params['deepLearningEventID'], $gibbonPersonID)->fetchGroupedUnique();
     $signUpChoices = $settingGateway->getSettingByScope('Deep Learning', 'signUpChoices');
 
     // Update the sign up choices
@@ -121,23 +121,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
             'gibbonPersonIDModified'   => $session->get('gibbonPersonID'),
         ];
 
-        $deepLearningSignUpID = $signUps[$choice]['deepLearningSignUpID'] ?? '';
+        $deepLearningChoiceID = $Choices[$choice]['deepLearningChoiceID'] ?? '';
 
-        if (!empty($deepLearningSignUpID)) {
-            $partialFail &= !$signUpGateway->update($deepLearningSignUpID, $signUpData);
+        if (!empty($deepLearningChoiceID)) {
+            $partialFail &= !$choiceGateway->update($deepLearningChoiceID, $signUpData);
         } else {
             $signUpData['timestampCreated'] = date('Y-m-d H:i:s');
             $signUpData['gibbonPersonIDCreated'] = $session->get('gibbonPersonID');
 
-            $deepLearningSignUpID = $signUpGateway->insert($signUpData);
-            $partialFail &= !$deepLearningSignUpID;
+            $deepLearningChoiceID = $choiceGateway->insert($signUpData);
+            $partialFail &= !$deepLearningChoiceID;
         }
 
-        $choiceIDs[] = str_pad($deepLearningSignUpID, 12, '0', STR_PAD_LEFT);
+        $choiceIDs[] = str_pad($deepLearningChoiceID, 12, '0', STR_PAD_LEFT);
     }
 
     // Cleanup sign ups that have been deleted
-    $signUpGateway->deleteSignUpsNotInList($params['deepLearningEventID'], $gibbonPersonID, $choiceIDs);
+    $choiceGateway->deleteChoicesNotInList($params['deepLearningEventID'], $gibbonPersonID, $choiceIDs);
 
     if ($partialFail) {
         $URL .= '&return=warning1';
