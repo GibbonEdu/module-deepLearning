@@ -65,7 +65,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_notEn
         ->sortBy(['name'])
         ->fromPOST();
 
-    $experiences = $experienceGateway->queryExperiences($criteria);
+    $experiences = $experienceGateway->queryExperiences($criteria, $session->get('gibbonSchoolYearID'));
     
     // DATA TABLE
     $table = ReportTable::createPaginated('report_notEnrolled', $criteria)->setViewMode($viewMode, $session);

@@ -33,8 +33,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
     $page->breadcrumbs
         ->add(__m('Manage Enrolment by Event'));
 
-    
-
     // CRITERIA
     $enrolmentGateway = $container->get(EnrolmentGateway::class);
     $experienceGateway = $container->get(ExperienceGateway::class);
@@ -74,23 +72,36 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
         $experiences = [-1 => ''];
     }
 
+    // OPTIONS
+    $table = DataTable::createDetails('buttons');
+
+    $table->addHeaderAction('edit', __('Edit DL Groups'))
+        ->setURL('/modules/Deep Learning/enrolment_manage_groups.php')
+        ->addParam('deepLearningEventID', $params['deepLearningEventID'])
+        ->addParam('sidebar', 'false')
+        ->displayLabel();
+
+    echo $table->render(['' => '']);
+
     // TABLES
     foreach ($experiences as $deepLearningExperienceID => $experienceName) {
 
         // QUERY
-        $criteria = $enrolmentGateway->newQueryCriteria(true)
+        $criteria = $enrolmentGateway->newQueryCriteria()
             ->sortBy(['roleOrder', 'role', 'status', 'surname', 'preferredName'])
-            ->fromPOST();
+            ->fromPOST('experiences'.$deepLearningExperienceID);
 
         $enrolment = $enrolmentGateway->queryEnrolmentByExperience($criteria, $deepLearningExperienceID);
 
-        $table = DataTable::createPaginated('experiences', $criteria);
+        $table = DataTable::createPaginated('experiences'.$deepLearningExperienceID, $criteria);
         $table->setTitle($experienceName);
 
         $table->modifyRows(function($values, $row) {
             if ($values['status'] == 'Pending') $row->addClass('warning');
             return $row;
         });
+
+        $table->addMetaData('hidePagination', true);
 
         $table->addHeaderAction('add', __('Add'))
             ->setURL('/modules/Deep Learning/enrolment_manage_byPerson_addEdit.php')
@@ -115,13 +126,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
             ->width('12%')
             ->context('secondary');
 
-        $choices = ['1' => __m('1st'), '2' => __m('2nd'), '3' => __m('3rd'), '4' => __m('4th'), '5' => __m('5th')];
         $table->addColumn('status', __('Status'))
-            ->description(__m('Choice'))
             ->context('secondary')
-            ->width('15%')
-            ->formatDetails(function ($values) use ($choices) {
-                return Format::small($choices[$values['choice']] ?? $values['choice']);
+            ->width('15%');
+
+        $choices = ['1' => __m('1st'), '2' => __m('2nd'), '3' => __m('3rd'), '4' => __m('4th'), '5' => __m('5th')];
+        $table->addColumn('status', __m('Choice'))
+            ->width('5%')
+            ->format(function ($values) use ($choices) {
+                switch ($values['choice']) {
+                    case 1: $class = 'success'; break;
+                    case 2: $class = 'message'; break;
+                    case 3: $class = 'warning'; break;
+                    case 4: $class = 'warning'; break;
+                    case 5: $class = 'warning'; break;
+                    default: $class = 'error'; break;
+                }
+                return Format::tag($choices[$values['choice']] ?? $values['choice'], $class);
             });
 
         $table->addColumn('notes', __('Notes'))

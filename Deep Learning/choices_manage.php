@@ -21,6 +21,7 @@ use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
 use Gibbon\Module\DeepLearning\Domain\ChoiceGateway;
 use Gibbon\Forms\Form;
+use Gibbon\Module\DeepLearning\Domain\EventGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_manage.php') == false) {
     // Access denied
@@ -30,15 +31,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
     $page->breadcrumbs
         ->add(__m('Manage Choices'));
 
+    $choiceGateway = $container->get(ChoiceGateway::class);
+    $eventGateway = $container->get(EventGateway::class);
+
+    $events = $eventGateway->selectEventsBySchoolYear($session->get('gibbonSchoolYearID'))->fetchKeyPair();
+    $activeEvent = $eventGateway->getNextActiveEvent($session->get('gibbonSchoolYearID'));
+
     $params = [
-        'search' => $_REQUEST['search'] ?? ''
+        'search' => $_REQUEST['search'] ?? '',
+        'deepLearningEventID' => $_REQUEST['deepLearningEventID'] ?? $activeEvent ?? '',
     ];
 
     // CRITERIA
-    $choiceGateway = $container->get(ChoiceGateway::class);
-
     $criteria = $choiceGateway->newQueryCriteria(true)
         ->searchBy($choiceGateway->getSearchableColumns(), $params['search'])
+        ->filterBy('event', $params['deepLearningEventID'])
         ->sortBy(['surname', 'preferredName'])
         ->fromPOST();
 
@@ -47,6 +54,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
     $form->setClass('noIntBorder fullWidth');
 
     $form->addHiddenValue('q', '/modules/Deep Learning/choices_manage.php');
+
+    $row = $form->addRow();
+        $row->addLabel('deepLearningEventID', __('Event'));
+        $row->addSelect('deepLearningEventID')->fromArray($events)->placeholder()->selected($params['deepLearningEventID']);
 
     $row = $form->addRow();
         $row->addLabel('search', __('Search For'))->description(__m('Preferred name, surname, experience name, event name'));
@@ -63,8 +74,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
     // TABLE
     $table = DataTable::createPaginated('choices', $criteria);
 
-    $table->addHeaderAction('generate', __m('Generate Enrolment Groups'))
+    $table->addHeaderAction('generate', __m('Generate DL Groups'))
         ->setURL('/modules/Deep Learning/choices_manage_generate.php')
+        ->addParam('deepLearningEventID', $params['deepLearningEventID'])
         ->addParam('sidebar', 'false')
         ->setIcon('run')
         ->displayLabel()

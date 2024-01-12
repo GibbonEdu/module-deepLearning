@@ -62,6 +62,15 @@ class ChoiceGateway extends QueryableGateway
             ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID)
             ->groupBy(['deepLearningChoice.gibbonPersonID']);
 
+
+        $criteria->addFilterRules([
+            'event' => function ($query, $deepLearningEventID) {
+                return $query
+                    ->where('deepLearningEvent.deepLearningEventID = :deepLearningEventID')
+                    ->bindValue('deepLearningEventID', $deepLearningEventID);
+            },
+        ]);
+
         return $this->runQuery($query, $criteria);
     }
 
@@ -100,16 +109,18 @@ class ChoiceGateway extends QueryableGateway
 
     public function selectChoiceCountsByEvent($deepLearningEventID)
     {
-        $data = ['deepLearningEventID' => $deepLearningEventID];
+        $data = ['deepLearningEventID' => $deepLearningEventID, 'today' => date('Y-m-d')];
         $sql = "SELECT deepLearningExperience.deepLearningExperienceID as groupBy,
                     deepLearningExperience.deepLearningExperienceID,
-                    COUNT(DISTINCT CASE WHEN deepLearningChoice.choice=1 THEN deepLearningChoice.deepLearningChoiceID END) as choice1,
-                    COUNT(DISTINCT CASE WHEN deepLearningChoice.choice=2 THEN deepLearningChoice.deepLearningChoiceID END) as choice2,
-                    COUNT(DISTINCT CASE WHEN deepLearningChoice.choice=3 THEN deepLearningChoice.deepLearningChoiceID END) as choice3,
-                    COUNT(DISTINCT CASE WHEN deepLearningChoice.choice=4 THEN deepLearningChoice.deepLearningChoiceID END) as choice4,
-                    COUNT(DISTINCT CASE WHEN deepLearningChoice.choice=5 THEN deepLearningChoice.deepLearningChoiceID END) as choice5
+                    COUNT(DISTINCT CASE WHEN deepLearningChoice.choice=1 AND gibbonPerson.gibbonPersonID IS NOT NULL THEN deepLearningChoice.deepLearningChoiceID END) as choice1,
+                    COUNT(DISTINCT CASE WHEN deepLearningChoice.choice=2 AND gibbonPerson.gibbonPersonID IS NOT NULL THEN deepLearningChoice.deepLearningChoiceID END) as choice2,
+                    COUNT(DISTINCT CASE WHEN deepLearningChoice.choice=3 AND gibbonPerson.gibbonPersonID IS NOT NULL THEN deepLearningChoice.deepLearningChoiceID END) as choice3,
+                    COUNT(DISTINCT CASE WHEN deepLearningChoice.choice=4 AND gibbonPerson.gibbonPersonID IS NOT NULL THEN deepLearningChoice.deepLearningChoiceID END) as choice4,
+                    COUNT(DISTINCT CASE WHEN deepLearningChoice.choice=5 AND gibbonPerson.gibbonPersonID IS NOT NULL THEN deepLearningChoice.deepLearningChoiceID END) as choice5
                 FROM deepLearningExperience
                 LEFT JOIN deepLearningChoice ON (deepLearningChoice.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID)
+                LEFT JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=deepLearningChoice.gibbonPersonID AND gibbonPerson.status = 'Full' AND (gibbonPerson.dateStart IS NULL OR gibbonPerson.dateStart <= :today)
+                AND (gibbonPerson.dateEnd IS NULL OR gibbonPerson.dateEnd >= :today))
                 WHERE deepLearningExperience.deepLearningEventID=:deepLearningEventID
                 GROUP BY deepLearningExperience.deepLearningExperienceID";
 
@@ -125,6 +136,7 @@ class ChoiceGateway extends QueryableGateway
                     gibbonPerson.surname,
                     gibbonPerson.preferredName,
                     gibbonFormGroup.name as formGroup,
+                    gibbonYearGroup.sequenceNumber as yearGroupSequence,
                     MIN(CASE WHEN deepLearningChoice.choice=1 THEN deepLearningChoice.deepLearningExperienceID END) as choice1,
                     MIN(CASE WHEN deepLearningChoice.choice=2 THEN deepLearningChoice.deepLearningExperienceID END) as choice2,
                     MIN(CASE WHEN deepLearningChoice.choice=3 THEN deepLearningChoice.deepLearningExperienceID END) as choice3,
@@ -135,6 +147,7 @@ class ChoiceGateway extends QueryableGateway
                 JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=deepLearningChoice.gibbonPersonID)
                 LEFT JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID AND gibbonStudentEnrolment.gibbonSchoolYearID=deepLearningEvent.gibbonSchoolYearID)
                 LEFT JOIN gibbonFormGroup ON (gibbonFormGroup.gibbonFormGroupID=gibbonStudentEnrolment.gibbonFormGroupID)
+                LEFT JOIN gibbonYearGroup ON (gibbonYearGroup.gibbonYearGroupID=gibbonStudentEnrolment.gibbonYearGroupID)
                 WHERE deepLearningEvent.deepLearningEventID=:deepLearningEventID
                 AND gibbonPerson.status = 'Full'
                 AND (gibbonPerson.dateStart IS NULL OR gibbonPerson.dateStart <= :today)
@@ -143,6 +156,30 @@ class ChoiceGateway extends QueryableGateway
                 ORDER BY gibbonFormGroup.name, gibbonPerson.surname, gibbonPerson.preferredName";
 
         return $this->db()->select($sql, $data);
+    }
+
+    public function selectChoiceWeightingByEvent($deepLearningEventID)
+    {
+        $data = ['deepLearningEventID' => $deepLearningEventID];
+        $sql = "SELECT deepLearningChoice.gibbonPersonID as groupBy,
+                    deepLearningChoice.gibbonPersonID,
+                    SUM(pastChoice.choice) as choiceCount,
+                    COUNT(DISTINCT pastChoice.deepLearningEventID) as eventCount
+                FROM deepLearningChoice
+                JOIN deepLearningEvent ON (deepLearningEvent.deepLearningEventID=deepLearningChoice.deepLearningEventID)
+                LEFT JOIN deepLearningEnrolment AS pastEnrolment ON (pastEnrolment.gibbonPersonID=deepLearningChoice.gibbonPersonID AND pastEnrolment.deepLearningEventID<>deepLearningEvent.deepLearningEventID AND pastEnrolment.status='Confirmed')
+                LEFT JOIN deepLearningChoice as pastChoice ON (pastChoice.deepLearningChoiceID=pastEnrolment.deepLearningChoiceID AND pastChoice.gibbonPersonID=deepLearningChoice.gibbonPersonID )
+                WHERE deepLearningEvent.deepLearningEventID=:deepLearningEventID
+                AND deepLearningChoice.choice=1
+                GROUP BY deepLearningChoice.gibbonPersonID
+                ORDER BY choiceCount DESC";
+
+        return $this->db()->select($sql, $data);
+    }
+
+    public function getYearGroupWeightingMax()
+    {
+        return $this->db()->selectOne("SELECT MAX(sequenceNumber) FROM gibbonYearGroup");
     }
 
     public function selectChoicesByPerson($deepLearningEventID, $gibbonPersonID)

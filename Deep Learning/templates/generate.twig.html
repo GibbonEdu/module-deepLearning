@@ -10,7 +10,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
 {% import _self as generate  %}
 
-<section id="generateGroups" class="flex font-sans">
+<section id="generateGroups" class="h-full flex font-sans">
 
 {% if experiences %}
 
@@ -40,7 +40,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             <div class="enrolmentGroup grid grid-cols-3 grid-flow-row items-start" data-group="{{ deepLearningExperienceID }}" data-min="{{ experience.enrolmentMin }}" data-max="{{ experience.enrolmentMax }}" style="min-height: 6rem;">
 
                 {% for person in groups[deepLearningExperienceID] %}
-                    {{ generate.enrolment(person) }}
+                    {{ generate.enrolment(person, signUpChoices) }}
                 {% endfor %}
 
             </div>
@@ -48,40 +48,43 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
     {% endfor %}
     </div>
 
+    <div class="sticky h-full top-0 w-1/4">
+        <div id="unassigned" class="unassignedContainer w-full bg-gray-100 border p-3 mb-4 pb-4 rounded-sm h-full max-h-screen overflow-y-scroll">
+            
+            <div class="flex justify-between items-center mb-2 text-xs text-gray-600">
+                <h5 class="mt-0 p-0">
+                    {{ __('Unassigned') }}
+                </h5>
 
-<div id="unassigned" class="unassignedContainer w-1/4 bg-gray-100 border p-3 mb-4 pb-4 rounded-sm h-full sticky top-0">
-    
-    <div class="flex justify-between items-center mb-2 text-xs text-gray-600">
-        <h5 class="mt-0 p-0">
-            {{ __('Unassigned') }}
-        </h5>
+                <div class="w-24 text-right">
+                    Current: <span class="enrolmentCount">0</span>
+                </div>
+            </div>
 
-        <div class="w-24 text-right">
-            Current: <span class="enrolmentCount">0</span>
+
+            <div class="enrolmentGroup h-full" data-group="0" style="min-height: 8rem;">
+
+                {% for person in groups[0] %}
+                    {{ generate.enrolment(person, signUpChoices) }}
+                {% endfor %}
+
+            </div>  
+
         </div>
     </div>
-
-
-    <div class="enrolmentGroup h-full" data-group="0" style="min-height: 8rem;">
-
-        {% for person in groups[0] %}
-            {{ generate.enrolment(person) }}
-        {% endfor %}
-
-    </div>  
-
-</div>
 
 {% endif %}
 
 </section>
 
-{% macro enrolment(person) %}
+{% macro enrolment(person, signUpChoices) %}
     <div class="enrolmentPerson z-20 flex items-center justify-between bg-white shadow rounded-sm mb-2 p-3 text-sm border hover:bg-blue-100 hover:border-blue-500 cursor-move group" style="max-width: 18rem;" 
         data-person="{{ person.gibbonPersonID }}"
         data-choice1="{{ person.choice1 }}"
         data-choice2="{{ person.choice2 }}"
         data-choice3="{{ person.choice3 }}"
+        data-choice4="{{ person.choice4 }}"
+        data-choice5="{{ person.choice5 }}"
         data-preferredName="{{ person.preferredName }}"
         data-surname="{{ person.surname }}"
         data-formGroup="{{ person.formGroup }}">
@@ -90,7 +93,11 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
         <div>{{ person.preferredName }} {{ person.surname }} {{ person.formGroup ? " ("~person.formGroup~")" }}</div>
 
-        <span class="choiceTag tag dull text-xxs ml-2" title="1: {{ person.choice1Name }}<br/>2: {{ person.choice2Name }}<br/>3: {{ person.choice3Name }}<br/>">N/A</span>
+        <span class="choiceTag tag dull text-xxs ml-2" title="
+        {%- for i in range(1, signUpChoices ) -%}
+            {{ i }}: {{ person[ ('choice' ~ i ~ 'Name') ] |default('None') }}<br/>
+        {%- endfor -%}
+        ">N/A</span>
     </div>
 {% endmacro enrolment %}
 
@@ -131,14 +138,23 @@ function recalculateStatus(person, group) {
     personChoice.val($(group).data('group'));
 
     // Update the display of the person itself 
-    if ($(group).data('group') == $(person).data('choice1')) {
+    if ($(group).data('group') == $(person).data('choice1') && $(person).data('choice1') != 0) {
         $('span.choiceTag', person).removeClass('dull message warning error success').addClass('success').html('1st');
-    } else if ($(group).data('group') == $(person).data('choice2')) {
+    } else if ($(group).data('group') == $(person).data('choice2') && $(person).data('choice2') != 0) {
         $('span.choiceTag', person).removeClass('dull message warning error success').addClass('message').html('2nd');
-    } else if ($(group).data('group') == $(person).data('choice3')) {
+    } else if ($(group).data('group') == $(person).data('choice3') && $(person).data('choice3') != 0) {
         $('span.choiceTag', person).removeClass('dull message warning error success').addClass('warning').html('3rd');
+    } else if ($(group).data('group') == $(person).data('choice4') && $(person).data('choice4') != 0) {
+        $('span.choiceTag', person).removeClass('dull message warning error success').addClass('warning').html('4th');
+    } else if ($(group).data('group') == $(person).data('choice5') && $(person).data('choice5') != 0) {
+        $('span.choiceTag', person).removeClass('dull message warning error success').addClass('warning').html('5th');
     } else {
-        $('span.choiceTag', person).removeClass('dull message warning error success').addClass('error').html('N/A');
+        if ($(person).data('choice1') + $(person).data('choice2') + $(person).data('choice3') + $(person).data('choice4') + $(person).data('choice5') < 1 ) {
+            $('span.choiceTag', person).removeClass('dull message warning error success').addClass('error').html('None');
+        } else {
+            $('span.choiceTag', person).removeClass('dull message warning error success').addClass('dull').html('N/A');
+        }
+        
     }
 }
 

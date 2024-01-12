@@ -71,6 +71,14 @@ class ExperienceGateway extends QueryableGateway
                 ->bindValue('gibbonPersonID', $gibbonPersonID);
         }
 
+        $criteria->addFilterRules([
+            'event' => function ($query, $deepLearningEventID) {
+                return $query
+                    ->where('deepLearningEvent.deepLearningEventID = :deepLearningEventID')
+                    ->bindValue('deepLearningEventID', $deepLearningEventID);
+            },
+        ]);
+
         return $this->runQuery($query, $criteria);
     }
 

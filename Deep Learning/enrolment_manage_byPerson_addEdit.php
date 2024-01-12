@@ -39,19 +39,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
         'deepLearningEnrolmentID'  => $_REQUEST['deepLearningEnrolmentID'] ?? '',
     ];
 
-    $page->breadcrumbs
-        ->add(__m('Manage Enrolment by Person'), 'enrolment_manage_byPerson.php')
-        ->add($params['mode'] == 'add' ? __m('Add Enrolment') : __m('Edit Enrolment'));
-
     if ($params['mode'] == 'add' && isset($_GET['editID'])) {
         $page->return->setEditLink($session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/enrolment_manage_byPerson_addEdit.php&mode=edit&deepLearningEnrolmentID='.$_GET['editID']);
     }
 
     if ($params['origin'] == 'byEvent') {
+        $page->breadcrumbs->add(__m('Manage Enrolment by Event'), 'enrolment_manage_byEvent.php');
+
         $page->navigator->addSearchResultsAction(Url::fromModuleRoute('Deep Learning', 'enrolment_manage_byEvent.php')->withQueryParams($params));
-    } elseif (!empty($params['search'])) {
-        $page->navigator->addSearchResultsAction(Url::fromModuleRoute('Deep Learning', 'enrolment_manage_byPerson.php')->withQueryParams($params));
+    } else {
+        $page->breadcrumbs->add(__m('Manage Enrolment by Person'), 'enrolment_manage_byPerson.php');
+
+        if (!empty($params['search'])) {
+            $page->navigator->addSearchResultsAction(Url::fromModuleRoute('Deep Learning', 'enrolment_manage_byPerson.php')->withQueryParams($params));
+        }
     }
+
+    $page->breadcrumbs->add($params['mode'] == 'add' ? __m('Add Enrolment') : __m('Edit Enrolment'));
 
     $eventGateway = $container->get(EventGateway::class);
     $experienceGateway = $container->get(ExperienceGateway::class);

@@ -35,7 +35,7 @@ $params = [
 ];
 
 $URL = $params['origin'] == 'byEvent'
-    ? $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/enrolment_manage_byEvent_addEdit.php&'.http_build_query($params)
+    ? $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/enrolment_manage_byPerson_addEdit.php&'.http_build_query($params)
     : $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/enrolment_manage_byPerson_addEdit.php&'.http_build_query($params);
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_manage_byPerson_addEdit.php') == false) {

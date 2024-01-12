@@ -63,6 +63,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
     // TABLE
     $table = DataTable::createPaginated('enrolment', $criteria);
 
+    $table->modifyRows(function($values, $row) {
+        if ($values['status'] == 'Pending') $row->addClass('warning');
+        return $row;
+    });
+    
     $table->addHeaderAction('add', __('Add'))
         ->setURL('/modules/Deep Learning/enrolment_manage_byPerson_addEdit.php')
         ->addParam('mode', 'add')

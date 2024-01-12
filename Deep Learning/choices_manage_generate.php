@@ -24,6 +24,7 @@ use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 use Gibbon\Module\DeepLearning\Domain\ChoiceGateway;
 use Gibbon\Module\DeepLearning\EnrolmentGenerator;
+use Gibbon\Services\Format;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_manage_generate.php') == false) {
     // Access denied
@@ -38,7 +39,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
 
     $page->breadcrumbs
         ->add(__m('Manage Choices'), 'choices_manage.php')
-        ->add(__m('Generate Enrolment Groups'));
+        ->add(__m('Generate DL Groups'));
      
     $page->return->addReturns([
         'error4' => __m(''),
@@ -151,11 +152,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
             $row->addTableCell(__m('Max').': '.$totalMax)->setClass('text-center');  
             $row->addTableCell(__m('{count} Sign-up(s)', ['count' => $totalChoice]))->setClass('text-center');  
 
+        if ($totalChoice > $totalMax) {
+            $form->addRow()->addContent(Format::alert(__m('The maximum available spaces is {max}, which is less than the total sign ups. {difference} participants will not be automatically added to groups, but can still be added manually.', ['max' => $totalMax, 'difference' => $totalChoice - $totalMax]), 'warning'));
+        }
         $form->addRow()->addSubmit(_('Next'));
 
     } elseif ($form->getCurrentPage() == 3) {
         // STEP 3
         $form->setClass('blank w-full');
+        $form->setAction((string)$pageUrl->withQueryParam('sidebar', 'true'));
 
         // Collect only the experiences that were submitted for generation
         $experienceList = array_filter($_POST['experience'] ?? [], function($item) {
@@ -167,11 +172,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
 
         $generator
             ->loadExperiences($params['deepLearningEventID'], $experienceList)
+            ->loadEnrolments($params['deepLearningEventID'])
             ->loadChoices($params['deepLearningEventID'])
             ->generateGroups();
     
         // Display the drag-drop group editor
         $form->addRow()->addContent($page->fetchFromTemplate('generate.twig.html', [
+            'signUpChoices' => $signUpChoices,
             'experiences' => $generator->getExperiences(),
             'groups'      => $generator->getGroups(),
         ]));
@@ -185,9 +192,30 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
         $generator = $container->get(EnrolmentGenerator::class);
         $results = $generator->createEnrolments($params['deepLearningEventID'], $enrolmentList, $session->get('gibbonPersonID'));
 
-        echo '<pre>';
-        print_r($results);
-        echo '</pre>';
+        $form->addRow()->addContent(Format::alert(__m('Enrolment generation has completed successfully, creating {total} enrolments with {unassigned} left unassigned.', $results), 'success'));
+
+        if (!empty($results['error'])) {
+            $form->addRow()->addContent(Format::alert(__m('There was an error creating {error} enrolments, which likely already have duplicate enrolments for this Deep Learning events.', $results), 'error'));
+        }
+
+        $table = $form->addRow()->addTable()->setClass('smallIntBorder w-full max-w-lg mx-auto');
+
+        $row = $table->addRow();
+            $row->addLabel('total', __m('Total Enrolments'));
+            $row->addTextField('totalValue')->setClass('w-24')->readonly()->setValue($results['total'] ?? 0);
+            $row->addContent();
+
+        for ($i = 1; $i <= $signUpChoices; $i++) {
+            $row = $table->addRow();
+            $row->addLabel("choice{$i}", $choiceList[$i]);
+            $row->addTextField("choice{$i}Value")->setClass('w-24')->readonly()->setValue( ($results["choice{$i}"] ?? 0) );
+            $row->addContent( round( ($results["choice{$i}"]/$results['total'])*100).'%');
+        }
+
+        $row = $table->addRow();
+            $row->addLabel('unassigned', __m('Unassigned'));
+            $row->addTextField('unassignedValue')->setClass('w-24')->readonly()->setValue( ($results['unassigned'] ?? 0) );
+            $row->addContent( round( ($results['unassigned']/$results['total'])*100).'%');
     }
 
     echo $form->getOutput();

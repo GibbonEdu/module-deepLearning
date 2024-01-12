@@ -22,6 +22,7 @@ use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 use Gibbon\Http\Url;
+use Gibbon\Module\DeepLearning\Domain\EventGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_manage.php') == false) {
     // Access denied
@@ -37,17 +38,24 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         return;
     }
 
+    $eventGateway = $container->get(EventGateway::class);
+    $experienceGateway = $container->get(ExperienceGateway::class);
+
+    $events = $eventGateway->selectEventsBySchoolYear($session->get('gibbonSchoolYearID'))->fetchKeyPair();
+    $activeEvent = $eventGateway->getNextActiveEvent($session->get('gibbonSchoolYearID'));
+    
     $params = [
         'gibbonSchoolYearID' => $_REQUEST['gibbonSchoolYearID'] ?? $session->get('gibbonSchoolYearID'),
+        'deepLearningEventID' => $_REQUEST['deepLearningEventID'] ?? $activeEvent ?? '',
         'search'             => $_REQUEST['search'] ?? ''
     ];
 
     $page->navigator->addSchoolYearNavigation($params['gibbonSchoolYearID']);
 
     // Setup criteria
-    $experienceGateway = $container->get(ExperienceGateway::class);
     $criteria = $experienceGateway->newQueryCriteria(true)
         ->searchBy($experienceGateway->getSearchableColumns(), $params['search'])
+        ->filterBy('event', $params['deepLearningEventID'])
         ->sortBy(['eventName', 'name'])
         ->fromPOST();
 
@@ -57,6 +65,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         $form->setClass('noIntBorder fullWidth');
 
         $form->addHiddenValue('q', '/modules/Deep Learning/experience_manage.php');
+
+        $row = $form->addRow();
+            $row->addLabel('deepLearningEventID', __('Event'));
+            $row->addSelect('deepLearningEventID')->fromArray($events)->placeholder()->selected($params['deepLearningEventID']);
 
         $row = $form->addRow();
             $row->addLabel('search', __('Search For'))->description(__m('Experience name, unit name, event name'));
