@@ -155,7 +155,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     // ACTIONS
     $table->addActionColumn()
         ->addParam('deepLearningEventID')
-        ->format(function ($major, $actions) {
+        ->format(function ($event, $actions) {
             $actions->addAction('edit', __('Edit'))
                     ->setURL('/modules/Deep Learning/events_manage_edit.php');
 

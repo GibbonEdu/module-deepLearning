@@ -46,7 +46,7 @@ class ExperienceGateway extends QueryableGateway
                 'deepLearningEvent.nameShort as eventNameShort',
                 'deepLearningEvent.accessOpenDate',
                 'deepLearningEvent.accessCloseDate',
-                'deepLearningEvent.viewable',
+                "(CASE WHEN CURRENT_TIMESTAMP > deepLearningEvent.viewableDate THEN 'Y' ELSE 'N' END) as viewable",
                 'deepLearningExperience.deepLearningExperienceID',
                 'deepLearningExperience.name',
                 'deepLearningExperience.active',

@@ -28,6 +28,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
     $page->addError(__('You do not have access to this action.'));
 } else {
     // Proceed!
+    $deepLearningEventID = $_REQUEST['deepLearningEventID'] ?? '';
     $deepLearningExperienceID = $_REQUEST['deepLearningExperienceID'] ?? '';
 
     $eventGateway = $container->get(EventGateway::class);
@@ -35,15 +36,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
     $choiceGateway = $container->get(ChoiceGateway::class);
     $settingGateway = $container->get(SettingGateway::class);
 
-    if (empty($deepLearningExperienceID)) {
+    if (empty($deepLearningEventID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
         return;
     }
 
-    $experience = $experienceGateway->getExperienceDetailsByID($deepLearningExperienceID);
-    $event = $eventGateway->getEventDetailsByID($experience['deepLearningEventID'] ?? '');
+    $event = $eventGateway->getEventDetailsByID($deepLearningEventID);
 
-    if (empty($experience) || empty($event)) {
+    if (empty($event)) {
         $page->addError(__('The specified record cannot be found.'));
         return;
     }
@@ -64,8 +64,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
     }
 
     // Get experiences
-    $experiences = $experienceGateway->selectExperiencesByEvent($experience['deepLearningEventID'])->fetchKeyPair();
-    $Choices = $choiceGateway->selectChoicesByPerson($experience['deepLearningEventID'], $session->get('gibbonPersonID'))->fetchGroupedUnique();
+    $experiences = $experienceGateway->selectExperiencesByEvent($deepLearningEventID)->fetchKeyPair();
+    $Choices = $choiceGateway->selectChoicesByPerson($deepLearningEventID, $session->get('gibbonPersonID'))->fetchGroupedUnique();
 
     $signUpText = $settingGateway->getSettingByScope('Deep Learning', 'signUpText');
     $signUpChoices = $settingGateway->getSettingByScope('Deep Learning', 'signUpChoices');
@@ -84,7 +84,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
 
     $form->addHiddenValue('address', $session->get('address'));
     $form->addHiddenValue('gibbonPersonID', $session->get('gibbonPersonID'));
-    $form->addHiddenValue('deepLearningEventID', $experience['deepLearningEventID']);
+    $form->addHiddenValue('deepLearningEventID', $deepLearningEventID);
     $form->addHiddenValue('deepLearningExperienceID', $deepLearningExperienceID);
 
     for ($i = 1; $i <= $signUpChoices; $i++) {

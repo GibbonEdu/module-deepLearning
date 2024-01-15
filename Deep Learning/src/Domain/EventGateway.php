@@ -79,6 +79,49 @@ class EventGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
+    /**
+     * @param QueryCriteria $criteria
+     * @return DataSet
+     */
+    public function queryEventsByPerson(QueryCriteria $criteria, $gibbonSchoolYearID, $gibbonPersonID)
+    {
+        $query = $this
+            ->newQuery()
+            ->distinct()
+            ->from($this->getTableName())
+            ->cols([
+                ':gibbonPersonID as gibbonPersonID',
+                'deepLearningEvent.deepLearningEventID',
+                'deepLearningEvent.name',
+                'deepLearningEvent.nameShort',
+                'deepLearningEvent.description',
+                'deepLearningEvent.backgroundImage',
+                'deepLearningEvent.active',
+                'deepLearningEvent.viewableDate',
+                'deepLearningEvent.accessOpenDate',
+                'deepLearningEvent.accessCloseDate',
+                'deepLearningEvent.accessEnrolmentDate',
+                "MIN(deepLearningEventDate.eventDate) as startDate",
+                "MAX(deepLearningEventDate.eventDate) as endDate",
+                "(CASE WHEN CURRENT_TIMESTAMP > deepLearningEvent.viewableDate THEN 'Y' ELSE 'N' END) as viewable",
+                "GROUP_CONCAT(DISTINCT deepLearningEventDate.eventDate SEPARATOR ',') AS eventDates",
+                "GROUP_CONCAT(DISTINCT deepLearningExperience.name ORDER BY deepLearningChoice.choice SEPARATOR ',') as choices",
+
+            ])
+            ->innerJoin('deepLearningEventDate', 'deepLearningEvent.deepLearningEventID=deepLearningEventDate.deepLearningEventID')
+            ->leftJoin('deepLearningChoice', 'deepLearningChoice.deepLearningEventID=deepLearningEvent.deepLearningEventID AND deepLearningChoice.gibbonPersonID=:gibbonPersonID')
+            ->leftJoin('deepLearningExperience', 'deepLearningExperience.deepLearningExperienceID=deepLearningChoice.deepLearningExperienceID')
+
+            ->bindValue('gibbonPersonID', $gibbonPersonID)
+            ->where('deepLearningEvent.gibbonSchoolYearID=:gibbonSchoolYearID')
+            ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID)
+            ->where('deepLearningEvent.viewableDate <= CURRENT_TIMESTAMP')
+            ->where('deepLearningEvent.active ="Y" ')
+            ->groupBy(['deepLearningEvent.deepLearningEventID']);
+
+        return $this->runQuery($query, $criteria);
+    }
+
     public function selectAllEvents()
     {
         $sql = "SELECT gibbonSchoolYear.name as groupBy, deepLearningEvent.deepLearningEventID as value, deepLearningEvent.name 
