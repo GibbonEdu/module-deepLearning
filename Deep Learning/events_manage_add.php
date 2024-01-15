@@ -77,8 +77,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     $form->addRow()->addHeading(__m('Display'));
 
     $row = $form->addRow();
-        $row->addLabel('backgroundImage', __m('Header Image'))->description(__m('A header image for the event'));
-        $row->addFileUpload('backgroundImage')->accepts('.jpg,.jpeg,.gif,.png');
+        $row->addLabel('backgroundImageFile', __m('Header Image'))->description(__m('A header image for the event'));
+        $row->addFileUpload('backgroundImageFile')->accepts('.jpg,.jpeg,.gif,.png');
     
     $col = $form->addRow()->addColumn();
         $col->addLabel('description', __m('Introduction'));
@@ -92,8 +92,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         $row->addYesNo('active')->required()->selected('N');
 
     $row = $form->addRow();
-        $row->addLabel('viewable', __('Viewable'))->description(__m('Can users view and explore the experiences in this event?'));
-        $row->addYesNo('viewable')->required()->selected('N');
+        $row->addLabel('viewableDate', __('Viewable'))->prepend('1. ')->append('<br/>2. '.__m('Experiences are not publicly viewable until this date.'));
+        $col = $row->addColumn('viewableDate')->setClass('inline');
+        $col->addDate('viewableDate')->setValue(substr($values['viewableDate'] ?? '', 0, 11))->addClass('mr-2');
+        $col->addTime('viewableTime')->setValue(substr($values['viewableDate'] ?? '', 11, 5));
 
     $row = $form->addRow();
         $row->addLabel('accessOpenDate', __('Open Sign-up'))->prepend('1. ')->append('<br/>2. '.__m('Sign-up in unavailable until this date and time.'));
@@ -106,6 +108,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         $col = $row->addColumn('accessCloseDate')->setClass('inline');
         $col->addDate('accessCloseDate')->setValue(substr($values['accessCloseDate'] ?? '', 0, 11))->addClass('mr-2');
         $col->addTime('accessCloseTime')->setValue(substr($values['accessCloseDate'] ?? '', 11, 5));
+
+    $row = $form->addRow();
+        $row->addLabel('accessEnrolmentDate', __('Reveal Enrolment'))->prepend('1. ')->append('<br/>2. '.__m('DL groups are hidden from participants until this date.'));
+        $col = $row->addColumn('accessEnrolmentDate')->setClass('inline');
+        $col->addDate('accessEnrolmentDate')->setValue(substr($values['accessEnrolmentDate'] ?? '', 0, 11))->addClass('mr-2');
+        $col->addTime('accessEnrolmentTime')->setValue(substr($values['accessEnrolmentDate'] ?? '', 11, 5));
 
     $row = $form->addRow();
         $row->addFooter();

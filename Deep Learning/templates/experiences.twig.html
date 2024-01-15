@@ -48,11 +48,11 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 <section class="w-full mb-6 relative">
     <div class="w-full py-3 border border-gray-400 rounded text-center text-gray-700 text-lg font-thin">
     {% if "now"|date("U") < event.accessOpenDate|date("U") %}
-        {{ __m('Sign up opens on') }} {{ event.accessOpenDate|date("M jS \\a\\t g:ia") }}
+        {{ __m('Sign up opens on') }} {{ event.accessOpenDate|date("M j \\a\\t g:ia") }}
     {% elseif "now"|date("U") > event.accessCloseDate|date("U") %}
-        {{ __m('Sign up closed on') }} {{ event.accessCloseDate|date("M jS \\a\\t g:ia") }}
+        {{ __m('Sign up closed on') }} {{ event.accessCloseDate|date("M j \\a\\t g:ia") }}
     {% else %}
-        {{ __m('Sign up is currently open, and will close on') }} {{ event.accessCloseDate|date("M jS \\a\\t g:ia") }}
+        {{ __m('Sign up is currently open, and will close on') }} {{ event.accessCloseDate|date("M j \\a\\t g:ia") }}
     {% endif %}
     </div>
 </section>

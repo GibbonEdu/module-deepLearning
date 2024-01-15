@@ -78,7 +78,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 </section>
 
 {% macro enrolment(person, signUpChoices) %}
-    <div class="enrolmentPerson z-20 flex items-center justify-between bg-white shadow rounded-sm mb-2 p-3 text-sm border hover:bg-blue-100 hover:border-blue-500 cursor-move group" style="max-width: 18rem;" 
+    <div class="enrolmentPerson flex items-center justify-between bg-white shadow rounded-sm mb-2 p-3 text-sm border hover:bg-blue-100 hover:border-blue-500 cursor-move group" style="max-width: 18rem;" 
         data-person="{{ person.gibbonPersonID }}"
         data-choice1="{{ person.choice1 }}"
         data-choice2="{{ person.choice2 }}"
@@ -173,14 +173,19 @@ $('#generateGroups .enrolmentGroup').droppable({
 
     over: function(event, ui) {
         $(this).addClass('bg-gray-200');
+        $(ui.draggable).addClass('z-50');
+        recalculateStatus(ui.draggable, this);
     },
     out: function(event, ui) {
         $(this).removeClass('bg-gray-200');
+        $(ui.draggable).removeClass('z-50');
     },
     deactivate: function(event, ui) {
         $(this).removeClass('bg-gray-200');
+        $(ui.draggable).removeClass('z-50');
     },
     drop: function(event, ui) {
+        $(ui.draggable).removeClass('z-50');
         recalculateStatus(ui.draggable, this);
 
         // Update the group counts

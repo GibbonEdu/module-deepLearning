@@ -49,13 +49,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         'description'           => $_POST['description'] ?? '',
         'backgroundImage'       => $_POST['backgroundImage'] ?? '',
         'active'                => $_POST['active'] ?? '',
-        'viewable'              => $_POST['viewable'] ?? 'N',
         'gibbonYearGroupIDList' => !empty($_POST['gibbonYearGroupIDList'])? implode(',', $_POST['gibbonYearGroupIDList']) : '',
+        'viewableDate'          => !empty($_POST['viewableDate'])
+                                ? Format::dateConvert($_POST['viewableDate']).' '.($_POST['viewableTime'] ?? '00:00')
+                                : null,
         'accessOpenDate'        => !empty($_POST['accessOpenDate'])
                                 ? Format::dateConvert($_POST['accessOpenDate']).' '.($_POST['accessOpenTime'] ?? '00:00')
                                 : null,
         'accessCloseDate'        => !empty($_POST['accessCloseDate'])
                                 ? Format::dateConvert($_POST['accessCloseDate']).' '.($_POST['accessCloseTime'] ?? '00:00')
+                                : null,
+        'accessEnrolmentDate'   => !empty($_POST['accessEnrolmentDate'])
+                                ? Format::dateConvert($_POST['accessEnrolmentDate']).' '.($_POST['accessEnrolmentTime'] ?? '00:00')
                                 : null,
     ];
 

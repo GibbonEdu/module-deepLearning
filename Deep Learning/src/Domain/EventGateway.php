@@ -48,11 +48,13 @@ class EventGateway extends QueryableGateway
                 'deepLearningEvent.description',
                 'deepLearningEvent.backgroundImage',
                 'deepLearningEvent.active',
-                'deepLearningEvent.viewable',
+                'deepLearningEvent.viewableDate',
                 'deepLearningEvent.accessOpenDate',
                 'deepLearningEvent.accessCloseDate',
+                'deepLearningEvent.accessEnrolmentDate',
                 "MIN(deepLearningEventDate.eventDate) as startDate",
                 "MAX(deepLearningEventDate.eventDate) as endDate",
+                "(CASE WHEN CURRENT_TIMESTAMP > deepLearningEvent.viewableDate THEN 'Y' ELSE 'N' END) as viewable",
                 "COUNT(DISTINCT deepLearningExperience.deepLearningExperienceID) as experienceCount",
                 "GROUP_CONCAT(DISTINCT deepLearningEventDate.eventDate SEPARATOR ',') AS eventDates",
                 "GROUP_CONCAT(DISTINCT deepLearningExperience.name) AS experienceNames",
@@ -134,6 +136,7 @@ class EventGateway extends QueryableGateway
         $data = ['deepLearningEventID' => $deepLearningEventID];
         $sql = "SELECT deepLearningEvent.*,
                     gibbonSchoolYear.name as schoolYear, 
+                    (CASE WHEN CURRENT_TIMESTAMP > deepLearningEvent.viewableDate THEN 'Y' ELSE 'N' END) as viewable,
                     GROUP_CONCAT(DISTINCT deepLearningEventDate.eventDate SEPARATOR ',') AS eventDates,
                     GROUP_CONCAT(DISTINCT gibbonYearGroup.nameShort ORDER BY gibbonYearGroup.sequenceNumber SEPARATOR ', ') AS yearGroups,
                     COUNT(DISTINCT gibbonYearGroup.gibbonYearGroupID) as yearGroupCount

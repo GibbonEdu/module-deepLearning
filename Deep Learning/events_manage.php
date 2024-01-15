@@ -51,7 +51,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
 
     $table->modifyRows(function($values, $row) {
         if ($values['active'] == 'N') $row->addClass('error');
-        if ($values['viewable'] == 'N') $row->addClass('dull');
+        if (empty($values['viewableDate'])) $row->addClass('dull');
         return $row;
     });
 
@@ -64,7 +64,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         ->context('primary')
         ->format(function ($values) {
             $url = Url::fromModuleRoute('Deep Learning', 'view_event.php')->withQueryParams(['deepLearningEventID' => $values['deepLearningEventID'], 'sidebar' => 'false']);
-            return $values['active'] == 'Y' && $values['viewable'] == 'Y' 
+            return $values['active'] == 'Y' && !empty($values['viewableDate']) 
                 ? Format::link($url, $values['name'])
                 : $values['name'];
         });
@@ -80,9 +80,62 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
             return implode('<br/>', $dates);
         });
 
+    $table->addColumn('viewableDate', __('Viewable'))
+        ->width('10%')
+        ->format(function ($values) {
+            if (empty($values['viewableDate'])) {
+                return Format::tag(__m('No'), 'dull');
+            }
+            if (!empty($values['viewableDate']) && empty($values['backgroundImage'])) {
+                return Format::tag(__('No'), 'warning', __m('This event is missing a header image and is not viewable in the events list.'));
+            }
+            if ($values['viewable'] == 'Y') {
+                return Format::tag(__('Yes'), 'success');
+            } else {
+                return Format::tag(__('No'), 'dull');
+            }
+        })
+        ->formatDetails(function ($values) {
+            return Format::small(Format::dateReadable($values['viewableDate']));
+        });
+
     $table->addColumn('signUp', __('Sign-up'))
         ->sortable(['accessOpenDate'])
-        ->format(Format::using('dateRangeReadable', ['accessOpenDate', 'accessCloseDate']));
+        ->format(function ($values) {
+            if (empty($values['accessOpenDate']) || empty($values['accessCloseDate'])) {
+                return Format::tag(__m('No'), 'dull');
+            }
+
+            if (date('Y-m-d H:i:s') >= $values['accessCloseDate']) {
+                return Format::tag(__m('Closed'), 'dull');
+            } elseif (date('Y-m-d H:i:s') >= $values['accessOpenDate']) {
+                return Format::tag(__m('Open'), 'success');
+            } else {
+                return Format::tag(__m('Upcoming'), 'dull');
+            }
+        })
+        ->formatDetails(function ($values) {
+            return Format::small(Format::dateRangeReadable($values['accessOpenDate'], $values['accessCloseDate']));
+        });
+
+    $table->addColumn('accessEnrolmentDate', __('Revealed'))
+        ->format(function ($values) {
+            if (empty($values['accessEnrolmentDate'])) {
+                return Format::tag(__m('No'), 'dull');
+            }
+
+            if (!empty($values['accessEnrolmentDate']) && empty($values['backgroundImage'])) {
+                return Format::tag(__('No'), 'warning', __m('This event is missing a header image and is not viewable in the events list.'));
+            }
+            if (!empty($values['accessEnrolmentDate']) && date('Y-m-d H:i:s') >= $values['accessEnrolmentDate']) {
+                return Format::tag(__('Yes'), 'success');
+            } else {
+                return Format::tag(__('No'), 'dull');
+            }
+        })
+        ->formatDetails(function ($values) {
+            return Format::small(Format::dateReadable($values['accessEnrolmentDate']));
+        });
         
     $table->addColumn('experienceCount', __m('Experiences'))
         ->sortable(['experienceCount'])
@@ -97,10 +150,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
 
     $table->addColumn('active', __('Active'))
         ->format(Format::using('yesNo', 'active'))
-        ->width('10%');
-
-    $table->addColumn('viewable', __('Viewable'))
-        ->format(Format::using('yesNo', 'viewable'))
         ->width('10%');
 
     // ACTIONS

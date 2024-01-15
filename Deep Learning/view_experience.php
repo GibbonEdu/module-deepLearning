@@ -61,8 +61,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
         return;
     }
 
-    if ($experience['active'] != 'Y' || $event['active'] != 'Y' || $event['viewable'] != 'Y') {
+    if ($experience['active'] != 'Y' || $event['active'] != 'Y') {
         $page->addError(__('You do not have access to this action.'));
+        return;
+    }
+
+    if ($event['viewable'] != 'Y') {
+        $page->addMessage(__m('This event is not viewable at this time. Please return to the Events page to explore a different event.'));
         return;
     }
 
