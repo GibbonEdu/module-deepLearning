@@ -22,6 +22,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
 use Gibbon\Tables\Prefab\ReportTable;
+use Gibbon\Module\DeepLearning\Domain\EventGateway;
+use Gibbon\Module\DeepLearning\Domain\EnrolmentGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_notEnrolled.php') == false) {
@@ -36,41 +38,88 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_notEn
     $viewMode = $_REQUEST['format'] ?? '';
 
     // Setup gateways
+    $eventGateway = $container->get(EventGateway::class);
     $experienceGateway = $container->get(ExperienceGateway::class);
+    $enrolmentGateway = $container->get(EnrolmentGateway::class);
 
-    if (empty($gibbonSchoolYearID)) {
+    $events = $eventGateway->selectEventsBySchoolYear($session->get('gibbonSchoolYearID'))->fetchKeyPair();
+    $activeEvent = $eventGateway->getNextActiveEvent($session->get('gibbonSchoolYearID'));
+    
+    $params = [
+        'deepLearningEventID' => $_REQUEST['deepLearningEventID'] ?? $activeEvent ?? '',
+    ];
+
+
+    if (empty($events)) {
         $page->addMessage(__m('There are no active Deep Learning events.'));
         return;
     }
     
     if (empty($viewMode)) {
-         // FILTER
-         $form = Form::create('filter', $session->get('absoluteURL').'/index.php', 'get');
+        // FILTER
+        $form = Form::create('filter', $session->get('absoluteURL').'/index.php', 'get');
 
-         $form->setTitle(__('Filter'));
-         $form->setClass('noIntBorder fullWidth');
- 
-         $form->addHiddenValue('q', '/modules/'.$session->get('module').'/report_notEnrolled.php');
-         $form->addHiddenValue('address', $session->get('address'));
- 
-         $row = $form->addRow();
-             $row->addFooter();
-             $row->addSearchSubmit($session);
- 
-         echo $form->getOutput();
+        $form->setTitle(__('Filter'));
+        $form->setClass('noIntBorder fullWidth');
+
+        $form->addHiddenValue('q', '/modules/'.$session->get('module').'/report_notEnrolled.php');
+        $form->addHiddenValue('address', $session->get('address'));
+
+        $row = $form->addRow();
+        $row->addLabel('deepLearningEventID', __('Event'));
+        $row->addSelect('deepLearningEventID')->fromArray($events)->placeholder()->selected($params['deepLearningEventID']);
+
+        $row = $form->addRow();
+            $row->addFooter();
+            $row->addSearchSubmit($session);
+
+        echo $form->getOutput();
     }
 
     // CRITERIA
-    $criteria = $experienceGateway->newQueryCriteria()
-        ->sortBy(['name'])
+    $criteria = $enrolmentGateway->newQueryCriteria(true)
+        ->sortBy(['surname', 'preferredName'])
+        ->filterBy('event', $params['deepLearningEventID'])
+        ->pageSize(-1)
         ->fromPOST();
 
-    $experiences = $experienceGateway->queryExperiences($criteria, $session->get('gibbonSchoolYearID'));
+    $unenrolled = $enrolmentGateway->queryUnenrolledStudentsByEvent($criteria, $params['deepLearningEventID']);
     
     // DATA TABLE
     $table = ReportTable::createPaginated('report_notEnrolled', $criteria)->setViewMode($viewMode, $session);
 
     $table->setTitle(__m('Students Not Enrolled'));
 
-    echo $table->render($experiences);
+    $table->addColumn('image_240', __('Photo'))
+        ->context('primary')
+        ->width('8%')
+        ->notSortable()
+        ->format(Format::using('userPhoto', ['image_240', 'xs']));
+
+    $table->addColumn('student', __('Person'))
+        ->sortable(['gibbonPerson.surname', 'gibbonPerson.preferredName'])
+        ->width('25%')
+        ->format(function ($values) {
+            return Format::nameLinked($values['gibbonPersonID'], '', $values['preferredName'], $values['surname'], 'Student', true, true);
+        });
+
+    $table->addColumn('formGroup', __('Form Group'))->context('secondary');
+
+    $table->addColumn('email', __('Email'));
+
+    $table->addColumn('choices', __('Choices'))
+        ->context('primary')
+        ->width('30%')
+        ->format(function ($values) {
+            if (empty($values['choices'])) return '';
+            $choices = explode(',', $values['choices']);
+            return Format::list($choices, 'ol', 'ml-2 my-0 text-xs');
+        });
+        
+    $table->addColumn('eventNameShort', __('Event'))
+        ->width('8%');
+
+    
+
+    echo $table->render($unenrolled);
 }

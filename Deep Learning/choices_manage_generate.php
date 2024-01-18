@@ -181,6 +181,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
             'signUpChoices' => $signUpChoices,
             'experiences' => $generator->getExperiences(),
             'groups'      => $generator->getGroups(),
+            'mode' => 'student',
         ]));
 
         $table = $form->addRow()->addTable()->setClass('smallIntBorder fullWidth');

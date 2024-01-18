@@ -107,6 +107,46 @@ class ChoiceGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
+    public function queryNotSignedUpStudentsByEvent($criteria, $deepLearningEventID)
+    {
+        $query = $this
+            ->newQuery()
+            ->from('deepLearningEvent')
+            ->cols([
+                'gibbonStudentEnrolment.gibbonPersonID as groupBy',
+                '0 as deepLearningExperienceID',
+                'deepLearningEvent.deepLearningEventID',
+                'deepLearningEvent.name as eventName',
+                'deepLearningEvent.nameShort as eventNameShort',
+                'gibbonStudentEnrolment.gibbonPersonID',
+                'gibbonPerson.surname',
+                'gibbonPerson.preferredName',
+                'gibbonPerson.email',
+                'gibbonFormGroup.name as formGroup',
+                'gibbonYearGroup.name as yearGroup',
+                'gibbonYearGroup.sequenceNumber as yearGroupSequence',
+            ])
+            ->innerJoin('gibbonStudentEnrolment', 'gibbonStudentEnrolment.gibbonSchoolYearID=deepLearningEvent.gibbonSchoolYearID')
+            ->innerJoin('gibbonPerson', 'gibbonPerson.gibbonPersonID=gibbonStudentEnrolment.gibbonPersonID')
+            ->innerJoin('gibbonYearGroup', 'gibbonYearGroup.gibbonYearGroupID=gibbonStudentEnrolment.gibbonYearGroupID')
+            ->innerJoin('gibbonFormGroup', 'gibbonFormGroup.gibbonFormGroupID=gibbonStudentEnrolment.gibbonFormGroupID')
+
+            ->leftJoin('deepLearningChoice', 'deepLearningChoice.deepLearningEventID=deepLearningEvent.deepLearningEventID AND deepLearningChoice.gibbonPersonID=gibbonPerson.gibbonPersonID')
+            
+            ->where('deepLearningEvent.deepLearningEventID=:deepLearningEventID')
+            ->bindValue('deepLearningEventID', $deepLearningEventID)
+            ->where('FIND_IN_SET(gibbonYearGroup.gibbonYearGroupID, deepLearningEvent.gibbonYearGroupIDList)')
+            ->where("gibbonPerson.status = 'Full'")
+            ->where('(gibbonPerson.dateStart IS NULL OR gibbonPerson.dateStart <= :today)')
+            ->where('(gibbonPerson.dateEnd IS NULL OR gibbonPerson.dateEnd >= :today)')
+            ->bindValue('today', date('Y-m-d'))
+            ->where('deepLearningChoice.deepLearningChoiceID IS NULL')
+            ->groupBy(['gibbonPerson.gibbonPersonID'])
+            ->orderBy(['gibbonYearGroup.sequenceNumber', 'gibbonFormGroup.name', 'gibbonPerson.surname', 'gibbonPerson.preferredName']);
+
+        return $this->runQuery($query, $criteria);
+    }
+
     public function selectChoiceCountsByEvent($deepLearningEventID)
     {
         $data = ['deepLearningEventID' => $deepLearningEventID, 'today' => date('Y-m-d')];

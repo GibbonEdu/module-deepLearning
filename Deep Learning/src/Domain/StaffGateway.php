@@ -31,6 +31,67 @@ class StaffGateway extends QueryableGateway
     private static $primaryKey = 'deepLearningStaffID';
     private static $searchableColumns = [''];
 
+    public function queryUnassignedStaffByEvent($criteria, $deepLearningEventID)
+    {
+        $query = $this
+            ->newQuery()
+            ->from('gibbonPerson')
+            ->cols([
+                '0 as deepLearningExperienceID',
+                'deepLearningEvent.deepLearningEventID',
+                'deepLearningEvent.name as eventName',
+                'deepLearningEvent.nameShort as eventNameShort',
+                'gibbonPerson.gibbonPersonID',
+                'gibbonPerson.surname',
+                'gibbonPerson.preferredName',
+                'gibbonPerson.email',
+                'gibbonStaff.type',
+                'gibbonStaff.jobTitle',
+            ])
+            ->innerJoin('gibbonStaff', 'gibbonStaff.gibbonPersonID=gibbonPerson.gibbonPersonID')
+            ->leftJoin('deepLearningEvent', 'deepLearningEvent.deepLearningEventID=:deepLearningEventID')
+            ->leftJoin('deepLearningExperience', 'deepLearningExperience.deepLearningEventID=deepLearningEvent.deepLearningEventID')
+            ->leftJoin('deepLearningStaff', 'deepLearningStaff.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID AND deepLearningStaff.gibbonPersonID=gibbonPerson.gibbonPersonID')
+            ->bindValue('deepLearningEventID', $deepLearningEventID)
+            ->where("gibbonPerson.status = 'Full'")
+            ->where('(gibbonPerson.dateStart IS NULL OR gibbonPerson.dateStart <= :today)')
+            ->where('(gibbonPerson.dateEnd IS NULL OR gibbonPerson.dateEnd >= :today)')
+            ->bindValue('today', date('Y-m-d'))
+            ->groupBy(['gibbonPerson.gibbonPersonID'])
+            ->orderBy(['gibbonPerson.surname', 'gibbonPerson.preferredName'])
+            ->having('COUNT(DISTINCT deepLearningStaff.deepLearningStaffID) = 0');
+
+        $criteria->addFilterRules([
+            'type' => function ($query, $deepLearningEventID) {
+                return $query
+                    ->where('deepLearningEvent.deepLearningEventID = :deepLearningEventID')
+                    ->bindValue('deepLearningEventID', $deepLearningEventID);
+            },
+        ]);
+
+        return $this->runQuery($query, $criteria);
+    }
+
+    public function selectStaffByEvent($deepLearningEventID)
+    {
+        $data = ['deepLearningEventID' => $deepLearningEventID];
+        $sql = "SELECT gibbonPerson.gibbonPersonID as groupBy,
+                    deepLearningExperience.deepLearningExperienceID,
+                    deepLearningStaff.deepLearningStaffID,
+                    deepLearningStaff.role,
+                    deepLearningStaff.canEdit,
+                    gibbonPerson.gibbonPersonID,
+                    gibbonPerson.surname,
+                    gibbonPerson.preferredName
+                FROM deepLearningStaff
+                JOIN deepLearningExperience ON (deepLearningExperience.deepLearningExperienceID=deepLearningStaff.deepLearningExperienceID)
+                JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=deepLearningStaff.gibbonPersonID) 
+                WHERE deepLearningExperience.deepLearningEventID=:deepLearningEventID
+                ORDER BY deepLearningStaff.role DESC, gibbonPerson.surname, gibbonPerson.preferredName";
+
+        return $this->db()->select($sql, $data);
+    }
+
     public function selectStaffByExperience($deepLearningExperienceID)
     {
         $data = ['deepLearningExperienceID' => $deepLearningExperienceID];

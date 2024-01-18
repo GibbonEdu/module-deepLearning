@@ -22,6 +22,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
                     {{ experience.name }}
                 </div>
 
+                {% if mode == 'student' %}
                 <div class="w-24">
                     Min: {{ experience.enrolmentMin }}
                 </div>
@@ -31,6 +32,14 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
                 <div class="w-24">
                     Current: <span class="enrolmentCount">{{ experience.enrolmentCount }}</span>
                 </div>
+                {% elseif mode == 'staff' %}
+                <div class="w-24">
+                    Enrolments: <span class="">{{ experience.enrolmentCount }}</span>
+                </div>
+                {% endif %}
+
+                
+                
                 <div class="w-24 text-right">
                     <span class="enrolmentStatus tag text-xxs ml-2"></span>
                 </div>
@@ -40,7 +49,11 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             <div class="enrolmentGroup grid grid-cols-3 grid-flow-row items-start" data-group="{{ deepLearningExperienceID }}" data-min="{{ experience.enrolmentMin }}" data-max="{{ experience.enrolmentMax }}" style="min-height: 6rem;">
 
                 {% for person in groups[deepLearningExperienceID] %}
-                    {{ generate.enrolment(person, signUpChoices) }}
+                    {% if mode == 'student' %}
+                        {{ generate.enrolment(person, signUpChoices) }}
+                    {% elseif mode == 'staff' %}
+                        {{ generate.staffing(person) }}
+                    {% endif %}
                 {% endfor %}
 
             </div>
@@ -65,7 +78,11 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             <div class="enrolmentGroup h-full" data-group="0" style="min-height: 8rem;">
 
                 {% for person in groups[0] %}
-                    {{ generate.enrolment(person, signUpChoices) }}
+                    {% if mode == 'student' %}
+                        {{ generate.enrolment(person, signUpChoices) }}
+                    {% elseif mode == 'staff' %}
+                        {{ generate.staffing(person) }}
+                    {% endif %}
                 {% endfor %}
 
             </div>  
@@ -101,7 +118,63 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
     </div>
 {% endmacro enrolment %}
 
+{% macro staffing(person) %}
+    <div class="enrolmentPerson flex items-center justify-between bg-white shadow rounded-sm mb-2 p-3 text-sm border hover:bg-blue-100 hover:border-blue-500 cursor-move group" style="max-width: 18rem;" 
+        data-person="{{ person.gibbonPersonID }}"
+        data-preferredName="{{ person.preferredName }}"
+        data-surname="{{ person.surname }}">
+        
+        <input type="hidden" name="person[{{ person.gibbonPersonID }}]" value="0">
+
+        <div>{{ person.preferredName }} {{ person.surname }}</div>
+
+        <span class="choiceTag tag {{ person.role == 'Trip Leader' ? 'success' : 'dull' }} text-xxs ml-2" title="">{{ person.role ?? person.type }}</span>
+    </div>
+{% endmacro staffing %}
+
 <script>
+
+$('#generateGroups .enrolmentGroup').sortable({
+    tolerance: 5,
+    cursor: "move",
+    items: ".enrolmentPerson",
+    connectWith: ".enrolmentGroup",
+    zIndex: 20,
+    // containment: "#generateGroups",
+    
+});
+
+$('#generateGroups .enrolmentGroup').droppable({
+    accept: '.enrolmentPerson',
+
+    over: function(event, ui) {
+        $(this).addClass('bg-gray-200');
+        $(ui.draggable).addClass('z-50');
+
+        {% if mode == 'student' %}
+        recalculateStatus(ui.draggable, this);
+        {% endif %}
+    },
+    out: function(event, ui) {
+        $(this).removeClass('bg-gray-200');
+        $(ui.draggable).removeClass('z-50');
+    },
+    deactivate: function(event, ui) {
+        $(this).removeClass('bg-gray-200');
+        $(ui.draggable).removeClass('z-50');
+    },
+    drop: function(event, ui) {
+        $(ui.draggable).removeClass('z-50');
+
+        {% if mode == 'student' %}
+        recalculateStatus(ui.draggable, this);
+        recalculateGroups();
+        {% endif %}
+    },
+});
+
+{% if mode == 'student' %}
+
 function recalculateGroups() {
 
     $('#generateGroups .enrolmentGroup').each(function (element) {
@@ -158,41 +231,6 @@ function recalculateStatus(person, group) {
     }
 }
 
-$('#generateGroups .enrolmentGroup').sortable({
-    tolerance: 5,
-    cursor: "move",
-    items: ".enrolmentPerson",
-    connectWith: ".enrolmentGroup",
-    zIndex: 20,
-    // containment: "#generateGroups",
-    
-});
-
-$('#generateGroups .enrolmentGroup').droppable({
-    accept: '.enrolmentPerson',
-
-    over: function(event, ui) {
-        $(this).addClass('bg-gray-200');
-        $(ui.draggable).addClass('z-50');
-        recalculateStatus(ui.draggable, this);
-    },
-    out: function(event, ui) {
-        $(this).removeClass('bg-gray-200');
-        $(ui.draggable).removeClass('z-50');
-    },
-    deactivate: function(event, ui) {
-        $(this).removeClass('bg-gray-200');
-        $(ui.draggable).removeClass('z-50');
-    },
-    drop: function(event, ui) {
-        $(ui.draggable).removeClass('z-50');
-        recalculateStatus(ui.draggable, this);
-
-        // Update the group counts
-        recalculateGroups();
-    },
-});
-
 $(document).ready(function(){
     recalculateGroups();
 
@@ -201,4 +239,6 @@ $(document).ready(function(){
     });
 });
     
+{% endif %}
+
 </script>

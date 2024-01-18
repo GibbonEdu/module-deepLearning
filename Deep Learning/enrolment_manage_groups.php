@@ -48,8 +48,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
         'error4' => __m(''),
     ]);
 
-    $step = $_REQUEST['step'] ?? 1;
-
     $eventGateway = $container->get(EventGateway::class);
     $experienceGateway = $container->get(ExperienceGateway::class);
     $enrolmentGateway = $container->get(EnrolmentGateway::class);
@@ -59,19 +57,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
 
     $experiences = $experienceGateway->selectExperienceDetailsByEvent($params['deepLearningEventID'])->fetchGroupedUnique();
     $enrolments = $enrolmentGateway->selectEnrolmentsByEvent($params['deepLearningEventID'])->fetchGroupedUnique();
-    $unenrolled = $enrolmentGateway->selectUnenrolledStudentsByEvent($params['deepLearningEventID'])->fetchGroupedUnique();
+
+    $criteria = $enrolmentGateway->newQueryCriteria();
+    $unenrolled = $enrolmentGateway->queryUnenrolledStudentsByEvent($criteria, $params['deepLearningEventID'])->toArray();
 
     $enrolments = array_merge($enrolments, $unenrolled);
     
     $groups = [];
 
-    foreach ($enrolments as $gibbonPersonID => $person) {
+    foreach ($enrolments as $person) {
         for ($i = 1; $i <= $signUpChoices; $i++) {
             $person["choice{$i}"] = str_pad($person["choice{$i}"], 12, '0', STR_PAD_LEFT);
             $person["choice{$i}Name"] = $experiences[$person["choice{$i}"]]['name'] ?? '';
         }
 
-        $groups[$person['deepLearningExperienceID']][$gibbonPersonID] = $person;
+        $groups[$person['deepLearningExperienceID']][$person['gibbonPersonID']] = $person;
     }
 
     // FORM
@@ -86,6 +86,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
         'signUpChoices' => $signUpChoices,
         'experiences' => $experiences,
         'groups'      => $groups,
+        'mode' => 'student',
     ]));
 
     $table = $form->addRow()->addTable()->setClass('smallIntBorder fullWidth');

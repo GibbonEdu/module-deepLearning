@@ -58,6 +58,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     }
     
     $data = [
+        'deepLearningEventID'    => $_POST['deepLearningEventID'] ?? '',
         'name'                   => $_POST['name'] ?? '',
         'active'                 => $_POST['active'] ?? 'N',
         'cost'                   => !empty($_POST['cost']) ? $_POST['cost'] : null,

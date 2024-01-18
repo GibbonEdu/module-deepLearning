@@ -109,6 +109,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
         ->context('primary')
         ->width('30%')
         ->format(function ($values) {
+            if (empty($values['choices'])) return '';
             $choices = explode(',', $values['choices']);
             return Format::list($choices, 'ol', 'ml-2 my-0 text-xs');
         });

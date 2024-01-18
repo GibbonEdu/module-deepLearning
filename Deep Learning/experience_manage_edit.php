@@ -75,6 +75,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     $form->setFactory(DatabaseFormFactory::create($pdo));
 
     $form->addHiddenValue('address', $session->get('address'));
+    $form->addHiddenValue('deepLearningEventID', $values['deepLearningEventID']);
     $form->addHiddenValue('deepLearningExperienceID', $deepLearningExperienceID);
 
     // DETAILS

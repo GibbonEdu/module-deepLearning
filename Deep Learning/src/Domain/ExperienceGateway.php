@@ -146,10 +146,13 @@ class ExperienceGateway extends QueryableGateway
     public function selectExperienceDetailsByEvent($deepLearningEventID)
     {
         $data = ['deepLearningEventID' => $deepLearningEventID];
-        $sql = "SELECT deepLearningExperienceID as groupBy, deepLearningExperience.* 
+        $sql = "SELECT deepLearningExperience.deepLearningExperienceID as groupBy, deepLearningExperience.*, 
+                    COUNT(DISTINCT deepLearningEnrolment.deepLearningEnrolmentID) as enrolmentCount
                 FROM deepLearningExperience 
-                WHERE deepLearningEventID=:deepLearningEventID
+                LEFT JOIN deepLearningEnrolment ON (deepLearningEnrolment.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID AND deepLearningEnrolment.status='Confirmed')
+                WHERE deepLearningExperience.deepLearningEventID=:deepLearningEventID
                 AND deepLearningExperience.active='Y'
+                GROUP BY deepLearningExperience.deepLearningExperienceID
                 ORDER BY name";
 
         return $this->db()->select($sql, $data);
