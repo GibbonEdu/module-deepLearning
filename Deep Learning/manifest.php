@@ -157,6 +157,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningStaff` (
     `gibbonPersonID` INT(10) UNSIGNED ZEROFILL NOT NULL,
     `canEdit` ENUM('Y','N') NOT NULL DEFAULT 'N', 
     `role` VARCHAR(60) NOT NULL,
+    `notes` TEXT NULL,
     `deepLearningEventDateIDList` VARCHAR(255) NOT NULL,
     PRIMARY KEY (`deepLearningStaffID`),
     UNIQUE KEY (`gibbonPersonID`, `deepLearningExperienceID`)
@@ -321,11 +322,51 @@ $actionRows[] = [
 ];
 
 $actionRows[] = [
+    'name'                      => 'Manage DL Groups',
+    'precedence'                => '0',
+    'category'                  => 'Enrolment',
+    'description'               => 'Manage enrolments for Deep Learning experiences in a drag-drop interface.',
+    'URLList'                   => 'enrolment_manage_groups.php',
+    'entryURL'                  => 'enrolment_manage_groups.php',
+    'entrySidebar'              => 'N',
+    'menuShow'                  => 'Y',
+    'defaultPermissionAdmin'    => 'Y',
+    'defaultPermissionTeacher'  => 'N',
+    'defaultPermissionStudent'  => 'N',
+    'defaultPermissionParent'   => 'N',
+    'defaultPermissionSupport'  => 'N',
+    'categoryPermissionStaff'   => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent'  => 'N',
+    'categoryPermissionOther'   => 'N',
+];
+
+$actionRows[] = [
+    'name'                      => 'Manage DL Staffing',
+    'precedence'                => '0',
+    'category'                  => 'Enrolment',
+    'description'               => 'Manage staffing for Deep Learning experiences in a drag-drop interface.',
+    'URLList'                   => 'enrolment_manage_staffing.php',
+    'entryURL'                  => 'enrolment_manage_staffing.php',
+    'entrySidebar'              => 'N',
+    'menuShow'                  => 'Y',
+    'defaultPermissionAdmin'    => 'Y',
+    'defaultPermissionTeacher'  => 'N',
+    'defaultPermissionStudent'  => 'N',
+    'defaultPermissionParent'   => 'N',
+    'defaultPermissionSupport'  => 'N',
+    'categoryPermissionStaff'   => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent'  => 'N',
+    'categoryPermissionOther'   => 'N',
+];
+
+$actionRows[] = [
     'name'                      => 'Manage Enrolment by Event',
     'precedence'                => '0',
     'category'                  => 'Enrolment',
     'description'               => 'Manage enrolments for Deep Learning experiences.',
-    'URLList'                   => 'enrolment_manage_byEvent.php,enrolment_manage_byEvent_edit.php,enrolment_manage_byPerson_addEdit.php,enrolment_manage_byPerson_delete.php,enrolment_manage_groups.php',
+    'URLList'                   => 'enrolment_manage_byEvent.php,enrolment_manage_byEvent_edit.php,enrolment_manage_byPerson_addEdit.php,enrolment_manage_byPerson_delete.php',
     'entryURL'                  => 'enrolment_manage_byEvent.php',
     'entrySidebar'              => 'Y',
     'menuShow'                  => 'Y',
@@ -481,26 +522,6 @@ $actionRows[] = [
 ];
 
 $actionRows[] = [
-    'name'                      => 'Deep Learning Groups',
-    'precedence'                => '0',
-    'category'                  => 'Reports',
-    'description'               => 'View students enrolled in all active Deep Learning experiences.',
-    'URLList'                   => 'report_groups.php',
-    'entryURL'                  => 'report_groups.php',
-    'entrySidebar'              => 'Y',
-    'menuShow'                  => 'Y',
-    'defaultPermissionAdmin'    => 'Y',
-    'defaultPermissionTeacher'  => 'N',
-    'defaultPermissionStudent'  => 'N',
-    'defaultPermissionParent'   => 'N',
-    'defaultPermissionSupport'  => 'N',
-    'categoryPermissionStaff'   => 'Y',
-    'categoryPermissionStudent' => 'N',
-    'categoryPermissionParent'  => 'N',
-    'categoryPermissionOther'   => 'N',
-];
-
-$actionRows[] = [
     'name'                      => 'Students Not Signed Up',
     'precedence'                => '0',
     'category'                  => 'Reports',
@@ -547,7 +568,7 @@ $actionRows[] = [
     'description'               => 'View a report of staff assigned to an experience.',
     'URLList'                   => 'report_staffing.php',
     'entryURL'                  => 'report_staffing.php',
-    'entrySidebar'              => 'N',
+    'entrySidebar'              => 'Y',
     'menuShow'                  => 'Y',
     'defaultPermissionAdmin'    => 'Y',
     'defaultPermissionTeacher'  => 'N',

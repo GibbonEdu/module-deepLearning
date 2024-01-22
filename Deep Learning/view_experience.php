@@ -83,6 +83,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
         $signUpIsOpen = $accessOpenDate <= $now && $accessCloseDate >= $now;
     }
 
+    $signUpEvent = $eventGateway->getEventSignUpAccess($experience['deepLearningEventID'], $session->get('gibbonPersonID'));
+    $signUpExperience = $experienceGateway->getExperienceSignUpAccess($deepLearningExperienceID, $session->get('gibbonPersonID'));
+
     $page->writeFromTemplate('experience.twig.html', [
         'event'      => $event,
         'experience' => $experience,
@@ -92,5 +95,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
 
         'canSignUp'  => $canSignUp,
         'signUpIsOpen' => $signUpIsOpen,
+        'signUpAccess' => $signUpEvent && $signUpExperience,
     ]);
 }

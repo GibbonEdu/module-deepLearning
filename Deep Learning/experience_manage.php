@@ -23,6 +23,7 @@ use Gibbon\Tables\DataTable;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 use Gibbon\Http\Url;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
+use Gibbon\Domain\School\YearGroupGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_manage.php') == false) {
     // Access denied
@@ -83,6 +84,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
     // Query experiences
     $gibbonPersonID = $highestAction == 'Manage Experiences_my' ? $session->get('gibbonPersonID') : null;
+    $yearGroupCount = $container->get(YearGroupGateway::class)->getYearGroupCount();
     $experiences = $experienceGateway->queryExperiences($criteria, $params['gibbonSchoolYearID'], $gibbonPersonID);
 
     // Render table
@@ -113,17 +115,24 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         ->width('8%');
 
     $table->addColumn('name', __('Name'))
+        ->description(__('Year Groups'))
         ->context('primary')
         ->format(function ($values) {
             $url = Url::fromModuleRoute('Deep Learning', 'view_experience.php')->withQueryParams(['deepLearningExperienceID' => $values['deepLearningExperienceID'], 'sidebar' => 'false']);
             return $values['active'] == 'Y' && $values['viewable'] == 'Y' 
                 ? Format::link($url, $values['name'])
                 : $values['name'];
+        })
+        ->formatDetails(function ($values) use ($yearGroupCount) {
+            return Format::small($values['yearGroupCount'] >= $yearGroupCount ? __m('All Year Groups') : $values['yearGroups']);
         });
 
     $table->addColumn('tripLeaders', __m('Trip Leader(s)'));
 
-    $table->addColumn('staffCount', __('Staff'))
+    $table->addColumn('teacherCount', __('Teachers'))
+        ->width('10%');
+
+    $table->addColumn('supportCount', __('Support'))
         ->width('10%');
 
     $table->addColumn('studentCount', __('Students'))

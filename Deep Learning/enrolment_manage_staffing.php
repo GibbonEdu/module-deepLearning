@@ -1,7 +1,9 @@
 <?php
 /*
-Gibbon, Flexible & Open School System
-Copyright (C) 2010, Ross Parker
+Gibbon: the flexible, open school platform
+Founded by Ross Parker at ICHK Secondary. Built by Ross Parker, Sandra Kuipers and the Gibbon community (https://gibbonedu.org/about/)
+Copyright © 2010, Gibbon Foundation
+Gibbon™, Gibbon Education Ltd. (Hong Kong)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,26 +19,23 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Http\Url;
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
-use Gibbon\Domain\System\SettingGateway;
-use Gibbon\Module\DeepLearning\Domain\EventGateway;
-use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
-use Gibbon\Module\DeepLearning\Domain\ChoiceGateway;
-use Gibbon\Module\DeepLearning\Domain\EnrolmentGateway;
-use Gibbon\Module\DeepLearning\EnrolmentGenerator;
 use Gibbon\Forms\MultiPartForm;
+use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
+use Gibbon\Module\DeepLearning\Domain\EventGateway;
+use Gibbon\Module\DeepLearning\Domain\EnrolmentGateway;
+use Gibbon\Domain\System\SettingGateway;
+use Gibbon\Module\DeepLearning\Domain\StaffGateway;
 
-
-
-if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_manage_groups.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_manage_staffing.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
     // Proceed!
-    $page->breadcrumbs->add(__m('Manage DL Groups'));
-     
+    $page->breadcrumbs->add(__m('Manage DL Staffing'));
+
+    
     $page->return->addReturns([
         'error4' => __m(''),
     ]);
@@ -44,10 +43,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
     $eventGateway = $container->get(EventGateway::class);
     $experienceGateway = $container->get(ExperienceGateway::class);
     $enrolmentGateway = $container->get(EnrolmentGateway::class);
+    $staffGateway = $container->get(StaffGateway::class);
 
     $events = $eventGateway->selectEventsBySchoolYear($session->get('gibbonSchoolYearID'))->fetchKeyPair();
     $activeEvent = $eventGateway->getNextActiveEvent($session->get('gibbonSchoolYearID'));
-    
+
     $params = [
         'sidebar' => 'false',
         'deepLearningEventID' => $_REQUEST['deepLearningEventID'] ?? $activeEvent ?? '',
@@ -57,7 +57,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
     $form = Form::create('filter', $session->get('absoluteURL').'/index.php', 'get');
     $form->setClass('noIntBorder fullWidth');
 
-    $form->addHiddenValue('q', '/modules/'.$session->get('module').'/enrolment_manage_groups.php');
+    $form->addHiddenValue('q', '/modules/'.$session->get('module').'/enrolment_manage_staffing.php');
     $form->addHiddenValue('address', $session->get('address'));
 
     $row = $form->addRow();
@@ -72,50 +72,44 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
 
     if (empty($params['deepLearningEventID'])) return;
 
-    // Get groups
-    $signUpChoices = $container->get(SettingGateway::class)->getSettingByScope('Deep Learning', 'signUpChoices');
-    $choiceList = [1 => __m('First Choice'), 2 => __m('Second Choice'), 3 => __m('Third Choice'), 4 => __m('Fourth Choice'), 5 => __m('Fifth Choice')];
+    // Get staffing
 
     $experiences = $experienceGateway->selectExperienceDetailsByEvent($params['deepLearningEventID'])->fetchGroupedUnique();
-    $enrolments = $enrolmentGateway->selectEnrolmentsByEvent($params['deepLearningEventID'])->fetchGroupedUnique();
+    $staffing = $staffGateway->selectStaffByEvent($params['deepLearningEventID'])->fetchGroupedUnique();
 
-    $criteria = $enrolmentGateway->newQueryCriteria();
-    $unenrolled = $enrolmentGateway->queryUnenrolledStudentsByEvent($criteria, $params['deepLearningEventID'])->toArray();
+    $criteria = $staffGateway->newQueryCriteria();
+    $unassigned = $staffGateway->queryUnassignedStaffByEvent($criteria, $params['deepLearningEventID'])->toArray();
 
-    $enrolments = array_merge($enrolments, $unenrolled);
-    
+    $staffing = array_merge($staffing, $unassigned);
+
     $groups = [];
 
-    foreach ($enrolments as $person) {
-        for ($i = 1; $i <= $signUpChoices; $i++) {
-            $person["choice{$i}"] = str_pad($person["choice{$i}"], 12, '0', STR_PAD_LEFT);
-            $person["choice{$i}Name"] = $experiences[$person["choice{$i}"]]['name'] ?? '';
+    foreach ($staffing as $person) {
+        // for ($i = 1; $i <= $signUpChoices; $i++) {
+        //     $person["choice{$i}"] = str_pad($person["choice{$i}"], 12, '0', STR_PAD_LEFT);
+        //     $person["choice{$i}Name"] = $experiences[$person["choice{$i}"]]['name'] ?? '';
+        // }
+
+        if (!empty($person['type']) && $person['type'] == 'Teaching') {
+            $person['type'] = 'Teacher';
         }
 
         $groups[$person['deepLearningExperienceID']][$person['gibbonPersonID']] = $person;
     }
 
     // FORM
-    $form = MultiPartForm::create('groups', $session->get('absoluteURL').'/modules/Deep Learning/enrolment_manage_groupsProcess.php');
-    $form->setTitle(__m('Manage DL Groups'));
+    $form = MultiPartForm::create('groups', $session->get('absoluteURL').'/modules/Deep Learning/enrolment_manage_staffingProcess.php');
+    $form->setTitle(__m('Manage DL Staffing'));
     $form->setClass('blank w-full');
 
     $form->addHiddenValue('address', $session->get('address'));
     $form->addHiddenValue('deepLearningEventID', $params['deepLearningEventID']);
 
-    $form->addHeaderAction('generate', __m('Generate DL Groups'))
-        ->setURL('/modules/Deep Learning/choices_manage_generate.php')
-        ->addParam('deepLearningEventID', $params['deepLearningEventID'])
-        ->addParam('sidebar', 'false')
-        ->setIcon('run')
-        ->displayLabel();
-
     // Display the drag-drop group editor
     $form->addRow()->addContent($page->fetchFromTemplate('generate.twig.html', [
-        'signUpChoices' => $signUpChoices,
         'experiences' => $experiences,
         'groups'      => $groups,
-        'mode' => 'student',
+        'mode'        => 'staff',
     ]));
 
     $table = $form->addRow()->addTable()->setClass('smallIntBorder fullWidth');

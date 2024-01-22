@@ -47,6 +47,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_unass
     
     $params = [
         'deepLearningEventID' => $_REQUEST['deepLearningEventID'] ?? $activeEvent ?? '',
+        'search'             => $_REQUEST['search'] ?? ''
     ];
 
 
@@ -55,6 +56,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_unass
         return;
     }
     
+    // CRITERIA
+    $criteria = $staffGateway->newQueryCriteria(true)
+        ->searchBy($staffGateway->getSearchableColumns(), $params['search'])
+        ->sortBy(['surname', 'preferredName'])
+        ->filterBy('event', $params['deepLearningEventID'])
+        ->pageSize(-1)
+        ->fromPOST();
+
     if (empty($viewMode)) {
         // FILTER
         $form = Form::create('filter', $session->get('absoluteURL').'/index.php', 'get');
@@ -66,8 +75,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_unass
         $form->addHiddenValue('address', $session->get('address'));
 
         $row = $form->addRow();
-        $row->addLabel('deepLearningEventID', __('Event'));
-        $row->addSelect('deepLearningEventID')->fromArray($events)->placeholder()->selected($params['deepLearningEventID']);
+            $row->addLabel('deepLearningEventID', __('Event'));
+            $row->addSelect('deepLearningEventID')->fromArray($events)->placeholder()->selected($params['deepLearningEventID']);
+
+        $row = $form->addRow();
+            $row->addLabel('search', __('Search For'))->description(__m('Preferred name, surname'));
+            $row->addTextField('search')->setValue($criteria->getSearchText())->maxLength(20);
 
         $row = $form->addRow();
             $row->addFooter();
@@ -75,13 +88,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_unass
 
         echo $form->getOutput();
     }
-
-    // CRITERIA
-    $criteria = $staffGateway->newQueryCriteria(true)
-        ->sortBy(['surname', 'preferredName'])
-        ->filterBy('event', $params['deepLearningEventID'])
-        ->pageSize(-1)
-        ->fromPOST();
 
     $unassigned = $staffGateway->queryUnassignedStaffByEvent($criteria, $params['deepLearningEventID']);
     
@@ -96,18 +102,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_unass
         ->notSortable()
         ->format(Format::using('userPhoto', ['image_240', 'xs']));
 
-    $table->addColumn('student', __('Person'))
-        ->sortable(['gibbonPerson.surname', 'gibbonPerson.preferredName'])
+    $table->addColumn('fullName', __('Name'))
+        ->description(__('Initials'))
+        ->context('primary')
         ->width('25%')
+        ->sortable(['surname', 'preferredName'])
         ->format(function ($values) {
             return Format::nameLinked($values['gibbonPersonID'], '', $values['preferredName'], $values['surname'], 'Staff', true, true);
+        })
+        ->formatDetails(function ($values) {
+            return Format::small($values['initials']);
         });
 
     $table->addColumn('type', __('Type'))->width('25%')->translatable();
 
     $table->addColumn('jobTitle', __('Job Title'))->width('25%');
-
-    $table->addColumn('email', __('Email'));
 
     echo $table->render($unassigned);
 

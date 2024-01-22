@@ -89,15 +89,16 @@ class EnrolmentGateway extends QueryableGateway
                 'gibbonPerson.preferredName',
                 'gibbonPerson.surname',
                 'gibbonPerson.image_240',
+                'gibbonPerson.email',
                 '"" as formGroup',
                 '"" as deepLearningEnrolmentID',
                 'deepLearningStaff.gibbonPersonID',
                 '"" as status',
                 '"Staff" as roleCategory',
                 'deepLearningStaff.role',
-                '"" as notes',
+                'deepLearningStaff.notes',
                 '"" as choice',
-                "(CASE WHEN deepLearningStaff.role = 'Trip Leader' THEN 0 ELSE 1 END) as roleOrder",
+                "(FIND_IN_SET(deepLearningStaff.role, 'Trip Leader,Teacher,Support')) as roleOrder",
             ])
             ->innerJoin('deepLearningExperience', 'deepLearningExperience.deepLearningExperienceID=deepLearningStaff.deepLearningExperienceID')
             ->innerJoin('deepLearningEvent', 'deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID')
@@ -118,6 +119,7 @@ class EnrolmentGateway extends QueryableGateway
                 'gibbonPerson.preferredName',
                 'gibbonPerson.surname',
                 'gibbonPerson.image_240',
+                'gibbonPerson.email',
                 'gibbonFormGroup.nameShort as formGroup',
                 'deepLearningEnrolment.deepLearningEnrolmentID',
                 'deepLearningEnrolment.gibbonPersonID',
@@ -126,7 +128,7 @@ class EnrolmentGateway extends QueryableGateway
                 '"Student" as role',
                 'deepLearningEnrolment.notes',
                 'deepLearningChoice.choice',
-                '"2" as roleOrder'
+                '10 as roleOrder'
             ])
             ->innerJoin('deepLearningExperience', 'deepLearningExperience.deepLearningExperienceID=deepLearningEnrolment.deepLearningExperienceID')
             ->innerJoin('deepLearningEvent', 'deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID')
@@ -152,6 +154,7 @@ class EnrolmentGateway extends QueryableGateway
         $sql = "SELECT deepLearningEnrolment.gibbonPersonID as groupBy,
                     deepLearningEnrolment.deepLearningExperienceID,
                     deepLearningEnrolment.gibbonPersonID,
+                    deepLearningEnrolment.status,
                     deepLearningChoice.timestampCreated,
                     gibbonPerson.surname,
                     gibbonPerson.preferredName,
@@ -220,8 +223,7 @@ class EnrolmentGateway extends QueryableGateway
             ->where('(gibbonPerson.dateEnd IS NULL OR gibbonPerson.dateEnd >= :today)')
             ->bindValue('today', date('Y-m-d'))
             ->where('deepLearningEnrolment.deepLearningEnrolmentID IS NULL')
-            ->groupBy(['gibbonPerson.gibbonPersonID'])
-            ->orderBy(['gibbonYearGroup.sequenceNumber', 'gibbonFormGroup.name', 'gibbonPerson.surname', 'gibbonPerson.preferredName']);
+            ->groupBy(['gibbonPerson.gibbonPersonID']);
 
         return $this->runQuery($query, $criteria);
     }

@@ -132,7 +132,8 @@ class ChoiceGateway extends QueryableGateway
             ->innerJoin('gibbonFormGroup', 'gibbonFormGroup.gibbonFormGroupID=gibbonStudentEnrolment.gibbonFormGroupID')
 
             ->leftJoin('deepLearningChoice', 'deepLearningChoice.deepLearningEventID=deepLearningEvent.deepLearningEventID AND deepLearningChoice.gibbonPersonID=gibbonPerson.gibbonPersonID')
-            
+            ->leftJoin('deepLearningExperience', 'deepLearningExperience.deepLearningExperienceID=deepLearningChoice.deepLearningExperienceID')
+
             ->where('deepLearningEvent.deepLearningEventID=:deepLearningEventID')
             ->bindValue('deepLearningEventID', $deepLearningEventID)
             ->where('FIND_IN_SET(gibbonYearGroup.gibbonYearGroupID, deepLearningEvent.gibbonYearGroupIDList)')
@@ -141,8 +142,7 @@ class ChoiceGateway extends QueryableGateway
             ->where('(gibbonPerson.dateEnd IS NULL OR gibbonPerson.dateEnd >= :today)')
             ->bindValue('today', date('Y-m-d'))
             ->where('deepLearningChoice.deepLearningChoiceID IS NULL')
-            ->groupBy(['gibbonPerson.gibbonPersonID'])
-            ->orderBy(['gibbonYearGroup.sequenceNumber', 'gibbonFormGroup.name', 'gibbonPerson.surname', 'gibbonPerson.preferredName']);
+            ->groupBy(['gibbonPerson.gibbonPersonID']);
 
         return $this->runQuery($query, $criteria);
     }

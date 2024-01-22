@@ -94,6 +94,8 @@ class EnrolmentGenerator
         $this->choices = $this->choiceGateway->selectChoicesByEvent($deepLearningEventID)->fetchGroupedUnique();
 
         foreach ($this->choices as $gibbonPersonID => $person) {
+            if (!empty($this->enrolments[$gibbonPersonID])) continue;
+            
             for ($i = 1; $i <= $this->signUpChoices; $i++) {
                 $person["choice{$i}"] = str_pad($person["choice{$i}"], 12, '0', STR_PAD_LEFT);
                 $person["choice{$i}Name"] = $this->experiences[$person["choice{$i}"]]['name'] ?? '';
@@ -111,6 +113,7 @@ class EnrolmentGenerator
     {
         // Preload any existing enrolments
         foreach ($this->enrolments as $gibbonPersonID => $person) {
+            $person['enrolled'] = true;
             $this->groups[$person['deepLearningExperienceID']][$gibbonPersonID] = $person;
         }
 

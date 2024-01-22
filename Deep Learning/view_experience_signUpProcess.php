@@ -83,7 +83,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
         $signUpIsOpen = $accessOpenDate <= $now && $accessCloseDate >= $now;
     }
 
-    if (!$signUpIsOpen) {
+    // Check access based on year group
+    $signUpAccess = $eventGateway->getEventSignUpAccess($params['deepLearningEventID'], $session->get('gibbonPersonID'));
+
+    if (!$signUpIsOpen || !$signUpAccess) {
         $URL .= '&return=error4';
         header("Location: {$URL}");
         exit;
@@ -99,6 +102,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
 
         // Validate the experience selected
         if (!$experienceGateway->exists($deepLearningExperienceID)) {
+            $URL .= '&return=error5';
+            header("Location: {$URL}");
+            exit;
+        }
+
+        $signUpExperience = $experienceGateway->getExperienceSignUpAccess($deepLearningExperienceID, $session->get('gibbonPersonID'));
+        if (!$signUpExperience) {
             $URL .= '&return=error5';
             header("Location: {$URL}");
             exit;

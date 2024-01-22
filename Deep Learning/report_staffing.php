@@ -21,12 +21,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
-use Gibbon\Forms\MultiPartForm;
-use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
-use Gibbon\Module\DeepLearning\Domain\EventGateway;
-use Gibbon\Module\DeepLearning\Domain\EnrolmentGateway;
-use Gibbon\Domain\System\SettingGateway;
+use Gibbon\Tables\Prefab\ReportTable;
 use Gibbon\Module\DeepLearning\Domain\StaffGateway;
+use Gibbon\Module\DeepLearning\Domain\EventGateway;
+use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
+use Gibbon\Http\Url;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_staffing.php') == false) {
     // Access denied
@@ -35,79 +34,109 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_staff
     // Proceed!
     $page->breadcrumbs->add(__m('View DL Staffing'));
 
-    
-    $page->return->addReturns([
-        'error4' => __m(''),
-    ]);
+    // Setup data
+    $gibbonSchoolYearID = $_REQUEST['gibbonSchoolYearID'] ?? $session->get('gibbonSchoolYearID');
+    $viewMode = $_REQUEST['format'] ?? '';
 
+    // Setup gateways
     $eventGateway = $container->get(EventGateway::class);
     $experienceGateway = $container->get(ExperienceGateway::class);
-    $enrolmentGateway = $container->get(EnrolmentGateway::class);
     $staffGateway = $container->get(StaffGateway::class);
 
     $events = $eventGateway->selectEventsBySchoolYear($session->get('gibbonSchoolYearID'))->fetchKeyPair();
     $activeEvent = $eventGateway->getNextActiveEvent($session->get('gibbonSchoolYearID'));
-
+    
     $params = [
-        'sidebar' => 'false',
         'deepLearningEventID' => $_REQUEST['deepLearningEventID'] ?? $activeEvent ?? '',
+        'search'             => $_REQUEST['search'] ?? ''
     ];
 
-    // FILTER
-    $form = Form::create('filter', $session->get('absoluteURL').'/index.php', 'get');
-    $form->setClass('noIntBorder fullWidth');
-
-    $form->addHiddenValue('q', '/modules/'.$session->get('module').'/report_staffing.php');
-    $form->addHiddenValue('address', $session->get('address'));
-
-    $row = $form->addRow();
-    $row->addLabel('deepLearningEventID', __('Event'));
-    $row->addSelect('deepLearningEventID')->fromArray($events)->placeholder()->selected($params['deepLearningEventID']);
-
-    $row = $form->addRow();
-        $row->addFooter();
-        $row->addSearchSubmit($session);
-
-    echo $form->getOutput();
-
-    // Get staffing
-
-    $experiences = $experienceGateway->selectExperienceDetailsByEvent($params['deepLearningEventID'])->fetchGroupedUnique();
-    $staffing = $staffGateway->selectStaffByEvent($params['deepLearningEventID'])->fetchGroupedUnique();
-
-    $criteria = $staffGateway->newQueryCriteria();
-    $unassigned = $staffGateway->queryUnassignedStaffByEvent($criteria, $params['deepLearningEventID'])->toArray();
-
-    $staffing = array_merge($staffing, $unassigned);
-
-    $groups = [];
-
-    foreach ($staffing as $person) {
-        // for ($i = 1; $i <= $signUpChoices; $i++) {
-        //     $person["choice{$i}"] = str_pad($person["choice{$i}"], 12, '0', STR_PAD_LEFT);
-        //     $person["choice{$i}Name"] = $experiences[$person["choice{$i}"]]['name'] ?? '';
-        // }
-
-        $groups[$person['deepLearningExperienceID']][$person['gibbonPersonID']] = $person;
+    if (empty($events)) {
+        $page->addMessage(__m('There are no active Deep Learning events.'));
+        return;
     }
 
-    // FORM
-    $form = MultiPartForm::create('groups', $session->get('absoluteURL').'/modules/Deep Learning/enrolment_manage_groupsProcess.php');
-    $form->setTitle(__m('View DL Staffing'));
-    $form->setClass('blank w-full');
-
-    $form->addHiddenValue('address', $session->get('address'));
-    $form->addHiddenValue('deepLearningEventID', $params['deepLearningEventID']);
-
-    // Display the drag-drop group editor
-    $form->addRow()->addContent($page->fetchFromTemplate('generate.twig.html', [
-        'experiences' => $experiences,
-        'groups'      => $groups,
-        'mode'        => 'staff',
-    ]));
-
-    $table = $form->addRow()->addTable()->setClass('smallIntBorder fullWidth');
-    $row = $table->addRow()->addSubmit(__('Submit'));
+    // CRITERIA
+    $criteria = $staffGateway->newQueryCriteria(true)
+        ->searchBy($staffGateway->getSearchableColumns(), $params['search'])
+        ->sortBy(['surname', 'preferredName'])
+        ->filterBy('event', $params['deepLearningEventID'])
+        ->pageSize(-1)
+        ->fromPOST();
     
-    echo $form->getOutput();
+    if (empty($viewMode)) {
+        // FILTER
+        $form = Form::create('filter', $session->get('absoluteURL').'/index.php', 'get');
+
+        $form->setTitle(__('Filter'));
+        $form->setClass('noIntBorder fullWidth');
+
+        $form->addHiddenValue('q', '/modules/'.$session->get('module').'/report_staffing.php');
+        $form->addHiddenValue('address', $session->get('address'));
+
+        $row = $form->addRow();
+            $row->addLabel('deepLearningEventID', __('Event'));
+            $row->addSelect('deepLearningEventID')->fromArray($events)->placeholder()->selected($params['deepLearningEventID']);
+
+        $row = $form->addRow();
+            $row->addLabel('search', __('Search For'))->description(__m('Preferred name, surname'));
+            $row->addTextField('search')->setValue($criteria->getSearchText())->maxLength(20);
+
+        $row = $form->addRow();
+            $row->addFooter();
+            $row->addSearchSubmit($session);
+
+        echo $form->getOutput();
+    }
+
+    // Nothing to display
+    if (empty($params['deepLearningEventID'])) {
+        return;
+    }
+
+    $staffing = $staffGateway->queryStaffByEvent($criteria, $params['deepLearningEventID']);
+    
+    // DATA TABLE
+    $table = ReportTable::createPaginated('experiences', $criteria)->setViewMode($viewMode, $session);
+    $table->setTitle(__m('View DL Staffing'));
+
+    $table->addColumn('image_240', __('Photo'))
+        ->context('primary')
+        ->width('8%')
+        ->notSortable()
+        ->format(Format::using('userPhoto', ['image_240', 'xs']));
+
+    $table->addColumn('fullName', __('Name'))
+        ->description(__('Initials'))
+        ->context('primary')
+        ->width('25%')
+        ->sortable(['surname', 'preferredName'])
+        ->format(function ($values) {
+            return Format::nameLinked($values['gibbonPersonID'], '', $values['preferredName'], $values['surname'], 'Staff', true, true);
+        })
+        ->formatDetails(function ($values) {
+            return Format::small($values['initials']);
+        });
+
+    $table->addColumn('name', __('Experience'))
+        ->context('primary')
+        ->width('25%')
+        ->format(function ($values) {
+            $url = Url::fromModuleRoute('Deep Learning', 'view_experience.php')->withQueryParams(['deepLearningExperienceID' => $values['deepLearningExperienceID'], 'sidebar' => 'false']);
+            return $values['active'] == 'Y' && $values['viewable'] == 'Y' 
+                ? Format::link($url, $values['name'])
+                : $values['name'];
+        });
+
+    $table->addColumn('role', __('Role'))
+        ->sortable('roleOrder')
+        ->width('15%')
+        ->translatable()
+        ->context('secondary');
+
+    $table->addColumn('notes', __('Notes'));
+
+    echo $table->render($staffing);
+
+
 }

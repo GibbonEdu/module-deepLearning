@@ -29,7 +29,7 @@ class EventGateway extends QueryableGateway
 
     private static $tableName = 'deepLearningEvent';
     private static $primaryKey = 'deepLearningEventID';
-    private static $searchableColumns = ['deepLearningEvent.name'];
+    private static $searchableColumns = ['deepLearningEvent.name','deepLearningEvent.nameShort'];
 
     /**
      * @param QueryCriteria $criteria
@@ -188,6 +188,20 @@ class EventGateway extends QueryableGateway
                 JOIN deepLearningEventDate ON (deepLearningEvent.deepLearningEventID=deepLearningEventDate.deepLearningEventID)
                 LEFT JOIN gibbonYearGroup ON (FIND_IN_SET(gibbonYearGroup.gibbonYearGroupID, deepLearningEvent.gibbonYearGroupIDList))
                 WHERE deepLearningEvent.deepLearningEventID=:deepLearningEventID
+                GROUP BY deepLearningEvent.deepLearningEventID";
+
+        return $this->db()->selectOne($sql, $data);
+    }
+
+    public function getEventSignUpAccess($deepLearningEventID, $gibbonPersonID)
+    {
+        $data = ['deepLearningEventID' => $deepLearningEventID, 'gibbonPersonID' => $gibbonPersonID];
+        $sql = "SELECT gibbonStudentEnrolment.gibbonStudentEnrolmentID
+                FROM deepLearningEvent
+                JOIN gibbonYearGroup ON (FIND_IN_SET(gibbonYearGroup.gibbonYearGroupID, deepLearningEvent.gibbonYearGroupIDList))
+                JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonSchoolYearID=deepLearningEvent.gibbonSchoolYearID AND gibbonStudentEnrolment.gibbonYearGroupID=gibbonYearGroup.gibbonYearGroupID)
+                WHERE deepLearningEvent.deepLearningEventID=:deepLearningEventID
+                AND gibbonStudentEnrolment.gibbonPersonID=:gibbonPersonID
                 GROUP BY deepLearningEvent.deepLearningEventID";
 
         return $this->db()->selectOne($sql, $data);

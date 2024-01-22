@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Tables\DataTable;
 use Gibbon\Services\Format;
+use Gibbon\Domain\School\YearGroupGateway;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Http\Url;
 
@@ -41,6 +42,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         ->fromPOST();
 
     $events = $eventGateway->queryEvents($criteria, $gibbonSchoolYearID);
+    $yearGroupCount = $container->get(YearGroupGateway::class)->getYearGroupCount();
 
     // Render table
     $table = DataTable::createPaginated('events', $criteria);
@@ -60,6 +62,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     });
 
     $table->addColumn('name', __('Name'))
+        ->description(__('Year Groups'))
         ->sortable(['deepLearningEvent.name'])
         ->context('primary')
         ->format(function ($values) {
@@ -67,6 +70,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
             return $values['active'] == 'Y' && !empty($values['viewableDate']) 
                 ? Format::link($url, $values['name'])
                 : $values['name'];
+        })
+        ->formatDetails(function ($values) use ($yearGroupCount) {
+            return Format::small($values['yearGroupCount'] >= $yearGroupCount ? __m('All Year Groups') : $values['yearGroups']);
         });
 
     $table->addColumn('dates', __('Dates'))
@@ -141,7 +147,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         ->sortable(['experienceCount'])
         ->width('12%')
         ->format(function ($values) {
-            $url = Url::fromModuleRoute('Deep Learning', 'experience_manage.php')->withQueryParams(['search' => $values['nameShort']]);
+            $url = Url::fromModuleRoute('Deep Learning', 'experience_manage.php')->withQueryParams(['deepLearningEventID' => $values['deepLearningEventID']]);
 
             return intval($values['experienceCount']) > 0 
                 ? Format::link($url, $values['experienceCount'])

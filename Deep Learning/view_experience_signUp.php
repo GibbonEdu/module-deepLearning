@@ -62,10 +62,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
         $page->addError(__m('Sign up is currently not available for this Deep Learning event.'));
         return;
     }
+    
+    // Check the student's sign up access based on their year group
+    $signUpAccess = $eventGateway->getEventSignUpAccess($deepLearningEventID, $session->get('gibbonPersonID'));
+    if (!$signUpAccess) {
+        $page->addError(__m('Sign up is currently not available for this Deep Learning event.'));
+        return;
+    }
 
     // Get experiences
-    $experiences = $experienceGateway->selectExperiencesByEvent($deepLearningEventID)->fetchKeyPair();
-    $Choices = $choiceGateway->selectChoicesByPerson($deepLearningEventID, $session->get('gibbonPersonID'))->fetchGroupedUnique();
+    $experiences = $experienceGateway->selectExperiencesByEventAndPerson($deepLearningEventID, $session->get('gibbonPersonID'))->fetchKeyPair();
+    $choices = $choiceGateway->selectChoicesByPerson($deepLearningEventID, $session->get('gibbonPersonID'))->fetchGroupedUnique();
 
     $signUpText = $settingGateway->getSettingByScope('Deep Learning', 'signUpText');
     $signUpChoices = $settingGateway->getSettingByScope('Deep Learning', 'signUpChoices');
@@ -73,7 +80,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
     $choiceList = [1 => __m('First Choice'), 2 => __m('Second Choice'), 3 => __m('Third Choice'), 4 => __m('Fourth Choice'), 5 => __m('Fifth Choice')];
     $choice = [];
     for ($i = 1; $i <= $signUpChoices; $i++) {
-        $choice[$i] = $Choices[$i]['deepLearningExperienceID'] ?? '';
+        $choice[$i] = $choices[$i]['deepLearningExperienceID'] ?? '';
         if ($i == 1 && empty($choice[$i])) $choice[$i] = $deepLearningExperienceID;
     }
     

@@ -33,6 +33,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/viewMyDL.php
 
     $page->return->addReturns([
         'success1' => __m('You have been successfully signed up for this Deep Learning event. You can view and manage your sign up below.'),
+        'error4' => __m('Sign up is currently not available for this Deep Learning event.'),
+        'error5' => __m('There was an error verifying your Deep Learning choices. Please try again.'),
     ]);
 
     // Query events

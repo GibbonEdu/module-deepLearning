@@ -50,12 +50,16 @@ class ExperienceGateway extends QueryableGateway
                 'deepLearningExperience.deepLearningExperienceID',
                 'deepLearningExperience.name',
                 'deepLearningExperience.active',
+                "GROUP_CONCAT(DISTINCT gibbonYearGroup.nameShort ORDER BY gibbonYearGroup.sequenceNumber SEPARATOR ', ') AS yearGroups",
+                "COUNT(DISTINCT gibbonYearGroup.gibbonYearGroupID) as yearGroupCount",
                 "GROUP_CONCAT(DISTINCT CONCAT(gibbonPerson.preferredName, ' ', gibbonPerson.surname) ORDER BY gibbonPerson.surname SEPARATOR '<br/>') as tripLeaders",
-                "COUNT(DISTINCT deepLearningStaff.deepLearningStaffID) as staffCount",
+                "COUNT(DISTINCT CASE WHEN deepLearningStaff.role <> 'Support' THEN deepLearningStaff.deepLearningStaffID END) as teacherCount",
+                "COUNT(DISTINCT CASE WHEN deepLearningStaff.role = 'Support' THEN deepLearningStaff.deepLearningStaffID END) as supportCount",
                 "(SELECT COUNT(*) FROM deepLearningEnrolment WHERE deepLearningEnrolment.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID AND status='Confirmed') as studentCount",
             ])
             ->from($this->getTableName())
             ->innerJoin('deepLearningEvent', 'deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID')
+            ->leftJoin('gibbonYearGroup', 'FIND_IN_SET(gibbonYearGroup.gibbonYearGroupID, deepLearningExperience.gibbonYearGroupIDList)')
             ->leftJoin('deepLearningUnit', 'deepLearningUnit.deepLearningUnitID=deepLearningExperience.deepLearningUnitID')
             ->leftJoin('deepLearningStaff', 'deepLearningStaff.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID')
             ->leftJoin('deepLearningStaff as tripLeader', 'tripLeader.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID AND tripLeader.role="Trip Leader"')
@@ -143,6 +147,22 @@ class ExperienceGateway extends QueryableGateway
         return $this->db()->select($sql, $data);
     }
 
+    public function selectExperiencesByEventAndPerson($deepLearningEventID, $gibbonPersonID)
+    {
+        $data = ['deepLearningEventID' => $deepLearningEventID, 'gibbonPersonID' => $gibbonPersonID];
+        $sql = "SELECT deepLearningExperience.deepLearningExperienceID as value, deepLearningExperience.name 
+                FROM deepLearningExperience 
+                JOIN deepLearningEvent ON (deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID)
+                JOIN gibbonYearGroup ON (FIND_IN_SET(gibbonYearGroup.gibbonYearGroupID, deepLearningExperience.gibbonYearGroupIDList))
+                JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonSchoolYearID=deepLearningEvent.gibbonSchoolYearID AND gibbonStudentEnrolment.gibbonYearGroupID=gibbonYearGroup.gibbonYearGroupID)
+                WHERE deepLearningExperience.deepLearningEventID=:deepLearningEventID
+                AND gibbonStudentEnrolment.gibbonPersonID=:gibbonPersonID
+                GROUP BY deepLearningExperience.deepLearningExperienceID
+                ORDER BY deepLearningExperience.name";
+
+        return $this->db()->select($sql, $data);
+    }
+
     public function selectExperienceDetailsByEvent($deepLearningEventID)
     {
         $data = ['deepLearningEventID' => $deepLearningEventID];
@@ -208,6 +228,21 @@ class ExperienceGateway extends QueryableGateway
     {
         $data = array('deepLearningExperienceID' => $deepLearningExperienceID);
         $sql = "SELECT * FROM deepLearningExperience WHERE name=(SELECT MAX(name) FROM deepLearningExperience WHERE name < (SELECT name FROM deepLearningExperience WHERE deepLearningExperienceID=:deepLearningExperienceID))";
+
+        return $this->db()->selectOne($sql, $data);
+    }
+
+    public function getExperienceSignUpAccess($deepLearningExperienceID, $gibbonPersonID)
+    {
+        $data = ['deepLearningExperienceID' => $deepLearningExperienceID, 'gibbonPersonID' => $gibbonPersonID];
+        $sql = "SELECT gibbonStudentEnrolment.gibbonStudentEnrolmentID
+                FROM deepLearningExperience
+                JOIN deepLearningEvent ON (deepLearningExperience.deepLearningEventID=deepLearningEvent.deepLearningEventID)
+                JOIN gibbonYearGroup ON (FIND_IN_SET(gibbonYearGroup.gibbonYearGroupID, deepLearningExperience.gibbonYearGroupIDList))
+                JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonSchoolYearID=deepLearningEvent.gibbonSchoolYearID AND gibbonStudentEnrolment.gibbonYearGroupID=gibbonYearGroup.gibbonYearGroupID)
+                WHERE deepLearningExperience.deepLearningExperienceID=:deepLearningExperienceID
+                AND gibbonStudentEnrolment.gibbonPersonID=:gibbonPersonID
+                GROUP BY deepLearningExperience.deepLearningExperienceID";
 
         return $this->db()->selectOne($sql, $data);
     }

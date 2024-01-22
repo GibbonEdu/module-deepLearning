@@ -134,13 +134,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     // Custom Block Template
     $addBlockButton = $form->getFactory()->createButton(__m('Add Staff'))->addClass('addBlock');
 
-    $roles = ['Trip Leader' => __m('Trip Leader'), 'Teacher' => __('Teacher'), 'Assistant' => __('Assistant')];
+    $roles = ['Trip Leader' => __m('Trip Leader'), 'Teacher' => __('Teacher'), 'Support' => __('Support')];
     $blockTemplate = $form->getFactory()->createTable()->setClass('blank');
     $row = $blockTemplate->addRow()->addClass('w-full flex justify-between items-center mt-1 ml-2');
         $row->addSelectStaff('gibbonPersonID')->photo(true, 'small')->setClass('flex-1 mr-1')->required()->placeholder();
         $row->addSelect('role')->fromArray($roles)->setClass('w-48 mr-1')->required()->placeholder();
         $row->addCheckbox('canEdit')->setLabelClass('w-32')->alignLeft()->setValue('Y')->description(__m('Can Edit?'))
             ->append("<input type='hidden' id='deepLearningStaffID' name='deepLearningStaffID' value=''/>");
+    $row = $blockTemplate->addRow()->addClass('w-full flex justify-between items-center mt-1 ml-2');
+        $row->addLabel('notesLabel',__('Notes'))->setClass('w-12 ml-3 text-right italic text-xxs');
+        $row->addTextField('notes')->setClass('w-full');
 
     // Custom Blocks
     $row = $form->addRow();
@@ -155,8 +158,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         $customBlocks->addBlock($person['deepLearningStaffID'], [
             'deepLearningStaffID' => $person['deepLearningStaffID'],
             'gibbonPersonID'      => $person['gibbonPersonID'],
-            'role'                => $person['role'] ?? 'Assistant',
+            'role'                => $person['role'] ?? 'Support',
             'canEdit'             => $person['canEdit'] ?? 'N',
+            'notes'               => $person['notes'] ?? '',
         ]);
     }
 

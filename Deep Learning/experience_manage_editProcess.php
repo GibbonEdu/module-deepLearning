@@ -101,8 +101,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         $staffData = [
             'deepLearningExperienceID' => $params['deepLearningExperienceID'],
             'gibbonPersonID'           => $person['gibbonPersonID'],
-            'role'                     => $person['role'] ?? 'Assistant',
+            'role'                     => $person['role'] ?? 'Support',
             'canEdit'                  => $person['canEdit'] ?? 'N',
+            'notes'                    => $person['notes'] ?? '',
         ];
 
         $deepLearningStaffID = $person['deepLearningStaffID'] ?? '';

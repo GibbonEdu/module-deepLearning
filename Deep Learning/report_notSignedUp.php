@@ -47,6 +47,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_notSi
     
     $params = [
         'deepLearningEventID' => $_REQUEST['deepLearningEventID'] ?? $activeEvent ?? '',
+        'search'             => $_REQUEST['search'] ?? ''
     ];
 
 
@@ -55,6 +56,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_notSi
         return;
     }
     
+    // CRITERIA
+    $criteria = $choiceGateway->newQueryCriteria(true)
+        ->searchBy($choiceGateway->getSearchableColumns(), $params['search'])
+        ->sortBy(['yearGroupSequence', 'formGroup', 'surname', 'preferredName'])
+        ->filterBy('event', $params['deepLearningEventID'])
+        ->pageSize(-1)
+        ->fromPOST();
+
     if (empty($viewMode)) {
         // FILTER
         $form = Form::create('filter', $session->get('absoluteURL').'/index.php', 'get');
@@ -66,8 +75,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_notSi
         $form->addHiddenValue('address', $session->get('address'));
 
         $row = $form->addRow();
-        $row->addLabel('deepLearningEventID', __('Event'));
-        $row->addSelect('deepLearningEventID')->fromArray($events)->placeholder()->selected($params['deepLearningEventID']);
+            $row->addLabel('deepLearningEventID', __('Event'));
+            $row->addSelect('deepLearningEventID')->fromArray($events)->placeholder()->selected($params['deepLearningEventID']);
+
+        $row = $form->addRow();
+            $row->addLabel('search', __('Search For'))->description(__m('Preferred name, surname'));
+            $row->addTextField('search')->setValue($criteria->getSearchText())->maxLength(20);
 
         $row = $form->addRow();
             $row->addFooter();
@@ -75,13 +88,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_notSi
 
         echo $form->getOutput();
     }
-
-    // CRITERIA
-    $criteria = $choiceGateway->newQueryCriteria(true)
-        ->sortBy(['surname', 'preferredName'])
-        ->filterBy('event', $params['deepLearningEventID'])
-        ->pageSize(-1)
-        ->fromPOST();
 
     $unenrolled = $choiceGateway->queryNotSignedUpStudentsByEvent($criteria, $params['deepLearningEventID']);
     

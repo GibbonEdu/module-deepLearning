@@ -72,17 +72,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
         $experiences = [-1 => ''];
     }
 
-    // OPTIONS
-    $table = DataTable::createDetails('buttons');
-
-    $table->addHeaderAction('edit', __('Edit DL Groups'))
-        ->setURL('/modules/Deep Learning/enrolment_manage_groups.php')
-        ->addParam('deepLearningEventID', $params['deepLearningEventID'])
-        ->addParam('sidebar', 'false')
-        ->displayLabel();
-
-    echo $table->render(['' => '']);
-
     // TABLES
     foreach ($experiences as $deepLearningExperienceID => $experienceName) {
 
@@ -126,12 +115,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
             ->width('12%')
             ->context('secondary');
 
-        $table->addColumn('status', __('Status'))
-            ->context('secondary')
-            ->width('15%');
-
         $choices = ['1' => __m('1st'), '2' => __m('2nd'), '3' => __m('3rd'), '4' => __m('4th'), '5' => __m('5th')];
-        $table->addColumn('status', __m('Choice'))
+        $table->addColumn('choice', __m('Choice'))
             ->width('5%')
             ->format(function ($values) use ($choices) {
                 switch ($values['choice']) {
@@ -144,6 +129,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
                 }
                 return Format::tag($choices[$values['choice']] ?? $values['choice'], $class);
             });
+
+        $table->addColumn('status', __('Status'))
+            ->context('secondary')
+            ->width('15%');
 
         $table->addColumn('notes', __('Notes'))
             ->format(Format::using('truncate', 'notes'))

@@ -29,7 +29,52 @@ class StaffGateway extends QueryableGateway
 
     private static $tableName = 'deepLearningStaff';
     private static $primaryKey = 'deepLearningStaffID';
-    private static $searchableColumns = [''];
+    private static $searchableColumns = ['gibbonPerson.preferredName', 'gibbonPerson.surname'];
+
+    /**
+     * @param QueryCriteria $criteria
+     * @return DataSet
+     */
+    public function queryStaffByEvent(QueryCriteria $criteria, $deepLearningEventID)
+    {
+        $query = $this
+            ->newQuery()
+            ->from('deepLearningStaff')
+            ->cols([
+                'deepLearningEvent.name as eventName',
+                'deepLearningEvent.nameShort as eventNameShort',
+                'deepLearningExperience.name',
+                'deepLearningExperience.deepLearningExperienceID',
+                'deepLearningEvent.active',
+                'deepLearningEvent.accessOpenDate',
+                'deepLearningEvent.accessCloseDate',
+                "(CASE WHEN CURRENT_TIMESTAMP > deepLearningEvent.viewableDate THEN 'Y' ELSE 'N' END) as viewable",
+                'gibbonPerson.preferredName',
+                'gibbonPerson.surname',
+                'gibbonPerson.title',
+                'gibbonPerson.image_240',
+                'gibbonPerson.email',
+                'deepLearningStaff.gibbonPersonID',
+                'deepLearningStaff.role',
+                'gibbonStaff.initials',
+                "(FIND_IN_SET(deepLearningStaff.role, 'Trip Leader,Teacher,Support')) as roleOrder",
+            ])
+            ->innerJoin('deepLearningExperience', 'deepLearningExperience.deepLearningExperienceID=deepLearningStaff.deepLearningExperienceID')
+            ->innerJoin('deepLearningEvent', 'deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID')
+            ->innerJoin('gibbonPerson', 'gibbonPerson.gibbonPersonID=deepLearningStaff.gibbonPersonID')
+            ->innerJoin('gibbonStaff', 'gibbonPerson.gibbonPersonID=gibbonStaff.gibbonPersonID')
+            ->where('deepLearningExperience.active="Y"')            
+            ->where('deepLearningExperience.deepLearningEventID=:deepLearningEventID')
+            ->bindValue('deepLearningEventID', $deepLearningEventID)
+            ->where("gibbonPerson.status = 'Full'")
+            ->where('(gibbonPerson.dateStart IS NULL OR gibbonPerson.dateStart <= :today)')
+            ->where('(gibbonPerson.dateEnd IS NULL OR gibbonPerson.dateEnd >= :today)')
+            ->bindValue('today', date('Y-m-d'))
+            ->groupBy(['deepLearningStaff.gibbonPersonID']);
+
+        return $this->runQuery($query, $criteria);
+    }
+
 
     public function queryUnassignedStaffByEvent($criteria, $deepLearningEventID)
     {
@@ -44,9 +89,11 @@ class StaffGateway extends QueryableGateway
                 'gibbonPerson.gibbonPersonID',
                 'gibbonPerson.surname',
                 'gibbonPerson.preferredName',
+                'gibbonPerson.title',
                 'gibbonPerson.email',
                 'gibbonStaff.type',
                 'gibbonStaff.jobTitle',
+                'gibbonStaff.initials',
             ])
             ->innerJoin('gibbonStaff', 'gibbonStaff.gibbonPersonID=gibbonPerson.gibbonPersonID')
             ->leftJoin('deepLearningEvent', 'deepLearningEvent.deepLearningEventID=:deepLearningEventID')
@@ -92,16 +139,48 @@ class StaffGateway extends QueryableGateway
         return $this->db()->select($sql, $data);
     }
 
+    public function selectStaffByEventAndPerson($deepLearningEventID, $gibbonPersonID)
+    {
+        $data = ['deepLearningEventID' => $deepLearningEventID, 'gibbonPersonID' => $gibbonPersonID];
+        $sql = "SELECT deepLearningExperience.deepLearningEventID,
+                    deepLearningExperience.deepLearningExperienceID,
+                    deepLearningExperience.name,
+                    deepLearningStaff.deepLearningStaffID,
+                    deepLearningStaff.gibbonPersonID,
+                    deepLearningStaff.role,
+                    deepLearningStaff.canEdit
+                FROM deepLearningStaff
+                JOIN deepLearningExperience ON (deepLearningExperience.deepLearningExperienceID=deepLearningStaff.deepLearningExperienceID)
+                JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=deepLearningStaff.gibbonPersonID) 
+                WHERE deepLearningExperience.deepLearningEventID=:deepLearningEventID
+                AND deepLearningStaff.gibbonPersonID=:gibbonPersonID";
+
+        return $this->db()->select($sql, $data);
+    }
+
     public function selectStaffByExperience($deepLearningExperienceID)
     {
         $data = ['deepLearningExperienceID' => $deepLearningExperienceID];
-        $sql = "SELECT deepLearningStaff.deepLearningStaffID, deepLearningStaff.role, deepLearningStaff.canEdit, gibbonPerson.gibbonPersonID, gibbonPerson.surname, gibbonPerson.preferredName
+        $sql = "SELECT deepLearningStaff.deepLearningStaffID, deepLearningStaff.role, deepLearningStaff.canEdit, deepLearningStaff.notes, gibbonPerson.gibbonPersonID, gibbonPerson.surname, gibbonPerson.preferredName
                 FROM deepLearningStaff
                 JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=deepLearningStaff.gibbonPersonID) 
                 WHERE deepLearningStaff.deepLearningExperienceID=:deepLearningExperienceID
                 ORDER BY deepLearningStaff.role DESC, gibbonPerson.surname, gibbonPerson.preferredName";
 
         return $this->db()->select($sql, $data);
+    }
+
+    public function deleteStaffByEvent($deepLearningEventID, $gibbonPersonID)
+    {
+        $data = ['deepLearningEventID' => $deepLearningEventID, 'gibbonPersonID' => $gibbonPersonID];
+        $sql = "DELETE deepLearningStaff 
+                FROM deepLearningStaff 
+                JOIN deepLearningExperience ON (deepLearningExperience.deepLearningExperienceID=deepLearningStaff.deepLearningExperienceID) 
+                WHERE deepLearningExperience.deepLearningEventID=:deepLearningEventID 
+                AND deepLearningStaff.gibbonPersonID=:gibbonPersonID
+                AND deepLearningStaff.role <> 'Trip Leader'";
+
+        return $this->db()->delete($sql, $data);
     }
 
     public function deleteStaffNotInList($deepLearningExperienceID, $staffIDList)
