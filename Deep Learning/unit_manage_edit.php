@@ -23,6 +23,7 @@ use Gibbon\Module\DeepLearning\Domain\UnitGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitAuthorGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitTagGateway;
 use Gibbon\Services\Format;
+use Gibbon\Module\DeepLearning\Domain\UnitPhotoGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_edit.php') == false) {
     // Access denied
@@ -131,6 +132,35 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         $col->addLabel('teachersNotes', __('Teacher\'s Notes'));
         $col->addEditor('teachersNotes', $guid);
 
+    // PHOTOS
+    $form->addRow()->addHeading(__('Photos'))->append(__m('These will be displayed on experiences running this unit. Captions are optional.'));
+
+    $addBlockButton = $form->getFactory()->createButton(__m('Add Photo'))->addClass('addBlock');
+
+    $blockTemplate = $form->getFactory()->createTable()->setClass('blank');
+    $row = $blockTemplate->addRow()->addClass('w-full flex justify-between items-center mt-1 ml-2');
+        $row->addFileUpload('fileUpload')->accepts('.jpg,.jpeg,.gif,.png')
+            ->setAttachment('filePath', $session->get('absoluteURL'), '')
+            ->append("<input type='hidden' id='deepLearningUnitPhotoID' name='deepLearningUnitPhotoID' value=''/>");
+        $row->addTextField('caption')->setClass('w-4/5 ml-6 mr-6')->placeholder(__m('Caption'));
+
+    // Custom Blocks
+    $row = $form->addRow();
+    $customBlocks = $row->addCustomBlocks('photos', $session, true)
+        ->fromTemplate($blockTemplate)
+        ->settings(['inputNameStrategy' => 'object', 'addOnEvent' => 'click', 'sortable' => true])
+        ->placeholder(__m('Photos will be listed here...'))
+        ->addToolInput($addBlockButton);
+
+    $photos = $container->get(UnitPhotoGateway::class)->selectPhotosByUnit($deepLearningUnitID);
+    while ($photo = $photos->fetch()) {
+        $customBlocks->addBlock($photo['deepLearningUnitPhotoID'], [
+            'deepLearningUnitPhotoID' => $photo['deepLearningUnitPhotoID'],
+            'filePath'                => $photo['filePath'],
+            'caption'                 => $photo['caption'],
+        ]);
+    }
+
     // AUTHORS
     $form->addRow()->addHeading(__('Authors'))->append(__m('All authors have edit access to this unit.'));
 
@@ -170,3 +200,26 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
 
     echo $form->getOutput();
 }
+?>
+
+<script>
+$(document).ready(function () {
+
+    $('input[id^=fileUpload][name^=photos]').each(function() {
+        
+        var filePath = $('input[id^=filePath]', $(this).parent());
+        if (filePath != undefined) {
+            var img = document.createElement("img");
+            img.src = "<?php echo $session->get('absoluteURL'); ?>/"+filePath.val();
+            img.style.height = '100px';
+            img.style.maxWidth = '200px';
+
+            $(this).parent().append(img);
+
+            $('.input-box-meta', $(this).parent()).hide();
+            $(this).parent().parent().attr('title', '');
+            $(this).hide();
+        }
+    });
+});
+</script>

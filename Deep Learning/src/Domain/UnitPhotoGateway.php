@@ -30,4 +30,25 @@ class UnitPhotoGateway extends QueryableGateway
     private static $tableName = 'deepLearningUnitPhoto';
     private static $primaryKey = 'deepLearningUnitPhotoID';
     private static $searchableColumns = [''];
+
+    public function selectPhotosByUnit($deepLearningUnitID)
+    {
+        $data = ['deepLearningUnitID' => $deepLearningUnitID];
+        $sql = "SELECT deepLearningUnitPhoto.deepLearningUnitPhotoID, deepLearningUnitPhoto.filePath, deepLearningUnitPhoto.caption
+                FROM deepLearningUnitPhoto
+                WHERE deepLearningUnitPhoto.deepLearningUnitID=:deepLearningUnitID
+                ORDER BY deepLearningUnitPhoto.sequenceNumber";
+
+        return $this->db()->select($sql, $data);
+    }
+
+    public function selectPhotosNotInList($deepLearningUnitID, $photoIDList)
+    {
+        $photoIDList = is_array($photoIDList) ? implode(',', $photoIDList) : $photoIDList;
+
+        $data = ['deepLearningUnitID' => $deepLearningUnitID, 'photoIDList' => $photoIDList];
+        $sql = "SELECT * FROM deepLearningUnitPhoto WHERE deepLearningUnitID=:deepLearningUnitID AND NOT FIND_IN_SET(deepLearningUnitPhotoID, :photoIDList)";
+
+        return $this->db()->select($sql, $data);
+    }
 }

@@ -22,6 +22,8 @@ use Gibbon\Module\DeepLearning\Domain\UnitGateway;
 use Gibbon\Data\Validator;
 use Gibbon\Module\DeepLearning\Domain\UnitTagGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitAuthorGateway;
+use Gibbon\Module\DeepLearning\Domain\UnitPhotoGateway;
+use Gibbon\FileUploader;
 
 require_once '../../gibbon.php';
 
@@ -41,6 +43,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
     $unitGateway = $container->get(UnitGateway::class);
     $unitTagGateway = $container->get(UnitTagGateway::class);
     $unitAuthorGateway = $container->get(UnitAuthorGateway::class);
+    $unitPhotoGateway = $container->get(UnitPhotoGateway::class);
 
     $highestAction = getHighestGroupedAction($guid, $_POST['address'], $connection2);
     $canEditUnit = $unitGateway->getUnitEditAccess($deepLearningUnitID, $session->get('gibbonPersonID'));
@@ -85,15 +88,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         exit;
     }
 
+    $fileUploader = $container->get(FileUploader::class);
+    $fileUploader->getFileExtensions('Graphics/Design');
+
     // Move attached file, if there is one
     if (!empty($_FILES['headerImageFile']['tmp_name'])) {
-        $fileUploader = new Gibbon\FileUploader($pdo, $session);
-        $fileUploader->getFileExtensions('Graphics/Design');
-
         $file = $_FILES['headerImageFile'] ?? null;
 
         // Upload the file, return the /uploads relative path
-        $data['headerImage'] = $fileUploader->uploadFromPost($file, $data['name']);
+        $data['headerImage'] = $fileUploader->uploadAndResizeImage($file, $data['name'], 2048, 90);
 
         if (empty($data['headerImage'])) {
             $partialFail = true;
@@ -136,6 +139,67 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
 
     // Cleanup authors that have been deleted
     $unitAuthorGateway->deleteAuthorsNotInList($deepLearningUnitID, $authorIDs);
+
+    // Update the photos
+    $photos = $_POST['photos'] ?? '';
+    $photoOrder = $_POST['order'] ?? [];
+    $photoSequence = max($photoOrder) + 1;
+    $photoIDs = [];
+
+    foreach ($photos as $index => $photo) {
+
+        $photoData = [
+            'deepLearningUnitID' => $deepLearningUnitID,
+            'filePath'           => $photo['filePath'] ?? '',
+            'caption'            => $photo['caption'] ?? '',
+            'sequenceNumber'     => array_search($index, $photoOrder) ?? false,
+        ];
+
+        if (!empty($_FILES['photos']['tmp_name'][$index]['fileUpload'])) {
+            $file = [
+                'name' => $_FILES['photos']['name'][$index]['fileUpload'] ?? '',
+                'type' => $_FILES['photos']['type'][$index]['fileUpload'] ?? '',
+                'tmp_name' => $_FILES['photos']['tmp_name'][$index]['fileUpload'] ?? '',
+                'error' => $_FILES['photos']['error'][$index]['fileUpload'] ?? '',
+                'size' => $_FILES['photos']['size'][$index]['fileUpload'] ?? '',
+            ];
+    
+            // Upload the file, return the /uploads relative path
+            $photoData['filePath'] = $fileUploader->uploadAndResizeImage($file, $data['name'], 2048, 80);
+        }
+
+        if (empty($photoData['filePath'])) {
+            $partialFail = true;
+            continue;
+        }
+
+        if ($photoData['sequenceNumber'] === false) {
+            $photoData['sequenceNumber'] = $photoSequence;
+            $photoSequence++;
+        }
+
+        $deepLearningUnitPhotoID = $photo['deepLearningUnitPhotoID'] ?? '';
+
+        if (!empty($deepLearningUnitPhotoID)) {
+            $partialFail &= !$unitPhotoGateway->update($deepLearningUnitPhotoID, $photoData);
+        } else {
+            $deepLearningUnitPhotoID = $unitPhotoGateway->insert($photoData);
+            $partialFail &= !$deepLearningUnitPhotoID;
+        }
+
+        $photoIDs[] = str_pad($deepLearningUnitPhotoID, 12, '0', STR_PAD_LEFT);
+    }
+
+    // Remove photos that have been deleted from the filesystem
+    $cleanupPhotos = $unitPhotoGateway->selectPhotosNotInList($deepLearningUnitID, $photoIDs)->fetchAll();
+    foreach ($cleanupPhotos as $photo) {
+        $unitPhotoGateway->delete($photo['deepLearningUnitPhotoID']);
+
+        $photoPath = $session->get('absolutePath').'/'.$photo['filePath'];
+        if (!empty($photo['filePath']) && file_exists($photoPath)) {
+            unlink($photoPath);
+        }
+    }
 
     // Update the tags
     $tags = array_unique(array_filter(array_merge(explode(',', $data['majors'] ?? ''), explode(',', $data['minors'] ?? ''))));
