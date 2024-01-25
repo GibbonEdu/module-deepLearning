@@ -42,6 +42,18 @@ class UnitPhotoGateway extends QueryableGateway
         return $this->db()->select($sql, $data);
     }
 
+    public function selectPhotosByExperience($deepLearningExperienceID)
+    {
+        $data = ['deepLearningExperienceID' => $deepLearningExperienceID];
+        $sql = "SELECT deepLearningUnitPhoto.deepLearningUnitPhotoID, deepLearningUnitPhoto.filePath, deepLearningUnitPhoto.caption
+                FROM deepLearningUnitPhoto
+                JOIN deepLearningExperience ON (deepLearningExperience.deepLearningUnitID=deepLearningUnitPhoto.deepLearningUnitID)
+                WHERE deepLearningExperience.deepLearningExperienceID=:deepLearningExperienceID
+                ORDER BY deepLearningUnitPhoto.sequenceNumber";
+
+        return $this->db()->select($sql, $data);
+    }
+
     public function selectPhotosNotInList($deepLearningUnitID, $photoIDList)
     {
         $photoIDList = is_array($photoIDList) ? implode(',', $photoIDList) : $photoIDList;

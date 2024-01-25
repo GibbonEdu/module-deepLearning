@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
+use Gibbon\Module\DeepLearning\Domain\UnitPhotoGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experience.php') == false) {
     // Access denied
@@ -47,6 +48,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
     // Check records exist and are available
     $eventGateway = $container->get(EventGateway::class);
     $experienceGateway = $container->get(ExperienceGateway::class);
+    $unitPhotoGateway = $container->get(UnitPhotoGateway::class);
 
     if (empty($deepLearningExperienceID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
@@ -70,6 +72,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
         $page->addMessage(__m('This event is not viewable at this time. Please return to the Events page to explore a different event.'));
         return;
     }
+
+    // Get photos
+    $experience['photos'] = $unitPhotoGateway->selectPhotosByExperience($deepLearningExperienceID)->fetchAll();
 
     // Check sign-up access
     $canSignUp = isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php', 'Deep Learning Events_signUp');
