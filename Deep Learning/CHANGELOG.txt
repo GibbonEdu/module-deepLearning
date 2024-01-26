@@ -1,5 +1,10 @@
 CHANGELOG
 =========
+v0.0.02
+-------
+Removed duplicate fields from Experiences, revert back to Units for these fields
+Remove the Add Experience page, use only Add Multiple
+
 v0.0.01
 -------
 Initial version, sets up database tables

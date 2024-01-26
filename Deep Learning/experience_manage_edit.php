@@ -68,6 +68,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         return;
     }
 
+    if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_edit.php')) {
+        $page->navigator->addHeaderAction('edit', __('Edit Unit'))
+            ->setURL('/modules/Deep Learning/unit_manage_edit.php')
+            ->addParam('deepLearningUnitID', $values['deepLearningUnitID'])
+            ->addParams($params)
+            ->displayLabel();
+    }
+
     $event = $container->get(EventGateway::class)->getByID($values['deepLearningEventID']);
     $unit = $container->get(UnitGateway::class)->getByID($values['deepLearningUnitID']);
 
@@ -85,40 +93,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         $row->addLabel('event', __('Event'));
         $row->addTextField('event')->required()->setValue($event['name'])->readOnly();
 
-    // $row = $form->addRow();
-    //     $row->addLabel('unit', __('Unit'));
-    //     $row->addTextField('unit')->required()->setValue($unit['name'])->readOnly();
+    $row = $form->addRow();
+        $row->addLabel('unit', __('Unit'));
+        $row->addTextField('unit')->required()->setValue($unit['name'])->readOnly();
 
     $row = $form->addRow();
         $row->addLabel('name', __m('Experience Name'))->description(__m('Must be unique within this Deep Learning event.'));
         $row->addTextField('name')->required()->maxLength(90);
 
     $row = $form->addRow();
-        $row->addLabel('location', __m('Location'))->description(__m('The general location this experience will take place at.'));
-        $row->addTextField('location')->maxLength(255);
-
-    $row = $form->addRow();
-        $row->addLabel('provider', __m('Provider'))->description(__m('Leave blank if not using an external provider.'));
-        $row->addTextField('provider')->maxLength(255);
-
-    $row = $form->addRow();
         $row->addLabel('active', __('Active'))->description(__m('Inactive experiences are only visible to users with view permissions.'));
         $row->addYesNo('active')->required()->selected('N');
-
-    // ENROLMENT
-    $form->addRow()->addHeading(__('Enrolment'));
-
-    $row = $form->addRow();
-        $row->addLabel('cost', __('Cost'))->description(__m('Leave empty to not display a cost.'));
-        $row->addCurrency('cost')->maxLength(10);
-
-    $row = $form->addRow();
-        $row->addLabel('enrolmentMin', __('Minimum Enrolment'))->description(__m('Experience should not run below this number of students.'));
-        $row->addNumber('enrolmentMin')->onlyInteger(true)->minimum(0)->maximum(999)->maxLength(3)->required();
-
-    $row = $form->addRow();
-        $row->addLabel('enrolmentMax', __('Maximum Enrolment'))->description(__('Enrolment should not exceed this number of students.'));
-        $row->addNumber('enrolmentMax')->onlyInteger(true)->minimum(0)->maximum(999)->maxLength(3)->required();
 
     $yearGroups = $container->get(EventGateway::class)->selectYearGroupsByEvent($values['deepLearningEventID'])->fetchKeyPair();
     $row = $form->addRow();

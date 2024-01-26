@@ -105,8 +105,8 @@ class ExperienceGateway extends QueryableGateway
                 'deepLearningExperience.deepLearningExperienceID',
                 'deepLearningExperience.name',
                 'deepLearningExperience.active',
-                'deepLearningExperience.enrolmentMin',
-                'deepLearningExperience.enrolmentMax',
+                'deepLearningUnit.enrolmentMin',
+                'deepLearningUnit.enrolmentMax',
                 'deepLearningUnit.headerImage',
             ])
             ->from($this->getTableName())
@@ -167,8 +167,10 @@ class ExperienceGateway extends QueryableGateway
     {
         $data = ['deepLearningEventID' => $deepLearningEventID];
         $sql = "SELECT deepLearningExperience.deepLearningExperienceID as groupBy, deepLearningExperience.*, 
+                    deepLearningUnit.enrolmentMin, deepLearningUnit.enrolmentMax,
                     COUNT(DISTINCT deepLearningEnrolment.deepLearningEnrolmentID) as enrolmentCount
                 FROM deepLearningExperience 
+                JOIN deepLearningUnit ON (deepLearningUnit.deepLearningUnitID=deepLearningExperience.deepLearningUnitID)
                 LEFT JOIN deepLearningEnrolment ON (deepLearningEnrolment.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID AND deepLearningEnrolment.status='Confirmed')
                 WHERE deepLearningExperience.deepLearningEventID=:deepLearningEventID
                 AND deepLearningExperience.active='Y'
@@ -191,6 +193,11 @@ class ExperienceGateway extends QueryableGateway
                     deepLearningUnit.description,
                     deepLearningUnit.majors,
                     deepLearningUnit.minors,
+                    deepLearningUnit.cost,
+                    deepLearningUnit.location,
+                    deepLearningUnit.provider,
+                    deepLearningUnit.enrolmentMin,
+                    deepLearningUnit.enrolmentMax,
                     GROUP_CONCAT(DISTINCT gibbonYearGroup.nameShort ORDER BY gibbonYearGroup.sequenceNumber SEPARATOR ', ') AS yearGroups,
                     COUNT(DISTINCT gibbonYearGroup.gibbonYearGroupID) as yearGroupCount
                 FROM deepLearningExperience

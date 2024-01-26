@@ -50,6 +50,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/settings.php
         $row->addLabel($setting['name'], __m($setting['nameDisplay']))->description(__m($setting['description']));
         $row->addSelect($setting['name'])->fromArray(range(1, 5))->required()->selected($setting['value']);
 
+    $setting = $settingGateway->getSettingByScope('Deep Learning', 'enrolmentMin', true);
+        $row = $form->addRow();
+            $row->addLabel($setting['name'], __m($setting['nameDisplay']))->description(__m($setting['description']));
+            $row->addNumber($setting['name'])->onlyInteger(true)->required()->setValue($setting['value']);
+
+    $setting = $settingGateway->getSettingByScope('Deep Learning', 'enrolmentMax', true);
+        $row = $form->addRow();
+            $row->addLabel($setting['name'], __m($setting['nameDisplay']))->description(__m($setting['description']));
+            $row->addNumber($setting['name'])->onlyInteger(true)->required()->setValue($setting['value']);
+
     $row = $form->addRow();
         $row->addFooter();
         $row->addSubmit();

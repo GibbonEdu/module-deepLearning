@@ -95,12 +95,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         $table->addHeaderAction('addMultiple', __('Add Multiple'))
             ->setURL('/modules/Deep Learning/experience_manage_addMultiple.php')
             ->addParams($params)
-            ->displayLabel()
-            ->append('&nbsp;|&nbsp;');
-
-        $table->addHeaderAction('add', __('Add'))
-            ->setURL('/modules/Deep Learning/experience_manage_add.php')
-            ->addParams($params)
             ->displayLabel();
     } else {
         $table->setDescription(__m('This section shows all Deep Learning experiences that you are a member of.'));

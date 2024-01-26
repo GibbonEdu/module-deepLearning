@@ -21,6 +21,7 @@ use Gibbon\Forms\Form;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Module\DeepLearning\Domain\UnitTagGateway;
+use Gibbon\Domain\System\SettingGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_add.php') == false) {
     // Access denied
@@ -41,6 +42,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         $page->return->setEditLink($session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/unit_manage_edit.php&deepLearningUnitID='.$_GET['editID']);
     }
 
+    $settingGateway = $container->get(SettingGateway::class);
+    $enrolmentMin = $settingGateway->getSettingByScope('Deep Learning', 'enrolmentMin');
+    $enrolmentMax = $settingGateway->getSettingByScope('Deep Learning', 'enrolmentMax');
+    
     $form = Form::create('unit', $session->get('absoluteURL').'/modules/'.$session->get('module').'/unit_manage_addProcess.php');
     $form->setFactory(DatabaseFormFactory::create($pdo));
     
@@ -66,8 +71,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         $row->addLabel('status', __('Status'))->description(__m('Only published units will be available to run experiences.'));
         $row->addSelect('status')->fromArray(['Draft' => __m('Draft'), 'Published' => __m('Published')])->required();
 
-    // DEFAULTS
-    $form->addRow()->addHeading(__('Defaults'))->append(__m('Each experience can customise the final values.'));
+    // DETAILS
+    $form->addRow()->addHeading(__('Details'))->append(__m('All experiences running this unit will use these values.'));
 
     $row = $form->addRow();
         $row->addLabel('cost', __m('Cost'))->description(__m('Leave empty to not display a cost.'));
@@ -80,6 +85,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
     $row = $form->addRow();
         $row->addLabel('provider', __m('Provider'))->description(__m('Leave blank if not using an external provider.'));
         $row->addTextField('provider')->maxLength(255);
+
+    $row = $form->addRow();
+        $row->addLabel('enrolmentMin', __('Minimum Enrolment'))->description(__m('Experience should not run below this number of students.'));
+        $row->addNumber('enrolmentMin')->onlyInteger(true)->minimum(0)->maximum(999)->maxLength(3)->required()->setValue($enrolmentMin);
+
+    $row = $form->addRow();
+        $row->addLabel('enrolmentMax', __('Maximum Enrolment'))->description(__('Enrolment should not exceed this number of students.'));
+        $row->addNumber('enrolmentMax')->onlyInteger(true)->minimum(0)->maximum(999)->maxLength(3)->required()->setValue($enrolmentMax);
 
     // DISPLAY
     $form->addRow()->addHeading(__('Display'))->append(__m('All experiences running this unit will use these images and descriptions.'));

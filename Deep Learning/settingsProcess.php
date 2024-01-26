@@ -39,6 +39,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/settings.php
             'welcomeText',
             'signUpText',
             'signUpChoices',
+            'enrolmentMin',
+            'enrolmentMax',
         ],
     ];
 

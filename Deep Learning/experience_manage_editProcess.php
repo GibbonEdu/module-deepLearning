@@ -61,11 +61,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         'deepLearningEventID'    => $_POST['deepLearningEventID'] ?? '',
         'name'                   => $_POST['name'] ?? '',
         'active'                 => $_POST['active'] ?? 'N',
-        'cost'                   => !empty($_POST['cost']) ? $_POST['cost'] : null,
-        'location'               => $_POST['location'] ?? null,
-        'provider'               => $_POST['provider'] ?? null,
-        'enrolmentMin'           => $_POST['enrolmentMin'] ?? null,
-        'enrolmentMax'           => $_POST['enrolmentMax'] ?? null,
         'gibbonYearGroupIDList'  => !empty($_POST['gibbonYearGroupIDList'])? implode(',', $_POST['gibbonYearGroupIDList']) : '',
         'gibbonPersonIDModified' => $session->get('gibbonPersonID'),
     ];

@@ -25,6 +25,7 @@ use Gibbon\Tables\Prefab\ReportTable;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Module\DeepLearning\Domain\EnrolmentGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
+use Gibbon\Tables\DataTable;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_overview.php') == false) {
     // Access denied
@@ -101,6 +102,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_overv
 
     // TABLES
     foreach ($experiences as $deepLearningExperienceID => $experienceName) {
+
+        $_GET['deepLearningExperienceID'] = $deepLearningExperienceID;
 
         // QUERY
         $criteria = $enrolmentGateway->newQueryCriteria()

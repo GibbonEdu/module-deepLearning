@@ -40,7 +40,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
     $unitGateway = $container->get(UnitGateway::class);
     $unitTagGateway = $container->get(UnitTagGateway::class);
     $unitAuthorGateway = $container->get(UnitAuthorGateway::class);
-
+    
     $data = [
         'name'                   => $_POST['name'] ?? '',
         'status'                 => $_POST['status'] ?? 'Draft',
@@ -49,6 +49,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         'provider'               => $_POST['provider'] ?? '',
         'majors'                 => $_POST['majors'] ?? '',
         'minors'                 => $_POST['minors'] ?? '',
+        'enrolmentMin'           => $_POST['enrolmentMin'] ?? null,
+        'enrolmentMax'           => $_POST['enrolmentMax'] ?? null,
         'description'            => $_POST['description'] ?? '',
         'teachersNotes'          => $_POST['teachersNotes'] ?? '',
         'timestampCreated'       => date('Y-m-d H:i:s'),
