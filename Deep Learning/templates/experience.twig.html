@@ -41,7 +41,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 {% endif %}
 
 
-    {% include 'experiencePhotos.twig.html' %}
+{% include 'experiencePhotos.twig.html' %}
 
 
 <section class="w-full grid grid-cols-3 gap-6 mt-6">
@@ -59,6 +59,20 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         <div class="mt-6 text-base font-normal leading-normal">
             {{ experience.description|raw }}
         </div>
+
+        {% if isEnrolled and experience.blocks is not empty %}
+            <hr class="border-gray-400 border-b-0">
+
+            {% for block in experience.blocks %}
+                {% if block.type == 'Main' %}
+                <h3 class="text-xl text-gray-900 normal-case mt-0">{{ block.title }}</h3>
+
+                <div class="text-base font-normal leading-normal mb-6">
+                    {{ block.content|raw }}
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
     </div>
 
     <div class="col-span-1">
@@ -114,7 +128,31 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         </div>
         {% endif %}
 
+        {% if isEnrolled and experience.blocks is not empty %}
+
+            {% for block in experience.blocks %}
+                {% if block.type == 'Sidebar' %}
+                <h4 class="mt-0 mb-2 text-sm font-normal normal-case">
+                    {{ block.title }}
+                </h4>
+
+                <div class="text-base font-normal leading-normal">
+                    {{ block.content|raw }}
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+        {% for index, photo in experience.photos|slice(6) %}
         
+            {% if photo.filePath %}
+            <!-- <div class="rounded overflow-hidden bg-gray-100">
+                <img src="{{ absoluteURL }}/{{ photo.filePath }}" class="w-full max-w-full h-full" style="object-position: center; object-fit: cover;">
+            </div> -->
+            {% endif %}
+        
+        {% endfor %}
+
     </div>
 </section>
 

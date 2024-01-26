@@ -24,6 +24,7 @@ use Gibbon\Module\DeepLearning\Domain\UnitAuthorGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitTagGateway;
 use Gibbon\Services\Format;
 use Gibbon\Module\DeepLearning\Domain\UnitPhotoGateway;
+use Gibbon\Module\DeepLearning\Domain\UnitBlockGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_edit.php') == false) {
     // Access denied
@@ -131,6 +132,55 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
             ->fromArray($tags)
             ->setParameter('hintText', __('Type a tag...'))
             ->setParameter('allowFreeTagging', true);
+
+    // ITINERARY
+    $form->addRow()->addHeading(__m('Itinerary'))->append(__m('These details will only be shown to participants who have been enrolled in an experience running this unit. This is where you can optionally share the itinerary in more detail, along with important information such as items to bring and travel instructions.'));
+
+    $addBlockButton = $form->getFactory()->createButton(__m('Add Block'))->addClass('addBlock');
+
+    $blockTemplate = $form->getFactory()->createTable()->setClass('blank w-full');
+    $row = $blockTemplate->addRow();
+    $row->addTextField('title')
+        ->maxlength(100)
+        ->setClass('w-3/4 title focus:bg-white')
+        ->placeholder(__('Title'))
+        ->append('<input type="hidden" id="deepLearningUnitBlockID" name="deepLearningUnitBlockID" value="">');
+
+    $row = $blockTemplate->addRow()->addClass('w-3/4 flex justify-between mt-1');
+        $row->addSelect('type')
+            ->fromArray(['Main' => __m('Main Content'), 'Sidebar' => __m('Sidebar')])
+            ->selected('Main')
+            ->setClass('w-auto focus:bg-white mr-1');
+        // $row->addTextField('length')->placeholder(__('length (min)'))
+        //     ->maxlength(3)
+        //     ->setClass('w-24 focus:bg-white')->prepend('');
+
+    $col = $blockTemplate->addRow()->addClass('showHide w-full')->addColumn();
+        // $col->addLabel('contentLabel', __('Block Contents'))->setClass('mt-3 -mb-2 font-bold');
+        $col->addTextArea('content', $guid)->setRows(15)->addData('tinymce')->addData('media', '1');
+
+    $row = $form->addRow();
+    $customBlocks = $row->addCustomBlocks('blocks', $session)
+        ->fromTemplate($blockTemplate)
+        ->settings([
+            'inputNameStrategy' => 'string',
+            'addOnEvent'        => 'click',
+            'sortable'          => true,
+            'orderName'         => 'blockOrder',
+        ])
+        ->placeholder(__('Blocks listed here...'))
+        ->addBlockButton('showHide', __('Show/Hide'), 'plus.png')
+        ->addToolInput($addBlockButton);
+        
+    $blocks = $container->get(UnitBlockGateway::class)->selectBlocksByUnit($deepLearningUnitID);
+    while ($block = $blocks->fetch()) {
+        $customBlocks->addBlock($block['deepLearningUnitBlockID'], [
+            'deepLearningUnitBlockID' => $block['deepLearningUnitBlockID'],
+            'title'                   => $block['title'],
+            'content'                 => $block['content'],
+            'type'                    => $block['type'],
+        ]);
+    }
 
     // RESOURCES
     $form->addRow()->addHeading(__('Resources'))->append(__m('Instructions and files that will help a teacher run this unit.'));

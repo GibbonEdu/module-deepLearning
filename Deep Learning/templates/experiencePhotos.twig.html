@@ -8,7 +8,7 @@ This is a Gibbon template file, written in HTML and Twig syntax.
 For info about editing, see: https://twig.symfony.com/doc/2.x/
 -->#}
 
-{% set photoCount = experience.photos|length %}
+{% set photoCount = experience.photos|slice(0,6)|length %}
 
 <section class="w-full grid {{ photoCount == 1 ? 'grid-cols-2' : (photoCount > 4 ? 'grid-cols-4' : 'grid-cols-3' ) }} grid-rows-2 grid-flow-col gap-3 lg:gap-6" style="height: 20vw">
 
@@ -42,25 +42,3 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 {% endfor %}
 
 </section>
-<!-- 
-<div class="col-span-1 row-span-1 rounded overflow-hidden bg-gray-100 ">
-    {% if experience.photos[1] %}
-        <img src="{{ absoluteURL }}/{{ experience.photos[1].filePath }}" class="w-full max-w-full h-full" style="object-position: center; object-fit: cover;">
-    {% endif %}
-</div>
-
-<div class="col-span-1 row-span-2 rounded overflow-hidden bg-gray-100  relative">
-    {% if experience.photos[2] %}
-        <img src="{{ absoluteURL }}/{{ experience.photos[2].filePath }}" class="w-full max-w-full h-full" style="object-position: center; object-fit: cover;">
-    {% endif %}
-
-    <div class="absolute bottom-0 right-0 mb-6 mr-6">
-        <span class="tag text-white text-sm font-light" style="background: rgba(0,0,0,0.65)">
-            {% if experience.yearGroupCount >= 8 %}
-                {{ __m('All Year Groups') }}
-            {% else %}
-                {{ experience.yearGroups|replace({'Y0':'Y'}) }}
-            {% endif %}
-        </span>
-    </div>
-</div> -->

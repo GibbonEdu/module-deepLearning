@@ -92,7 +92,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningUnitBlock` (
     `deepLearningUnitID` INT(10) UNSIGNED ZEROFILL NOT NULL,
     `deepLearningEventDateID` INT(12) UNSIGNED ZEROFILL NULL,
     `title` VARCHAR(120) NOT NULL,
-    `type` ENUM('Text','Photo','Video','Location') NOT NULL DEFAULT 'Text',
+    `type` ENUM('Main','Sidebar') NOT NULL DEFAULT 'Main',
     `length` VARCHAR(3) NOT NULL,
     `content` TEXT NULL,
     `sequenceNumber` INT(6) NOT NULL,

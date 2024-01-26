@@ -30,4 +30,25 @@ class UnitBlockGateway extends QueryableGateway
     private static $tableName = 'deepLearningUnitBlock';
     private static $primaryKey = 'deepLearningUnitBlockID';
     private static $searchableColumns = [''];
+
+    public function selectBlocksByUnit($deepLearningUnitID)
+    {
+        $data = ['deepLearningUnitID' => $deepLearningUnitID];
+        $sql = "SELECT deepLearningUnitBlock.deepLearningUnitBlockID, deepLearningUnitBlock.title, deepLearningUnitBlock.content, deepLearningUnitBlock.type
+                FROM deepLearningUnitBlock
+                WHERE deepLearningUnitBlock.deepLearningUnitID=:deepLearningUnitID
+                ORDER BY deepLearningUnitBlock.sequenceNumber";
+
+        return $this->db()->select($sql, $data);
+    }
+    
+    public function deleteBlocksNotInList($deepLearningUnitID, $blockIDList)
+    {
+        $blockIDList = is_array($blockIDList) ? implode(',', $blockIDList) : $blockIDList;
+
+        $data = ['deepLearningUnitID' => $deepLearningUnitID, 'blockIDList' => $blockIDList];
+        $sql = "DELETE FROM deepLearningUnitBlock WHERE deepLearningUnitID=:deepLearningUnitID AND NOT FIND_IN_SET(deepLearningUnitBlockID, :blockIDList)";
+
+        return $this->db()->delete($sql, $data);
+    }
 }

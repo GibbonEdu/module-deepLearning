@@ -14,4 +14,5 @@ $sql[$count][1] = "ALTER TABLE `deepLearningUnit` ADD `enrolmentMin` INT(3) NOT 
 ALTER TABLE `deepLearningUnit` ADD `enrolmentMax` INT(3) NOT NULL AFTER `enrolmentMin`;end
 ALTER TABLE `deepLearningExperience` DROP `cost`, DROP `location`, DROP `provider`;end
 ALTER TABLE `deepLearningExperience` DROP `enrolmentMin`, DROP `enrolmentMax`;end
+ALTER TABLE `deepLearningUnitBlock` CHANGE `type` `type` ENUM('Main','Sidebar') NOT NULL DEFAULT 'Main';end
 ";

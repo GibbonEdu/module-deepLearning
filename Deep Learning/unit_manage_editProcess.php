@@ -18,16 +18,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Services\Format;
-use Gibbon\Module\DeepLearning\Domain\UnitGateway;
 use Gibbon\Data\Validator;
+use Gibbon\FileUploader;
+use Gibbon\Module\DeepLearning\Domain\UnitGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitTagGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitAuthorGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitPhotoGateway;
-use Gibbon\FileUploader;
+use Gibbon\Module\DeepLearning\Domain\UnitBlockGateway;
 
 require_once '../../gibbon.php';
 
-$_POST = $container->get(Validator::class)->sanitize($_POST, ['description' => 'HTML']);
+$_POST = $container->get(Validator::class)->sanitize($_POST, ['description' => 'HTML', 'teachersNotes' => 'HTML', 'content*' => 'HTML']);
 
 $deepLearningUnitID = $_POST['deepLearningUnitID'] ?? '';
 
@@ -44,6 +45,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
     $unitTagGateway = $container->get(UnitTagGateway::class);
     $unitAuthorGateway = $container->get(UnitAuthorGateway::class);
     $unitPhotoGateway = $container->get(UnitPhotoGateway::class);
+    $unitBlockGateway = $container->get(UnitBlockGateway::class);
 
     $highestAction = getHighestGroupedAction($guid, $_POST['address'], $connection2);
     $canEditUnit = $unitGateway->getUnitEditAccess($deepLearningUnitID, $session->get('gibbonPersonID'));
@@ -142,8 +144,42 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
     // Cleanup authors that have been deleted
     $unitAuthorGateway->deleteAuthorsNotInList($deepLearningUnitID, $authorIDs);
 
+    // Update the itinerary blocks
+    $blockOrder = $_POST['blockOrder'] ?? [];
+    $blockSequence = 0;
+    $blockIDs = [];
+
+    foreach ($blockOrder as $index) {
+        $blockData = [
+            'deepLearningUnitID' => $deepLearningUnitID,
+            'title'              => $_POST["title{$index}"] ?? '',
+            'content'            => $_POST["content{$index}"] ?? '',
+            'type'               => $_POST["type{$index}"] ?? 'Main',
+            'sequenceNumber'     => $blockSequence,
+        ];
+
+        if (empty($blockData['title']) && empty($blockData['content'])) {
+            continue;
+        }
+
+        $deepLearningUnitBlockID = $_POST["deepLearningUnitBlockID{$index}"] ?? '';
+
+        if (!empty($deepLearningUnitBlockID)) {
+            $partialFail &= !$unitBlockGateway->update($deepLearningUnitBlockID, $blockData);
+        } else {
+            $deepLearningUnitBlockID = $unitBlockGateway->insert($blockData);
+            $partialFail &= !$deepLearningUnitBlockID;
+        }
+
+        $blockIDs[] = str_pad($deepLearningUnitBlockID, 12, '0', STR_PAD_LEFT);
+        $blockSequence++;
+    }
+
+    // Cleanup blocks that have been deleted
+    $unitBlockGateway->deleteBlocksNotInList($deepLearningUnitID, $blockIDs);
+
     // Update the photos
-    $photos = $_POST['photos'] ?? '';
+    $photos = $_POST['photos'] ?? [];
     $photoOrder = $_POST['order'] ?? [];
     $photoSequence = max($photoOrder) + 1;
     $photoIDs = [];
