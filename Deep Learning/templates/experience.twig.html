@@ -60,7 +60,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             {{ experience.description|raw }}
         </div>
 
-        {% if (isEnrolled and not isPastEvent) and experience.blocks is not empty %}
+        {% if (isEnrolled or isStaff or canEditUnit) and not isPastEvent and experience.blocks is not empty %}
             <hr class="border-gray-400 border-b-0">
 
             {% for block in experience.blocks %}
@@ -130,7 +130,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         </div>
         {% endif %}
 
-        {% if (isEnrolled and not isPastEvent) and experience.blocks is not empty %}
+        {% if (isEnrolled or isStaff or canEditUnit) and not isPastEvent and experience.blocks is not empty %}
 
             {% for block in experience.blocks %}
                 {% if block.type == 'Sidebar' %}

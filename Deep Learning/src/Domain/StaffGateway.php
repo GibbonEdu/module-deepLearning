@@ -170,6 +170,18 @@ class StaffGateway extends QueryableGateway
         return $this->db()->select($sql, $data);
     }
 
+    public function getStaffExperienceAccess($deepLearningExperienceID, $gibbonPersonID)
+    {
+        $data = ['deepLearningExperienceID' => $deepLearningExperienceID, 'gibbonPersonID' => $gibbonPersonID];
+        $sql = "SELECT deepLearningStaff.deepLearningStaffID, deepLearningStaff.role, deepLearningStaff.canEdit, deepLearningStaff.notes, gibbonPerson.gibbonPersonID, gibbonPerson.surname, gibbonPerson.preferredName
+                FROM deepLearningStaff
+                JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=deepLearningStaff.gibbonPersonID) 
+                WHERE deepLearningStaff.deepLearningExperienceID=:deepLearningExperienceID
+                AND deepLearningStaff.gibbonPersonID=:gibbonPersonID";
+
+        return $this->db()->selectOne($sql, $data);
+    }
+
     public function deleteStaffByEvent($deepLearningEventID, $gibbonPersonID)
     {
         $data = ['deepLearningEventID' => $deepLearningEventID, 'gibbonPersonID' => $gibbonPersonID];

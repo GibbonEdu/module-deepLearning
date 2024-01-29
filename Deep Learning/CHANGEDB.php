@@ -15,4 +15,6 @@ ALTER TABLE `deepLearningUnit` ADD `enrolmentMax` INT(3) NOT NULL AFTER `enrolme
 ALTER TABLE `deepLearningExperience` DROP `cost`, DROP `location`, DROP `provider`;end
 ALTER TABLE `deepLearningExperience` DROP `enrolmentMin`, DROP `enrolmentMax`;end
 ALTER TABLE `deepLearningUnitBlock` CHANGE `type` `type` ENUM('Main','Sidebar') NOT NULL DEFAULT 'Main';end
+ALTER TABLE `deepLearningExperienceTrip` ADD `deepLearningEventDateID` INT(12) UNSIGNED ZEROFILL NULL AFTER `deepLearningExperienceID`;end
+ALTER TABLE `deepLearningUnitBlock` DROP `deepLearningEventDateID`;end
 ";

@@ -22,6 +22,8 @@ use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 use Gibbon\Module\DeepLearning\Domain\EnrolmentGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitPhotoGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitBlockGateway;
+use Gibbon\Module\DeepLearning\Domain\UnitGateway;
+use Gibbon\Module\DeepLearning\Domain\StaffGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experience.php') == false) {
     // Access denied
@@ -48,11 +50,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
     }
 
     // Check records exist and are available
+    $unitGateway = $container->get(UnitGateway::class);
     $eventGateway = $container->get(EventGateway::class);
     $experienceGateway = $container->get(ExperienceGateway::class);
     $enrolmentGateway = $container->get(EnrolmentGateway::class);
     $unitPhotoGateway = $container->get(UnitPhotoGateway::class);
     $unitBlockGateway = $container->get(UnitBlockGateway::class);
+    $staffGateway = $container->get(StaffGateway::class);
 
     if (empty($deepLearningExperienceID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
@@ -105,6 +109,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
 
     $enrolment = $enrolmentGateway->getExperienceDetailsByEnrolment($experience['deepLearningEventID'], $session->get('gibbonPersonID'), $deepLearningExperienceID);
 
+    $canEditAll = getHighestGroupedAction($guid, '/modules/Deep Learning/unit_manage_edit.php', $connection2) == 'Manage Units_all';
+    $canEditUnit = $unitGateway->getUnitEditAccess($experience['deepLearningUnitID'], $session->get('gibbonPersonID')) ?? 'N';
+    $isStaff = $staffGateway->getStaffExperienceAccess($deepLearningExperienceID, $session->get('gibbonPersonID'));
+
     $page->writeFromTemplate('experience.twig.html', [
         'event'      => $event,
         'experience' => $experience,
@@ -119,5 +127,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
         'isPastEvent' => $isPastEvent,
         'isEnrolled' => !empty($enrolment) && $enrolment['deepLearningExperienceID'] == $deepLearningExperienceID,
         'enrolment' => $enrolment,
+
+        'canEditUnit' => $canEditAll || (!empty($canEditUnit) && $canEditUnit == 'Y'),
+        'isStaff' => !empty($isStaff),
     ]);
 }

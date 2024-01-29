@@ -2,8 +2,9 @@ CHANGELOG
 =========
 v0.0.02
 -------
+Added itinerary details to Units, display to enrolled participants in View Experience
 Removed duplicate fields from Experiences, revert back to Units for these fields
-Remove the Add Experience page, use only Add Multiple
+Removed the Add Experience page, use only Add Multiple
 
 v0.0.01
 -------

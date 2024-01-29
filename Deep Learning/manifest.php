@@ -90,7 +90,6 @@ $moduleTables[] = "CREATE TABLE `deepLearningUnitAuthor` (
 $moduleTables[] = "CREATE TABLE `deepLearningUnitBlock` (
     `deepLearningUnitBlockID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `deepLearningUnitID` INT(10) UNSIGNED ZEROFILL NOT NULL,
-    `deepLearningEventDateID` INT(12) UNSIGNED ZEROFILL NULL,
     `title` VARCHAR(120) NOT NULL,
     `type` ENUM('Main','Sidebar') NOT NULL DEFAULT 'Main',
     `length` VARCHAR(3) NOT NULL,
@@ -144,6 +143,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningExperienceVenue` (
 $moduleTables[] = "CREATE TABLE `deepLearningExperienceTrip` (
     `deepLearningExperienceTripID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `deepLearningExperienceID` INT(12) UNSIGNED ZEROFILL NOT NULL,
+    `deepLearningEventDateID` INT(12) UNSIGNED ZEROFILL NULL,
     `tripPlannerRequestID` INT(7) UNSIGNED ZEROFILL NULL,
     PRIMARY KEY (`deepLearningExperienceTripID`)
 ) ENGINE=InnoDB";
