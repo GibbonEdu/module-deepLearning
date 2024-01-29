@@ -71,6 +71,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         'gibbonPersonIDModified' => $session->get('gibbonPersonID'),
     ];
 
+    // Ensure tags are uppercase and trimmed
+    if (!empty($data['majors'])) {
+        $data['majors'] = implode(',', array_filter(array_map(function ($item) {
+            return trim(ucwords($item));
+        }, explode(',', $data['majors']))));
+    }
+
+    if (!empty($data['minors'])) {
+        $data['minors'] = implode(',', array_filter(array_map(function ($item) {
+            return trim(ucwords($item));
+        }, explode(',', $data['minors']))));
+    }
+
     // Validate the required values are present
     if (empty($deepLearningUnitID) || empty($data['name']) ) {
         $URL .= '&return=error1';

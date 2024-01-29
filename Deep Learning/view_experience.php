@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
+use Gibbon\Module\DeepLearning\Domain\EnrolmentGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitPhotoGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitBlockGateway;
 
@@ -49,6 +50,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
     // Check records exist and are available
     $eventGateway = $container->get(EventGateway::class);
     $experienceGateway = $container->get(ExperienceGateway::class);
+    $enrolmentGateway = $container->get(EnrolmentGateway::class);
     $unitPhotoGateway = $container->get(UnitPhotoGateway::class);
     $unitBlockGateway = $container->get(UnitBlockGateway::class);
 
@@ -80,19 +82,28 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
     $experience['blocks'] = $unitBlockGateway->selectBlocksByUnit($experience['deepLearningUnitID'])->fetchAll();
 
     // Check sign-up access
+    $now = (new DateTime('now'))->format('U');
+    
     $canSignUp = isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php', 'Deep Learning Events_signUp');
     $signUpIsOpen = false;
+    $isPastEvent = false;
 
     if (!empty($event['accessOpenDate']) && !empty($event['accessCloseDate'])) {
         $accessOpenDate = DateTime::createFromFormat('Y-m-d H:i:s', $event['accessOpenDate'])->format('U');
         $accessCloseDate = DateTime::createFromFormat('Y-m-d H:i:s', $event['accessCloseDate'])->format('U');
-        $now = (new DateTime('now'))->format('U');
 
         $signUpIsOpen = $accessOpenDate <= $now && $accessCloseDate >= $now;
     }
 
+    if (!empty($event['endDate'])) {
+        $endDate = DateTime::createFromFormat('Y-m-d', $event['endDate'])->format('U');
+        $isPastEvent = $now >= $endDate;
+    }
+
     $signUpEvent = $eventGateway->getEventSignUpAccess($experience['deepLearningEventID'], $session->get('gibbonPersonID'));
     $signUpExperience = $experienceGateway->getExperienceSignUpAccess($deepLearningExperienceID, $session->get('gibbonPersonID'));
+
+    $enrolment = $enrolmentGateway->getExperienceDetailsByEnrolment($experience['deepLearningEventID'], $session->get('gibbonPersonID'), $deepLearningExperienceID);
 
     $page->writeFromTemplate('experience.twig.html', [
         'event'      => $event,
@@ -105,6 +116,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
         'signUpIsOpen' => $signUpIsOpen,
         'signUpAccess' => $signUpEvent && $signUpExperience,
 
-        'isEnrolled' => true,
+        'isPastEvent' => $isPastEvent,
+        'isEnrolled' => !empty($enrolment) && $enrolment['deepLearningExperienceID'] == $deepLearningExperienceID,
+        'enrolment' => $enrolment,
     ]);
 }

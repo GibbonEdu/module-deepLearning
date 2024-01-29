@@ -74,11 +74,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/viewMyDL.php
         ->context('primary')
         ->width('30%')
         ->format(function ($values) use ($enrolmentGateway) {
-            if (empty($values['choices'])) {
-                return '';
-                // return Format::small(__m('Not signed up.'));
-            }
-
             $now = (new DateTime('now'))->format('U');
             $accessEnrolmentDate = DateTime::createFromFormat('Y-m-d H:i:s', $values['accessEnrolmentDate']);
             if ($accessEnrolmentDate && $accessEnrolmentDate->format('U') < $now) {
@@ -90,6 +85,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/viewMyDL.php
                 } else {
                     return '';
                 }
+            }
+
+            if (empty($values['choices'])) {
+                return '';
             }
             
             $choices = explode(',', $values['choices']);

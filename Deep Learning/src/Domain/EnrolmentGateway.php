@@ -70,7 +70,7 @@ class EnrolmentGateway extends QueryableGateway
             ->where('(gibbonPerson.dateStart IS NULL OR gibbonPerson.dateStart <= :today)')
             ->where('(gibbonPerson.dateEnd IS NULL OR gibbonPerson.dateEnd >= :today)')
             ->bindValue('today', date('Y-m-d'))
-            ->groupBy(['deepLearningEnrolment.gibbonPersonID']);
+            ->groupBy(['deepLearningEnrolment.deepLearningEnrolmentID']);
 
         return $this->runQuery($query, $criteria);
     }
@@ -148,41 +148,6 @@ class EnrolmentGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
-    public function selectEnrolmentsByEvent($deepLearningEventID)
-    {
-        $data = ['deepLearningEventID' => $deepLearningEventID, 'today' => date('Y-m-d')];
-        $sql = "SELECT deepLearningEnrolment.gibbonPersonID as groupBy,
-                    deepLearningEnrolment.deepLearningExperienceID,
-                    deepLearningEnrolment.gibbonPersonID,
-                    deepLearningEnrolment.status,
-                    deepLearningChoice.timestampCreated,
-                    gibbonPerson.surname,
-                    gibbonPerson.preferredName,
-                    gibbonFormGroup.name as formGroup,
-                    gibbonYearGroup.name as yearGroup,
-                    gibbonYearGroup.sequenceNumber as yearGroupSequence,
-                    MIN(CASE WHEN deepLearningChoice.choice=1 THEN deepLearningChoice.deepLearningExperienceID END) as choice1,
-                    MIN(CASE WHEN deepLearningChoice.choice=2 THEN deepLearningChoice.deepLearningExperienceID END) as choice2,
-                    MIN(CASE WHEN deepLearningChoice.choice=3 THEN deepLearningChoice.deepLearningExperienceID END) as choice3,
-                    MIN(CASE WHEN deepLearningChoice.choice=4 THEN deepLearningChoice.deepLearningExperienceID END) as choice4,
-                    MIN(CASE WHEN deepLearningChoice.choice=5 THEN deepLearningChoice.deepLearningExperienceID END) as choice5
-                FROM deepLearningEnrolment
-                JOIN deepLearningEvent ON (deepLearningEvent.deepLearningEventID=deepLearningEnrolment.deepLearningEventID)
-                JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=deepLearningEnrolment.gibbonPersonID)
-                LEFT JOIN deepLearningChoice ON (deepLearningEnrolment.deepLearningEventID=deepLearningChoice.deepLearningEventID AND deepLearningChoice.gibbonPersonID=deepLearningEnrolment.gibbonPersonID)
-                LEFT JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID AND gibbonStudentEnrolment.gibbonSchoolYearID=deepLearningEvent.gibbonSchoolYearID)
-                LEFT JOIN gibbonFormGroup ON (gibbonFormGroup.gibbonFormGroupID=gibbonStudentEnrolment.gibbonFormGroupID)
-                LEFT JOIN gibbonYearGroup ON (gibbonYearGroup.gibbonYearGroupID=gibbonStudentEnrolment.gibbonYearGroupID)
-                WHERE deepLearningEvent.deepLearningEventID=:deepLearningEventID
-                AND gibbonPerson.status = 'Full'
-                AND (gibbonPerson.dateStart IS NULL OR gibbonPerson.dateStart <= :today)
-                AND (gibbonPerson.dateEnd IS NULL OR gibbonPerson.dateEnd >= :today)
-                GROUP BY deepLearningEnrolment.gibbonPersonID
-                ORDER BY gibbonYearGroup.sequenceNumber, gibbonFormGroup.name, gibbonPerson.surname, gibbonPerson.preferredName";
-
-        return $this->db()->select($sql, $data);
-    }
-
     public function queryUnenrolledStudentsByEvent($criteria, $deepLearningEventID)
     {
         $query = $this
@@ -228,16 +193,58 @@ class EnrolmentGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
-    public function getExperienceDetailsByEnrolment($deepLearningEventID, $gibbonPersonID)
+    public function selectEnrolmentsByEvent($deepLearningEventID)
+    {
+        $data = ['deepLearningEventID' => $deepLearningEventID, 'today' => date('Y-m-d')];
+        $sql = "SELECT deepLearningEnrolment.gibbonPersonID as groupBy,
+                    deepLearningEnrolment.deepLearningExperienceID,
+                    deepLearningEnrolment.gibbonPersonID,
+                    deepLearningEnrolment.status,
+                    deepLearningChoice.timestampCreated,
+                    gibbonPerson.surname,
+                    gibbonPerson.preferredName,
+                    gibbonFormGroup.name as formGroup,
+                    gibbonYearGroup.name as yearGroup,
+                    gibbonYearGroup.sequenceNumber as yearGroupSequence,
+                    MIN(CASE WHEN deepLearningChoice.choice=1 THEN deepLearningChoice.deepLearningExperienceID END) as choice1,
+                    MIN(CASE WHEN deepLearningChoice.choice=2 THEN deepLearningChoice.deepLearningExperienceID END) as choice2,
+                    MIN(CASE WHEN deepLearningChoice.choice=3 THEN deepLearningChoice.deepLearningExperienceID END) as choice3,
+                    MIN(CASE WHEN deepLearningChoice.choice=4 THEN deepLearningChoice.deepLearningExperienceID END) as choice4,
+                    MIN(CASE WHEN deepLearningChoice.choice=5 THEN deepLearningChoice.deepLearningExperienceID END) as choice5
+                FROM deepLearningEnrolment
+                JOIN deepLearningEvent ON (deepLearningEvent.deepLearningEventID=deepLearningEnrolment.deepLearningEventID)
+                JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=deepLearningEnrolment.gibbonPersonID)
+                LEFT JOIN deepLearningChoice ON (deepLearningEnrolment.deepLearningEventID=deepLearningChoice.deepLearningEventID AND deepLearningChoice.gibbonPersonID=deepLearningEnrolment.gibbonPersonID)
+                LEFT JOIN gibbonStudentEnrolment ON (gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID AND gibbonStudentEnrolment.gibbonSchoolYearID=deepLearningEvent.gibbonSchoolYearID)
+                LEFT JOIN gibbonFormGroup ON (gibbonFormGroup.gibbonFormGroupID=gibbonStudentEnrolment.gibbonFormGroupID)
+                LEFT JOIN gibbonYearGroup ON (gibbonYearGroup.gibbonYearGroupID=gibbonStudentEnrolment.gibbonYearGroupID)
+                WHERE deepLearningEvent.deepLearningEventID=:deepLearningEventID
+                AND gibbonPerson.status = 'Full'
+                AND (gibbonPerson.dateStart IS NULL OR gibbonPerson.dateStart <= :today)
+                AND (gibbonPerson.dateEnd IS NULL OR gibbonPerson.dateEnd >= :today)
+                GROUP BY deepLearningEnrolment.gibbonPersonID
+                ORDER BY gibbonYearGroup.sequenceNumber, gibbonFormGroup.name, gibbonPerson.surname, gibbonPerson.preferredName";
+
+        return $this->db()->select($sql, $data);
+    }
+
+    public function getExperienceDetailsByEnrolment($deepLearningEventID, $gibbonPersonID, $deepLearningExperienceID = null)
     {
         $data = ['deepLearningEventID' => $deepLearningEventID, 'gibbonPersonID' => $gibbonPersonID];
         $sql = "SELECT deepLearningEnrolment.*, deepLearningExperience.* 
                 FROM deepLearningEnrolment
-                JOIN deepLearningExperience ON (deepLearningExperience.deepLearningExperienceID=deepLearningEnrolment.deepLearningExperienceID) 
+                JOIN deepLearningExperience ON (deepLearningExperience.deepLearningExperienceID=deepLearningEnrolment.deepLearningExperienceID)
+                JOIN deepLearningEvent ON (deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID) 
                 WHERE deepLearningEnrolment.deepLearningEventID=:deepLearningEventID
                 AND deepLearningEnrolment.gibbonPersonID=:gibbonPersonID
                 AND deepLearningEnrolment.status='Confirmed'
-                AND deepLearningExperience.active='Y'";
+                AND deepLearningExperience.active='Y'
+                AND CURRENT_TIMESTAMP >= deepLearningEvent.accessEnrolmentDate ";
+
+        if (!empty($deepLearningExperienceID)) {
+            $data['deepLearningExperienceID'] = $deepLearningExperienceID;
+            $sql .= "AND deepLearningExperience.deepLearningExperienceID=:deepLearningExperienceID";
+        }
 
         return $this->db()->selectOne($sql, $data);
     }

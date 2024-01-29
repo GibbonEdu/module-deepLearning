@@ -86,7 +86,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         if (empty($data['headerImage'])) {
             $partialFail = true;
         }
+    }
 
+    // Ensure tags are uppercase and trimmed
+    if (!empty($data['majors'])) {
+        $data['majors'] = implode(',', array_filter(array_map(function ($item) {
+            return trim(ucwords($item));
+        }, explode(',', $data['majors']))));
+    }
+
+    if (!empty($data['minors'])) {
+        $data['minors'] = implode(',', array_filter(array_map(function ($item) {
+            return trim(ucwords($item));
+        }, explode(',', $data['minors']))));
     }
 
     // Create the record

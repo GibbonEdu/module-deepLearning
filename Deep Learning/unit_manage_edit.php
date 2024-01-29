@@ -191,7 +191,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         $col->addEditor('teachersNotes', $guid);
 
     // PHOTOS
-    $form->addRow()->addHeading(__('Photos'))->append(__m('These will be displayed on experiences running this unit. Captions are optional.'));
+    $form->addRow()->addHeading(__('Photos'))->append(__m('These will be displayed on experiences running this unit. Captions are optional. Up to six photos will be shown in the top header of the experience page.'));
 
     $addBlockButton = $form->getFactory()->createButton(__m('Add Photo'))->addClass('addBlock');
 

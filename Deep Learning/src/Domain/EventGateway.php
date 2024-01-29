@@ -178,6 +178,8 @@ class EventGateway extends QueryableGateway
     {
         $data = ['deepLearningEventID' => $deepLearningEventID];
         $sql = "SELECT deepLearningEvent.*,
+                    MIN(deepLearningEventDate.eventDate) as startDate,
+                    MAX(deepLearningEventDate.eventDate) as endDate,
                     gibbonSchoolYear.name as schoolYear, 
                     (CASE WHEN CURRENT_TIMESTAMP > deepLearningEvent.viewableDate THEN 'Y' ELSE 'N' END) as viewable,
                     GROUP_CONCAT(DISTINCT deepLearningEventDate.eventDate SEPARATOR ',') AS eventDates,
