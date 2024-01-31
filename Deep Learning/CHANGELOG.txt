@@ -1,5 +1,8 @@
 CHANGELOG
 =========
+v0.0.03
+-------
+
 v0.0.02
 -------
 Added itinerary details to Units, display to enrolled participants in View Experience

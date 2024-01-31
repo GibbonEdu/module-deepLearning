@@ -24,6 +24,9 @@ use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Http\Url;
 use Gibbon\Module\DeepLearning\Domain\StaffGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitGateway;
+use Gibbon\Services\Format;
+use Gibbon\Tables\DataTable;
+use Gibbon\Module\DeepLearning\Domain\ExperienceTripGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_manage_edit.php') == false) {
     // Access denied
@@ -156,4 +159,78 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     $form->loadAllValuesFrom($values);
 
     echo $form->getOutput();
+
+    // Cancel out if Trip Planner not installed or not accessible
+    $highestTripAction = getHighestGroupedAction($guid, '/modules/Trip Planner/trips_manage.php', $connection2);
+    if (empty($highestTripAction)) {
+        return;
+    }
+
+    // TRIPS
+    $experienceTripGateway = $container->get(ExperienceTripGateway::class);
+    $gibbonPersonID = $session->get('gibbonPersonID');
+
+    $criteria = $experienceTripGateway->newQueryCriteria()
+        ->sortBy(['title'])
+        ->pageSize(-1)
+        ->fromPOST();
+
+    $trips = $experienceTripGateway->queryTripsByExperience($criteria, $deepLearningExperienceID);
+
+    $table = DataTable::create('trips');
+    $table->setTitle(__m('Trip Planning'));
+    $table->setDescription(__m('Trips can be attached to Deep Learning experiences, simplifying the setup of new trips. Add and edit trips from the list below to automatically attached them to this experience.'));
+
+    $table->modifyRows(function (&$trip, $row) {
+        if ($trip['status'] == 'Approved') $row->addClass('success');
+        if ($trip['status'] == 'Draft') $row->addClass('dull');
+        if ($trip['status'] == 'Awaiting Final Approval') $row->addClass('message');
+        if ($trip['status'] == 'Rejected' || $trip['status'] == 'Cancelled') $row->addClass('dull');
+
+        return $row;
+    });
+    
+    $table->addHeaderAction('addTrip', __('Add Trip Request'))
+        ->setURL('/modules/Deep Learning/experience_manage_edit_addTrip.php')
+        ->setIcon('page_new')
+        ->addParam('deepLearningExperienceID', $deepLearningExperienceID)
+        ->displayLabel()
+        ->modalWindow(650, 400);
+    
+    $table->addExpandableColumn('contents')
+        ->format(function ($trip) {
+            return $trip['description'];
+        });
+
+    $table->addColumn('tripTitle', __('Title'))
+        ->format(function ($trip) {
+            return $trip['tripTitle'].($trip['status'] == 'Draft' ? Format::tag(__('Draft'), 'message ml-2') : '');
+        });
+
+    $table->addColumn('owner', __('Owner'))
+        ->format(Format::using('name', ['title', 'preferredName', 'surname', 'Staff', false, true]))
+        ->sortable('surname');
+
+    $table->addColumn('firstDayOfTrip', __('First Day of Trip'))
+        ->format(Format::using('dateReadable', ['firstDayOfTrip']));
+
+    $table->addColumn('status', __('Status'))->format(function($trip) {
+        return $trip['status'];
+    });
+
+    $table->addActionColumn()
+        ->addParam('tripPlannerRequestID')
+        ->addParam('deepLearningExperienceID', $deepLearningExperienceID)
+        ->format(function ($trip, $actions) use ($highestTripAction, $gibbonPersonID)  {
+            $actions->addAction('view', __('View Details'))
+                ->setURL('/modules/Trip Planner/trips_requestView.php');
+
+            if (($highestTripAction == 'Manage Trips_full' || $gibbonPersonID == $trip['creatorPersonID']) && !in_array($trip['status'], ['Cancelled', 'Rejected'])) {
+                $actions->addAction('edit', __('Edit'))
+                    ->addParam('mode', 'edit')
+                    ->setURL('/modules/Trip Planner/trips_submitRequest.php');
+            }
+    });
+        
+    echo $table->render($trips);
 }

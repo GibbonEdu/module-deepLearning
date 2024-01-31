@@ -188,6 +188,7 @@ class ExperienceGateway extends QueryableGateway
                     deepLearningEvent.name as eventName,
                     deepLearningEvent.accessOpenDate,
                     deepLearningEvent.accessCloseDate,
+                    deepLearningEvent.gibbonSchoolYearID,
                     deepLearningExperience.*,
                     deepLearningUnit.headerImage,
                     deepLearningUnit.description,

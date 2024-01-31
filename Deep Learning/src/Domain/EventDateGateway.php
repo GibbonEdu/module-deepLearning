@@ -54,7 +54,7 @@ class EventDateGateway extends QueryableGateway
     public function selectDates($deepLearningEventID)
     {
         $data = ['deepLearningEventID' => $deepLearningEventID];
-        $sql = "SELECT deepLearningEventDateID, deepLearningEventID, eventDate, name
+        $sql = "SELECT deepLearningEventDateID, deepLearningEventDateID as value, deepLearningEventID, eventDate, name
                 FROM deepLearningEventDate
                 WHERE deepLearningEventID=:deepLearningEventID
                 ORDER BY eventDate, name";

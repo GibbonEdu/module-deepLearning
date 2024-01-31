@@ -33,7 +33,7 @@ $params = [
     'search'             => $_REQUEST['search'] ?? ''
 ];
 
-$URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/experience_manage_add.php&'.http_build_query($params);
+$URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/experience_manage_addMultiple.php&'.http_build_query($params);
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_manage_add.php') == false) {
     $URL .= '&return=error0';
