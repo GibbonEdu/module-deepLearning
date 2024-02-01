@@ -216,7 +216,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
             ];
     
             // Upload the file, return the /uploads relative path
-            $photoData['filePath'] = $fileUploader->uploadAndResizeImage($file, $data['name'], 2048, 80);
+            $photoData['filePath'] = $fileUploader->uploadAndResizeImage($file, $data['name'], 1024, 80);
         }
 
         if (empty($photoData['filePath'])) {

@@ -16,7 +16,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         </div>
     
         <div class="my-8">
-            <h1 class="relative text-center text-white text-4xl mt-0 mb-1">
+            <h1 class="relative text-center text-white text-3xl md:text-4xl mt-0 mb-1">
                 {{ event.name }}
             </h1>
 
@@ -51,9 +51,9 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
 {% include 'experiencePhotos.twig.html' %}
 
-<section class="w-full grid grid-cols-3 gap-6 mt-6">
+<section class="w-full grid grid-cols-2 md:grid-cols-3 gap-6 mt-6">
 
-    <div class="col-span-2 border-r pr-12">
+    <div class="col-span-2 md:border-r md:pr-12">
         <h2 class="text-4xl text-gray-900 normal-case mt-0">
             {{ experience.name }}
         </h2>
@@ -68,10 +68,9 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         </div>
 
         {% if (isEnrolled or isStaff or canEditUnit) and not isPastEvent and experience.blocks is not empty %}
-            <hr class="border-gray-400 border-b-0">
-
             {% for block in experience.blocks %}
                 {% if block.type == 'Main' %}
+                {% if loop.first %}<hr class="border-gray-400 border-b-0">{% endif %}
                 <h3 class="text-xl text-gray-900 normal-case mt-0">{{ block.title }}</h3>
 
                 <div class="text-base font-normal leading-normal mb-6">
@@ -82,7 +81,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         {% endif %}
     </div>
 
-    <div class="col-span-1">
+    <div class="col-span-2 md:col-span-1">
 
         {% if signUpIsOpen and signUpAccess and canSignUp %}
         <div class="mb-6 rounded overflow-hidden" style="background: url('{{ absoluteURL }}/{{ experience.headerImage }}'); background-size: 150%; background-position: center;">
@@ -174,20 +173,20 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
     </div>
 </section>
 
-<footer class="flex justify-between mt-6">
+<footer class="flex justify-between mt-12">
     <div class="text-left">
         {% if prevExperience %}
         <div class="mb-1 text-sm text-gray-600 font-normal normal-case">
             {{ __m('Previous') }}
         </div>
-        <a class="text-xl text-gray-900 hover:text-blue-600" href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_experience.php&sidebar=false&deepLearningEventID={{ prevExperience.deepLearningEventID }}&deepLearningExperienceID={{ prevExperience.deepLearningExperienceID }}">
+        <a class="text-base md:text-xl text-gray-900 hover:text-blue-600" href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_experience.php&sidebar=false&deepLearningEventID={{ prevExperience.deepLearningEventID }}&deepLearningExperienceID={{ prevExperience.deepLearningExperienceID }}">
             {{ prevExperience.name }}
         </a>
         {% else %}
         <div class="mb-1 text-sm text-gray-600 font-normal normal-case">
             {{ __m('Back') }}
         </div>
-        <a class="text-xl text-gray-900 hover:text-blue-600" href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_event.php&sidebar=false&deepLearningEventID={{ experience.deepLearningEventID }}">
+        <a class="text-base md:text-xl text-gray-900 hover:text-blue-600" href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_event.php&sidebar=false&deepLearningEventID={{ experience.deepLearningEventID }}">
             {{ event.name }}
         </a>
         {% endif %}
@@ -197,14 +196,14 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         <div class="mb-1 text-sm text-gray-600 font-normal normal-case">
             {{ __m('Next') }}
         </div>
-        <a class="text-xl text-gray-900 hover:text-blue-600" href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_experience.php&sidebar=false&deepLearningEventID={{ nextExperience.deepLearningEventID }}&deepLearningExperienceID={{ nextExperience.deepLearningExperienceID }}">
+        <a class="text-base md:text-xl text-gray-900 hover:text-blue-600" href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_experience.php&sidebar=false&deepLearningEventID={{ nextExperience.deepLearningEventID }}&deepLearningExperienceID={{ nextExperience.deepLearningExperienceID }}">
             {{ nextExperience.name }}
         </a>
         {% else %}
         <div class="mb-1 text-sm text-gray-600 font-normal normal-case">
             {{ __m('Back') }}
         </div>
-        <a class="text-xl text-gray-900 hover:text-blue-600" href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_event.php&sidebar=false&deepLearningEventID={{ experience.deepLearningEventID }}">
+        <a class="text-base md:text-xl text-gray-900 hover:text-blue-600" href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_event.php&sidebar=false&deepLearningEventID={{ experience.deepLearningEventID }}">
             {{ event.name }}
         </a>
         {% endif %}
