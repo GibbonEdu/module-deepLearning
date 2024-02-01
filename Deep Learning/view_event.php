@@ -48,12 +48,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_event.p
         return;
     }
 
-    if ($event['active'] != 'Y') {
+    if ($event['active'] != 'Y' && !$canViewInactive) {
         $page->addError(__('You do not have access to this action.'));
         return;
     }
 
-    if ($event['viewable'] != 'Y') {
+    if ($event['viewable'] != 'Y' && !$canViewInactive) {
         $page->addMessage(__m('This event is not viewable at this time. Please return to the Events page to explore a different event.'));
         return;
     }
@@ -67,7 +67,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_event.p
     $experiences = $experienceGateway->queryExperiencesByEvent($criteria, $deepLearningEventID);
 
     $page->writeFromTemplate('experiences.twig.html', [
-        'event'       => $event,
-        'experiences' => $experiences->toArray(),
+        'event'           => $event,
+        'experiences'     => $experiences->toArray(),
+        'canViewInactive' => $canViewInactive,
     ]);
 }

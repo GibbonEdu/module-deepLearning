@@ -9,9 +9,9 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 -->#}
 
 {% if event %}
-<header class="mb-8 ">
+<header class="mb-6 ">
     
-    <div class="mb-8 relative rounded overflow-hidden" style="background: url('{{ absoluteURL }}/{{ event.backgroundImage }}'); background-size: 150%; background-position: center;">
+    <div class="mb-6 relative rounded overflow-hidden" style="background: url('{{ absoluteURL }}/{{ event.backgroundImage }}'); background-size: 150%; background-position: center;">
         <div class="absolute w-full h-full rounded bg-blur bg-translucent-gray overflow-hidden">
         </div>
     
@@ -44,10 +44,19 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 </header>
 {% endif %}
 
-{% if event.accessOpenDate and event.accessCloseDate %}
+{% if canViewInactive and event.viewable != "Y" %}
 <section class="w-full mb-6 relative">
     <div class="w-full py-3 border border-gray-400 rounded text-center text-gray-700 text-lg font-thin">
-    {% if "now"|date("U") < event.accessOpenDate|date("U") %}
+        {{ __m('This event is not visible to the public, and will be viewable on') }} <b>{{ event.viewableDate|date("M j \\a\\t g:ia") }}</b>.<br/> 
+        {{ __m('Some details seen here may not be finalised. Please do not share the event details until access is open to all users.') }}
+    </div>
+</section>
+{% elseif event.accessOpenDate and event.accessCloseDate %}
+<section class="w-full mb-6 relative">
+    <div class="w-full py-3 border border-gray-400 rounded text-center text-gray-700 text-lg font-thin">
+    {% if "now"|date("U") > event.endDate|date("U") %}
+        {{ __m('This Deep Learning event ended on') }} {{ event.endDate|date("M j") }}
+    {% elseif "now"|date("U") < event.accessOpenDate|date("U") %}
         {{ __m('Sign up opens on') }} {{ event.accessOpenDate|date("M j \\a\\t g:ia") }}
     {% elseif "now"|date("U") > event.accessCloseDate|date("U") %}
         {{ __m('Sign up closed on') }} {{ event.accessCloseDate|date("M j \\a\\t g:ia") }}
@@ -57,6 +66,8 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
     </div>
 </section>
 {% endif %}
+
+
 
 {% if experiences is not empty %}
     <section class="w-full grid sm:grid-cols-2 lg:grid-cols-3 gap-6">

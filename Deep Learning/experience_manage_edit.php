@@ -190,12 +190,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         return $row;
     });
     
-    $table->addHeaderAction('addTrip', __('Add Trip Request'))
-        ->setURL('/modules/Deep Learning/experience_manage_edit_addTrip.php')
-        ->setIcon('page_new')
-        ->addParam('deepLearningExperienceID', $deepLearningExperienceID)
-        ->displayLabel()
-        ->modalWindow(650, 400);
+    // $table->addHeaderAction('addTrip', __('Add Trip Request'))
+    //     ->setURL('/modules/Deep Learning/experience_manage_edit_addTrip.php')
+    //     ->setIcon('page_new')
+    //     ->addParam('deepLearningExperienceID', $deepLearningExperienceID)
+    //     ->displayLabel()
+    //     ->modalWindow(650, 400);
     
     $table->addExpandableColumn('contents')
         ->format(function ($trip) {

@@ -28,6 +28,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php') =
     $page->breadcrumbs
         ->add(__m('Deep Learning Events'));
 
+    $canViewInactive = isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php', 'Deep Learning Events_viewInactive');
+
     // Query events
     $eventGateway = $container->get(EventGateway::class);
 
@@ -39,7 +41,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php') =
     $events = $eventGateway->queryEvents($criteria, $session->get('gibbonSchoolYearID'));
 
     $page->writeFromTemplate('events.twig.html', [
-        'welcomeText' => $container->get(SettingGateway::class)->getSettingByScope('Deep Learning', 'welcomeText'),
-        'events' => $events->toArray(),
+        'welcomeText'     => $container->get(SettingGateway::class)->getSettingByScope('Deep Learning', 'welcomeText'),
+        'events'          => $events->toArray(),
+        'canViewInactive' => $canViewInactive,
     ]);
 }

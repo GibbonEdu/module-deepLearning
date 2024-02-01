@@ -42,9 +42,9 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             <div class="flex-1">
             </div>
 
-            {% if viewable %}
+            {% if viewable or canViewInactive %}
                 <a href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_event.php&sidebar=false&deepLearningEventID={{ event.deepLearningEventID }}" class="py-2 border border-white hover:bg-translucent transition duration-100 rounded-sm text-center text-white text-base font-light">
-                    {{ __m('Explore') }}
+                    {{ canViewInactive and not viewable ? __m('Preview') : __m('Explore') }}
                 </a>
             {% elseif date() >= date(event.endDate)  %}
                 <div class="{{ hasBackground ? 'text-white font-light' : 'text-gray-600 font-thin' }} text-center text-white text-base italic">

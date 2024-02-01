@@ -239,7 +239,7 @@ class EnrolmentGateway extends QueryableGateway
                 AND deepLearningEnrolment.gibbonPersonID=:gibbonPersonID
                 AND deepLearningEnrolment.status='Confirmed'
                 AND deepLearningExperience.active='Y'
-                AND CURRENT_TIMESTAMP >= deepLearningEvent.accessEnrolmentDate ";
+                AND (deepLearningEvent.accessEnrolmentDate IS NOT NULL AND CURRENT_TIMESTAMP >= deepLearningEvent.accessEnrolmentDate) ";
 
         if (!empty($deepLearningExperienceID)) {
             $data['deepLearningExperienceID'] = $deepLearningExperienceID;

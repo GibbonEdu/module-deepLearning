@@ -46,11 +46,11 @@ class ExperienceGateway extends QueryableGateway
                 'deepLearningEvent.nameShort as eventNameShort',
                 'deepLearningEvent.accessOpenDate',
                 'deepLearningEvent.accessCloseDate',
-                "(CASE WHEN CURRENT_TIMESTAMP > deepLearningEvent.viewableDate THEN 'Y' ELSE 'N' END) as viewable",
+                "(CASE WHEN CURRENT_TIMESTAMP >= deepLearningEvent.viewableDate THEN 'Y' ELSE 'N' END) as viewable",
                 'deepLearningExperience.deepLearningExperienceID',
                 'deepLearningExperience.name',
                 'deepLearningExperience.active',
-                "GROUP_CONCAT(DISTINCT gibbonYearGroup.nameShort ORDER BY gibbonYearGroup.sequenceNumber SEPARATOR ', ') AS yearGroups",
+                "REPLACE(GROUP_CONCAT(DISTINCT gibbonYearGroup.nameShort ORDER BY gibbonYearGroup.sequenceNumber SEPARATOR ', '),'Y0','Y') AS yearGroups",
                 "COUNT(DISTINCT gibbonYearGroup.gibbonYearGroupID) as yearGroupCount",
                 "GROUP_CONCAT(DISTINCT CONCAT(gibbonPerson.preferredName, ' ', gibbonPerson.surname) ORDER BY gibbonPerson.surname SEPARATOR '<br/>') as tripLeaders",
                 "COUNT(DISTINCT CASE WHEN deepLearningStaff.role <> 'Support' THEN deepLearningStaff.deepLearningStaffID END) as teacherCount",
@@ -199,7 +199,7 @@ class ExperienceGateway extends QueryableGateway
                     deepLearningUnit.provider,
                     deepLearningUnit.enrolmentMin,
                     deepLearningUnit.enrolmentMax,
-                    GROUP_CONCAT(DISTINCT gibbonYearGroup.nameShort ORDER BY gibbonYearGroup.sequenceNumber SEPARATOR ', ') AS yearGroups,
+                    REPLACE(GROUP_CONCAT(DISTINCT gibbonYearGroup.nameShort ORDER BY gibbonYearGroup.sequenceNumber SEPARATOR ', '),'Y0','Y') AS yearGroups,
                     COUNT(DISTINCT gibbonYearGroup.gibbonYearGroupID) as yearGroupCount
                 FROM deepLearningExperience
                 JOIN deepLearningEvent ON (deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID)

@@ -54,11 +54,11 @@ class EventGateway extends QueryableGateway
                 'deepLearningEvent.accessEnrolmentDate',
                 "MIN(deepLearningEventDate.eventDate) as startDate",
                 "MAX(deepLearningEventDate.eventDate) as endDate",
-                "(CASE WHEN CURRENT_TIMESTAMP > deepLearningEvent.viewableDate THEN 'Y' ELSE 'N' END) as viewable",
+                "(CASE WHEN CURRENT_TIMESTAMP >= deepLearningEvent.viewableDate THEN 'Y' ELSE 'N' END) as viewable",
                 "COUNT(DISTINCT deepLearningExperience.deepLearningExperienceID) as experienceCount",
                 "GROUP_CONCAT(DISTINCT deepLearningEventDate.eventDate SEPARATOR ',') AS eventDates",
                 "GROUP_CONCAT(DISTINCT deepLearningExperience.name) AS experienceNames",
-                "GROUP_CONCAT(DISTINCT gibbonYearGroup.nameShort ORDER BY gibbonYearGroup.sequenceNumber SEPARATOR ', ') AS yearGroups",
+                "REPLACE(GROUP_CONCAT(DISTINCT gibbonYearGroup.nameShort ORDER BY gibbonYearGroup.sequenceNumber SEPARATOR ', '),'Y0','Y') AS yearGroups",
                 "COUNT(DISTINCT gibbonYearGroup.gibbonYearGroupID) as yearGroupCount"
             ])
             ->leftJoin('deepLearningEventDate', 'deepLearningEvent.deepLearningEventID=deepLearningEventDate.deepLearningEventID')
@@ -103,7 +103,7 @@ class EventGateway extends QueryableGateway
                 'deepLearningEvent.accessEnrolmentDate',
                 "MIN(deepLearningEventDate.eventDate) as startDate",
                 "MAX(deepLearningEventDate.eventDate) as endDate",
-                "(CASE WHEN CURRENT_TIMESTAMP > deepLearningEvent.viewableDate THEN 'Y' ELSE 'N' END) as viewable",
+                "(CASE WHEN CURRENT_TIMESTAMP >= deepLearningEvent.viewableDate THEN 'Y' ELSE 'N' END) as viewable",
                 "GROUP_CONCAT(DISTINCT deepLearningEventDate.eventDate SEPARATOR ',') AS eventDates",
                 "GROUP_CONCAT(DISTINCT deepLearningExperience.name ORDER BY deepLearningChoice.choice SEPARATOR ',') as choices",
 
@@ -181,9 +181,9 @@ class EventGateway extends QueryableGateway
                     MIN(deepLearningEventDate.eventDate) as startDate,
                     MAX(deepLearningEventDate.eventDate) as endDate,
                     gibbonSchoolYear.name as schoolYear, 
-                    (CASE WHEN CURRENT_TIMESTAMP > deepLearningEvent.viewableDate THEN 'Y' ELSE 'N' END) as viewable,
+                    (CASE WHEN CURRENT_TIMESTAMP >= deepLearningEvent.viewableDate THEN 'Y' ELSE 'N' END) as viewable,
                     GROUP_CONCAT(DISTINCT deepLearningEventDate.eventDate SEPARATOR ',') AS eventDates,
-                    GROUP_CONCAT(DISTINCT gibbonYearGroup.nameShort ORDER BY gibbonYearGroup.sequenceNumber SEPARATOR ', ') AS yearGroups,
+                    REPLACE(GROUP_CONCAT(DISTINCT gibbonYearGroup.nameShort ORDER BY gibbonYearGroup.sequenceNumber SEPARATOR ', '),'Y0','Y') AS yearGroups,
                     COUNT(DISTINCT gibbonYearGroup.gibbonYearGroupID) as yearGroupCount
                 FROM deepLearningEvent
                 JOIN gibbonSchoolYear ON (deepLearningEvent.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID) 

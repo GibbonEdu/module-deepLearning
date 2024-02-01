@@ -49,6 +49,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
         return;
     }
 
+    $canSignUp = isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php', 'Deep Learning Events_signUp');
+    $canViewInactive = isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php', 'Deep Learning Events_viewInactive');
+
     // Check records exist and are available
     $unitGateway = $container->get(UnitGateway::class);
     $eventGateway = $container->get(EventGateway::class);
@@ -71,12 +74,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
         return;
     }
 
-    if ($experience['active'] != 'Y' || $event['active'] != 'Y') {
+    if (($experience['active'] != 'Y' || $event['active'] != 'Y') && !$canViewInactive) {
         $page->addError(__('You do not have access to this action.'));
         return;
     }
 
-    if ($event['viewable'] != 'Y') {
+    if ($event['viewable'] != 'Y'  && !$canViewInactive) {
         $page->addMessage(__m('This event is not viewable at this time. Please return to the Events page to explore a different event.'));
         return;
     }
@@ -87,8 +90,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
 
     // Check sign-up access
     $now = (new DateTime('now'))->format('U');
-    
-    $canSignUp = isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php', 'Deep Learning Events_signUp');
     $signUpIsOpen = false;
     $isPastEvent = false;
 
@@ -120,6 +121,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
         'nextExperience' => $experienceGateway->getNextExperienceByID($deepLearningExperienceID),
         'prevExperience' => $experienceGateway->getPreviousExperienceByID($deepLearningExperienceID),
 
+        'canViewInactive' => $canViewInactive,
         'canSignUp'  => $canSignUp,
         'signUpIsOpen' => $signUpIsOpen,
         'signUpAccess' => $signUpEvent && $signUpExperience,

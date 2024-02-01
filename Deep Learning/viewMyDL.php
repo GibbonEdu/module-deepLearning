@@ -17,11 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Http\Url;
 use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
-use Gibbon\Http\Url;
 use Gibbon\Module\DeepLearning\Domain\EnrolmentGateway;
+use Gibbon\Domain\School\YearGroupGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/viewMyDL.php') == false) {
     // Access denied
@@ -37,6 +38,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/viewMyDL.php
         'error5' => __m('There was an error verifying your Deep Learning choices. Please try again.'),
     ]);
 
+    $canSignUp = isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php', 'Deep Learning Events_signUp');
+    $canViewInactive = isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php', 'Deep Learning Events_viewInactive');
+
     // Query events
     $eventGateway = $container->get(EventGateway::class);
     $enrolmentGateway = $container->get(EnrolmentGateway::class);
@@ -46,6 +50,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/viewMyDL.php
         ->fromPOST();
 
     $events = $eventGateway->queryEventsByPerson($criteria, $session->get('gibbonSchoolYearID'), $session->get('gibbonPersonID'));
+    $yearGroupCount = $container->get(YearGroupGateway::class)->getYearGroupCount();
+    
+    $events->transform(function (&$values) use (&$eventGateway) {
+        $event = $eventGateway->getEventDetailsByID($values['deepLearningEventID']);
+
+        $values['yearGroups'] = $event['yearGroups'];
+        $values['yearGroupCount'] = $event['yearGroupCount'];
+        $values['signUpEvent'] = $eventGateway->getEventSignUpAccess($values['deepLearningEventID'], $values['gibbonPersonID']);
+    });
 
     $table = DataTable::create('events');
 
@@ -57,6 +70,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/viewMyDL.php
             return $values['active'] == 'Y' && $values['viewable'] == 'Y'
                 ? Format::link($url, $values['name'])
                 : $values['name'];
+        })
+        ->formatDetails(function ($values) use ($yearGroupCount) {
+            return Format::small($values['yearGroupCount'] >= $yearGroupCount ? __m('All Year Groups') : $values['yearGroups']);
         });
 
     $table->addColumn('dates', __('Dates'))
@@ -96,7 +112,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/viewMyDL.php
         });
 
     $table->addColumn('status', __('Status'))
-        ->format(function ($values) {
+        ->format(function ($values) use ($canSignUp) {
             if ($values['viewable'] != 'Y') {
                 return;
             }
@@ -115,7 +131,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/viewMyDL.php
 
             $accessOpenDate = DateTime::createFromFormat('Y-m-d H:i:s', $values['accessOpenDate']);
             if ($accessOpenDate && ($accessOpenDate->format('U') <= $now && $accessCloseDate->format('U') >= $now)) {
-                return Format::tag(__m('Sign up is open'), 'success');
+                return $canSignUp && !empty($values['signUpEvent'])
+                    ? Format::tag(__m('Sign up is open'), 'success')
+                    : Format::tag(__m('Sign up is open for').' '.$values['yearGroups'], 'success');
             }
 
             if ($accessOpenDate && $accessOpenDate->format('U') > $now) {
@@ -128,7 +146,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/viewMyDL.php
     // ACTIONS
     $table->addActionColumn()
         ->addParam('deepLearningEventID')
-        ->format(function ($values, $actions) {
+        ->format(function ($values, $actions) use ($canSignUp) {
+            if (empty($values['signUpEvent'])) {
+                return '';
+            }
 
             // Check that sign up is open based on the date
             $signUpIsOpen = false;
@@ -142,7 +163,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/viewMyDL.php
                 $signUpIsOpen = $accessOpenDate <= $now && $accessCloseDate >= $now;
             }
 
-            if ($viewable && $signUpIsOpen) {
+            if ($viewable && $signUpIsOpen && $canSignUp) {
                 $actions->addAction('add', __('Sign Up'))
                         ->setURL('/modules/Deep Learning/view_experience_signUp.php')
                         ->modalWindow(750, 440);

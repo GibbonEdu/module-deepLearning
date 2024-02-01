@@ -9,9 +9,9 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 -->#}
 
 {% if event %}
-<header class="mb-8 ">
+<header class="mb-6 ">
     
-    <a class="block mb-8 relative rounded overflow-hidden" style="background: url('{{ absoluteURL }}/{{ event.backgroundImage }}'); background-size: 150%; background-position: center;" href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_event.php&sidebar=false&deepLearningEventID={{ event.deepLearningEventID }}">
+    <a class="block mb-6 relative rounded overflow-hidden" style="background: url('{{ absoluteURL }}/{{ event.backgroundImage }}'); background-size: 150%; background-position: center;" href="{{ absoluteURL }}/index.php?q=/modules/Deep Learning/view_event.php&sidebar=false&deepLearningEventID={{ event.deepLearningEventID }}">
         <div class="absolute w-full h-full rounded bg-blur bg-translucent-gray overflow-hidden">
         </div>
     
@@ -40,9 +40,16 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 </header>
 {% endif %}
 
+{% if canViewInactive and event.viewable != "Y" %}
+<section class="w-full mb-6 relative">
+    <div class="w-full py-3 border border-gray-400 rounded text-center text-gray-700 text-lg font-thin">
+        {{ __m('This event is not visible to the public, and will be viewable on') }} <b>{{ event.viewableDate|date("M j \\a\\t g:ia") }}</b>.<br/> 
+        {{ __m('Some details seen here may not be finalised. Please do not share the event details until access is open to all users.') }}
+    </div>
+</section>
+{% endif %}
 
 {% include 'experiencePhotos.twig.html' %}
-
 
 <section class="w-full grid grid-cols-3 gap-6 mt-6">
 
@@ -77,40 +84,49 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
     <div class="col-span-1">
 
-        {% if canSignUp %}
-            {% if not signUpAccess %}
+        {% if signUpIsOpen and signUpAccess and canSignUp %}
+        <div class="mb-6 rounded overflow-hidden" style="background: url('{{ absoluteURL }}/{{ experience.headerImage }}'); background-size: 150%; background-position: center;">
+            <a href="{{ absoluteURL }}/fullscreen.php?q=/modules/Deep Learning/view_experience_signUp.php&deepLearningEventID={{ experience.deepLearningEventID }}&deepLearningExperienceID={{ experience.deepLearningExperienceID }}&width=750&height=440" class="thickbox block px-10 py-4 rounded outline-inset bg-blue-500 bg-blur hover:bg-blur transition-all duration-300 text-center text-white text-xl font-light">
+                {{ __m('Sign Up') }}
+            </a>
+        </div>
+        {% else %}
+        <div class="mb-6 px-10 py-4 rounded bg-gray-300 text-center text-gray-600 text-lg font-thin italic">
+            {% if signUpIsOpen and (not signUpAccess or not canSignUp) %}
                 {% if experience.yearGroups is not empty %}
-                <div class="mb-6 px-10 py-4 rounded bg-gray-300 text-center text-gray-600 text-lg font-thin italic">
-                    {{ __m('For') }} {{ experience.yearGroups|replace({'Y0':'Y'}) }}
-                </div>
-                {% endif %}
-            {% elseif signUpIsOpen %}
-            <div class="mb-6 rounded overflow-hidden" style="background: url('{{ absoluteURL }}/{{ experience.headerImage }}'); background-size: 150%; background-position: center;">
-                <a href="{{ absoluteURL }}/fullscreen.php?q=/modules/Deep Learning/view_experience_signUp.php&deepLearningEventID={{ experience.deepLearningEventID }}&deepLearningExperienceID={{ experience.deepLearningExperienceID }}&width=750&height=440" class="thickbox block px-10 py-4 rounded outline-inset bg-blue-500 bg-blur hover:bg-blur transition-all duration-300 text-center text-white text-xl font-light">
-                    {{ __m('Sign Up') }}
-                </a>
-            </div>
-            {% else %}
-            <div class="mb-6 px-10 py-4 rounded bg-gray-300 text-center text-gray-600 text-lg font-thin italic">
-                {% if "now"|date("U") < event.accessOpenDate|date("U") %}
-                    {{ __m('Sign up opens') }} {{ event.accessOpenDate|date("M j \\a\\t g:ia") }}
-                {% elseif "now"|date("U") > event.accessCloseDate|date("U") %}
-                    {{ __m('Sign up closed on') }} {{ event.accessCloseDate|date("M j \\a\\t g:ia") }}
+                    {{ __m('Sign up is open for') }} {{ experience.yearGroups|replace({'Y0':'Y'})|split(',')|join(', ', ' and ') }}
                 {% else %}
-                    {{ __m('Sign up is not available yet') }}
+                    {{ __m('Sign up is open until') }} {{ event.accessCloseDate|date("M j \\a\\t g:ia") }}
                 {% endif %}
-            </div>
+            {% elseif "now"|date("U") > event.endDate|date("U") %}
+                {{ __m('This event ended on') }} {{ event.endDate|date("M j") }}
+            {% elseif not signUpAccess  %}
+                {% if experience.yearGroups is not empty %}
+                    {{ __m('This experience is for') }} {{ experience.yearGroups|replace({'Y0':'Y'})|split(',')|join(', ', ' and ') }}
+                {% else %}
+                    {{ __m('Sign up is not available') }}
+                {% endif %}
+            {% elseif "now"|date("U") < event.accessOpenDate|date("U") %}
+                {{ __m('Sign up opens') }} {{ event.accessOpenDate|date("M j \\a\\t g:ia") }}
+            {% elseif "now"|date("U") > event.accessCloseDate|date("U") %}
+                {{ __m('Sign up closed on') }} {{ event.accessCloseDate|date("M j \\a\\t g:ia") }}
+            {% else %}
+                {{ __m('Sign up is not available yet') }}
             {% endif %}
+        </div>
         {% endif %}
 
-        {% if experience.cost %}
+
         <div class="mb-6 text-4xl normal-case font-thin">
             <h4 class="mt-0 mb-2 text-sm font-normal normal-case">
                 {{ __m('Cost') }}
             </h4>
-            {{ formatUsing('currency', experience.cost, false, 0) }}
+            {% if experience.cost %}
+                {{ formatUsing('currency', experience.cost, false, 0) }}
+            {% else %}
+                {{ __m('Free') }}
+            {% endif %}
         </div>
-        {% endif %}
 
         {% if experience.location %}
         <div class="mb-6 text-xl normal-case">

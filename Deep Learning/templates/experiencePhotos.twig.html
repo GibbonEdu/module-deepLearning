@@ -10,7 +10,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
 {% set photoCount = experience.photos|slice(0,6)|length %}
 
-<section class="w-full grid {{ photoCount == 1 ? 'grid-cols-2' : (photoCount > 4 ? 'grid-cols-4' : 'grid-cols-3' ) }} grid-rows-2 grid-flow-col gap-3 lg:gap-6" style="height: 20vw">
+<section class="w-full grid {{ photoCount == 1 ? 'grid-cols-2' : (photoCount > 4 ? 'grid-cols-4' : 'grid-cols-3' ) }} grid-rows-2 grid-flow-col gap-3 lg:gap-6" style="height: 25vw">
 
 <div class="{{ photoCount == 0 ? 'col-span-3' : 'col-span-1' }} row-span-2 rounded overflow-hidden bg-gray-100">
     {% if experience.headerImage %}

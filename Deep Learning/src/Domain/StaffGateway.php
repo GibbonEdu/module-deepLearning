@@ -48,7 +48,7 @@ class StaffGateway extends QueryableGateway
                 'deepLearningEvent.active',
                 'deepLearningEvent.accessOpenDate',
                 'deepLearningEvent.accessCloseDate',
-                "(CASE WHEN CURRENT_TIMESTAMP > deepLearningEvent.viewableDate THEN 'Y' ELSE 'N' END) as viewable",
+                "(CASE WHEN CURRENT_TIMESTAMP >= deepLearningEvent.viewableDate THEN 'Y' ELSE 'N' END) as viewable",
                 'gibbonPerson.preferredName',
                 'gibbonPerson.surname',
                 'gibbonPerson.title',
