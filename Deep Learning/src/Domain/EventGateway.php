@@ -83,7 +83,7 @@ class EventGateway extends QueryableGateway
      * @param QueryCriteria $criteria
      * @return DataSet
      */
-    public function queryEventsByPerson(QueryCriteria $criteria, $gibbonSchoolYearID, $gibbonPersonID)
+    public function queryEventsByPerson(QueryCriteria $criteria, $gibbonSchoolYearID, $gibbonPersonID, $checkYearGroup = false)
     {
         $query = $this
             ->newQuery()
@@ -111,13 +111,17 @@ class EventGateway extends QueryableGateway
             ->innerJoin('deepLearningEventDate', 'deepLearningEvent.deepLearningEventID=deepLearningEventDate.deepLearningEventID')
             ->leftJoin('deepLearningChoice', 'deepLearningChoice.deepLearningEventID=deepLearningEvent.deepLearningEventID AND deepLearningChoice.gibbonPersonID=:gibbonPersonID')
             ->leftJoin('deepLearningExperience', 'deepLearningExperience.deepLearningExperienceID=deepLearningChoice.deepLearningExperienceID')
-
             ->bindValue('gibbonPersonID', $gibbonPersonID)
             ->where('deepLearningEvent.gibbonSchoolYearID=:gibbonSchoolYearID')
             ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID)
             ->where('deepLearningEvent.viewableDate <= CURRENT_TIMESTAMP')
             ->where('deepLearningEvent.active ="Y" ')
             ->groupBy(['deepLearningEvent.deepLearningEventID']);
+    
+        if ($checkYearGroup) {
+            $query->leftJoin('gibbonStudentEnrolment', 'gibbonStudentEnrolment.gibbonSchoolYearID=deepLearningEvent.gibbonSchoolYearID AND gibbonStudentEnrolment.gibbonPersonID=:gibbonPersonID')
+                ->where('FIND_IN_SET(gibbonStudentEnrolment.gibbonYearGroupID, deepLearningEvent.gibbonYearGroupIDList)');
+        }
 
         return $this->runQuery($query, $criteria);
     }

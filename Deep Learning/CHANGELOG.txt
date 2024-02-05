@@ -1,10 +1,18 @@
 CHANGELOG
 =========
+
+v0.0.05
+-------
+Added a View Deep Learning page for parents to view their children's DL
+
 v0.0.04
 -------
+Add a View Student Choices report
 
 v0.0.03
 -------
+Improves mobile responsiveness of View Experience page
+Enabled staff to preview Deep Learning Events, updated display of sign up status
 
 v0.0.02
 -------

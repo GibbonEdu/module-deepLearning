@@ -51,6 +51,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_choic
 
     // SEARCH
     $form = Form::create('filters', $session->get('absoluteURL').'/index.php', 'get');
+    
+    $form->setTitle(__('Filter'));
     $form->setClass('noIntBorder fullWidth');
 
     $form->addHiddenValue('q', '/modules/Deep Learning/report_choices.php');
