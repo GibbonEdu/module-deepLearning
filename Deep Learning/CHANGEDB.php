@@ -25,3 +25,9 @@ $sql[$count][1] = "ALTER TABLE `deepLearningExperienceTrip` DROP `deepLearningEv
 ALTER TABLE `deepLearningExperienceTrip` ADD `deepLearningEventDateIDList` VARCHAR(255) NULL AFTER `deepLearningExperienceID`;end
 ALTER TABLE `deepLearningExperienceTrip` ADD UNIQUE(`deepLearningExperienceID`, `tripPlannerRequestID`);end
 ";
+
+// v0.0.04
+$sql[$count][0] = "0.0.04";
+$sql[$count][1] = "INSERT INTO `gibbonAction` (`gibbonActionID`, `gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `entrySidebar`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES (NULL, (SELECT gibbonModuleID FROM gibbonModule WHERE name='Deep Learning'), 'View Student Choices', 0, 'Reports', 'View a list of choices students have made for a DL event.', 'report_choices.php','report_choices.php', 'Y', 'Y', 'Y', 'N', 'N', 'N', 'Y', 'N', 'N', 'N');end
+INSERT INTO `gibbonPermission` (`permissionID` ,`gibbonRoleID` ,`gibbonActionID`) VALUES (NULL , '1', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Deep Learning' AND gibbonAction.name='View Student Choices'));end
+";

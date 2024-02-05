@@ -163,6 +163,7 @@ class EnrolmentGateway extends QueryableGateway
                 'gibbonPerson.surname',
                 'gibbonPerson.preferredName',
                 'gibbonPerson.email',
+                'gibbonPerson.image_240',
                 'gibbonFormGroup.name as formGroup',
                 'gibbonYearGroup.name as yearGroup',
                 'gibbonYearGroup.sequenceNumber as yearGroupSequence',

@@ -49,8 +49,11 @@ class ChoiceGateway extends QueryableGateway
                 'deepLearningChoice.timestampModified',
                 'gibbonPerson.preferredName',
                 'gibbonPerson.surname',
+                'gibbonPerson.image_240',
                 'gibbonFormGroup.nameShort as formGroup',
+                'gibbonYearGroup.nameShort as yearGroup',
                 "GROUP_CONCAT(deepLearningExperience.name ORDER BY deepLearningChoice.choice SEPARATOR ',') as choices",
+                "GROUP_CONCAT(CONCAT(deepLearningChoice.choice, ':', deepLearningExperience.name) ORDER BY deepLearningChoice.choice SEPARATOR ',') as choiceList",
                 
             ])
             ->innerJoin('deepLearningExperience', 'deepLearningExperience.deepLearningExperienceID=deepLearningChoice.deepLearningExperienceID')
@@ -58,6 +61,7 @@ class ChoiceGateway extends QueryableGateway
             ->innerJoin('gibbonPerson', 'gibbonPerson.gibbonPersonID=deepLearningChoice.gibbonPersonID')
             ->leftJoin('gibbonStudentEnrolment', 'gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID AND gibbonStudentEnrolment.gibbonSchoolYearID=deepLearningEvent.gibbonSchoolYearID')
             ->leftJoin('gibbonFormGroup', 'gibbonFormGroup.gibbonFormGroupID=gibbonStudentEnrolment.gibbonFormGroupID')
+            ->leftJoin('gibbonYearGroup', 'gibbonYearGroup.gibbonYearGroupID=gibbonStudentEnrolment.gibbonYearGroupID')
             ->where('deepLearningEvent.gibbonSchoolYearID=:gibbonSchoolYearID')
             ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID)
             ->groupBy(['deepLearningChoice.gibbonPersonID']);
@@ -92,6 +96,7 @@ class ChoiceGateway extends QueryableGateway
                 'deepLearningChoice.timestampModified',
                 'gibbonPerson.preferredName',
                 'gibbonPerson.surname',
+                'gibbonPerson.image_240',
                 "GROUP_CONCAT(deepLearningExperience.name ORDER BY deepLearningChoice.choice SEPARATOR ',') as choices",
                 
             ])
@@ -122,6 +127,7 @@ class ChoiceGateway extends QueryableGateway
                 'gibbonPerson.surname',
                 'gibbonPerson.preferredName',
                 'gibbonPerson.email',
+                'gibbonPerson.image_240',
                 'gibbonFormGroup.name as formGroup',
                 'gibbonYearGroup.name as yearGroup',
                 'gibbonYearGroup.sequenceNumber as yearGroupSequence',

@@ -22,7 +22,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 
     <div class="col-span-1 {{ (photoCount is odd and loop.last) or photoCount == 2 ? 'row-span-2' : 'row-span-1' }} rounded overflow-hidden bg-gray-100 relative" style="{{ (photoCount is odd and loop.last) or photoCount == 2 ? 'max-height: 34vw;' : 'max-height: 16vw;' }}">
         {% if photo.filePath %}
-            <img src="{{ absoluteURL }}/{{ photo.filePath }}" class="w-full max-w-full h-full" style="object-position: center; object-fit: cover;">
+            <img src="{{ absoluteURL }}/{{ photo.filePath }}" class="w-full max-w-full h-full" style="object-position: center; object-fit: cover;" title="{{ photo.caption }}">
         {% endif %}
 
         {% if loop.last %}

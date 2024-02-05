@@ -23,13 +23,13 @@ use Gibbon\Module\DeepLearning\Domain\ChoiceGateway;
 use Gibbon\Forms\Form;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
 
-if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_manage.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_choices.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
     // Proceed!
     $page->breadcrumbs
-        ->add(__m('Manage Choices'));
+        ->add(__m('View Student Choices'));
 
     $choiceGateway = $container->get(ChoiceGateway::class);
     $eventGateway = $container->get(EventGateway::class);
@@ -46,14 +46,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
     $criteria = $choiceGateway->newQueryCriteria(true)
         ->searchBy($choiceGateway->getSearchableColumns(), $params['search'])
         ->filterBy('event', $params['deepLearningEventID'])
-        ->sortBy(['surname', 'preferredName'])
+        ->sortBy(['yearGroup', 'formGroup', 'surname', 'preferredName'])
         ->fromPOST();
 
     // SEARCH
     $form = Form::create('filters', $session->get('absoluteURL').'/index.php', 'get');
     $form->setClass('noIntBorder fullWidth');
 
-    $form->addHiddenValue('q', '/modules/Deep Learning/choices_manage.php');
+    $form->addHiddenValue('q', '/modules/Deep Learning/report_choices.php');
 
     $row = $form->addRow();
         $row->addLabel('deepLearningEventID', __('Event'));
@@ -73,19 +73,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
 
     // TABLE
     $table = DataTable::createPaginated('choices', $criteria);
-
-    $table->addHeaderAction('generate', __m('Generate DL Groups'))
-        ->setURL('/modules/Deep Learning/choices_manage_generate.php')
-        ->addParam('deepLearningEventID', $params['deepLearningEventID'])
-        ->addParam('sidebar', 'false')
-        ->setIcon('run')
-        ->displayLabel()
-        ->append('&nbsp;|&nbsp;');
-
-    $table->addHeaderAction('add', __('Add'))
-        ->setURL('/modules/Deep Learning/choices_manage_addEdit.php')
-        ->addParam('mode', 'add')
-        ->displayLabel();
 
     $table->addColumn('image_240', __('Photo'))
         ->context('primary')
@@ -122,19 +109,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
     $table->addColumn('timestampModified', __('When'))
         ->format(Format::using('dateReadable', 'timestampModified'))
         ->width('15%');
-
-    // ACTIONS
-    $table->addActionColumn()
-        ->addParam('deepLearningEventID')
-        ->addParam('gibbonPersonID')
-        ->format(function ($values, $actions) {
-            $actions->addAction('edit', __('Edit'))
-                    ->setURL('/modules/Deep Learning/choices_manage_addEdit.php')
-                    ->addParam('mode', 'edit');
-
-            $actions->addAction('delete', __('Delete'))
-                    ->setURL('/modules/Deep Learning/choices_manage_delete.php');
-        });
 
     echo $table->render($choices);
 }

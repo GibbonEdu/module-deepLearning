@@ -23,7 +23,7 @@ $description = "Enables schools to implement ICHK's Deep Learning approach, in w
 $entryURL    = "view.php";
 $type        = "Additional";
 $category    = 'Learn';
-$version     = '0.0.03';
+$version     = '0.0.04';
 $author      = 'Sandra Kuipers';
 $url         = 'https://github.com/GibbonEdu';
 
@@ -586,6 +586,26 @@ $actionRows[] = [
     'description'               => 'View a report of staff not assigned to an experience.',
     'URLList'                   => 'report_unassigned.php',
     'entryURL'                  => 'report_unassigned.php',
+    'entrySidebar'              => 'Y',
+    'menuShow'                  => 'Y',
+    'defaultPermissionAdmin'    => 'Y',
+    'defaultPermissionTeacher'  => 'N',
+    'defaultPermissionStudent'  => 'N',
+    'defaultPermissionParent'   => 'N',
+    'defaultPermissionSupport'  => 'N',
+    'categoryPermissionStaff'   => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent'  => 'N',
+    'categoryPermissionOther'   => 'N',
+];
+
+$actionRows[] = [
+    'name'                      => 'View Student Choices',
+    'precedence'                => '0',
+    'category'                  => 'Reports',
+    'description'               => 'View a list of choices students have made for a DL event.',
+    'URLList'                   => 'report_choices.php',
+    'entryURL'                  => 'report_choices.php',
     'entrySidebar'              => 'Y',
     'menuShow'                  => 'Y',
     'defaultPermissionAdmin'    => 'Y',
