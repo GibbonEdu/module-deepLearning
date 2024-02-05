@@ -70,7 +70,7 @@ class ExperienceGateway extends QueryableGateway
 
         if (!empty($gibbonPersonID)) {
             $query->cols(['staff.canEdit', 'staff.role'])
-                ->leftJoin('deepLearningStaff as staff', 'staff.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID')
+                ->innerJoin('deepLearningStaff as staff', 'staff.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID')
                 ->where('staff.gibbonPersonID=:gibbonPersonID')
                 ->bindValue('gibbonPersonID', $gibbonPersonID);
         }

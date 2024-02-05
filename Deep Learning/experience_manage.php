@@ -56,7 +56,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     // Setup criteria
     $criteria = $experienceGateway->newQueryCriteria(true)
         ->searchBy($experienceGateway->getSearchableColumns(), $params['search'])
-        ->filterBy('event', $params['deepLearningEventID'])
+        ->filterBy('event', $highestAction == 'Manage Experiences_all' ?$params['deepLearningEventID'] : null)
         ->sortBy(['eventName', 'name'])
         ->fromPOST();
 

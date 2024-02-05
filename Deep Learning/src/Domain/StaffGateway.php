@@ -91,6 +91,7 @@ class StaffGateway extends QueryableGateway
                 'gibbonPerson.preferredName',
                 'gibbonPerson.title',
                 'gibbonPerson.email',
+                'gibbonPerson.image_240',
                 'gibbonStaff.type',
                 'gibbonStaff.jobTitle',
                 'gibbonStaff.initials',
@@ -105,7 +106,6 @@ class StaffGateway extends QueryableGateway
             ->where('(gibbonPerson.dateEnd IS NULL OR gibbonPerson.dateEnd >= :today)')
             ->bindValue('today', date('Y-m-d'))
             ->groupBy(['gibbonPerson.gibbonPersonID'])
-            ->orderBy(['gibbonPerson.surname', 'gibbonPerson.preferredName'])
             ->having('COUNT(DISTINCT deepLearningStaff.deepLearningStaffID) = 0');
 
         $criteria->addFilterRules([
@@ -129,7 +129,8 @@ class StaffGateway extends QueryableGateway
                     deepLearningStaff.canEdit,
                     gibbonPerson.gibbonPersonID,
                     gibbonPerson.surname,
-                    gibbonPerson.preferredName
+                    gibbonPerson.preferredName,
+                    gibbonPerson.image_240
                 FROM deepLearningStaff
                 JOIN deepLearningExperience ON (deepLearningExperience.deepLearningExperienceID=deepLearningStaff.deepLearningExperienceID)
                 JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=deepLearningStaff.gibbonPersonID) 
