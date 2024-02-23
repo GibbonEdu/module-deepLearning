@@ -23,7 +23,7 @@ $description = "Enables schools to implement ICHK's Deep Learning approach, in w
 $entryURL    = "view.php";
 $type        = "Additional";
 $category    = 'Learn';
-$version     = '0.0.05';
+$version     = '0.0.06';
 $author      = 'Sandra Kuipers';
 $url         = 'https://github.com/GibbonEdu';
 
@@ -170,7 +170,9 @@ $moduleTables[] = "CREATE TABLE `deepLearningEnrolment` (
     `status` ENUM('Pending','Confirmed') NOT NULL DEFAULT 'Pending',
     `notes` TEXT NULL,
     `timestampCreated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `timestampModified` TIMESTAMP NULL,
     `gibbonPersonIDCreated` INT(10) UNSIGNED ZEROFILL NOT NULL,
+    `gibbonPersonIDModified` INT(10) UNSIGNED ZEROFILL NOT NULL,
     PRIMARY KEY (`deepLearningEnrolmentID`),
     UNIQUE KEY (`gibbonPersonID`, `deepLearningEventID`)
 ) ENGINE=InnoDB;";
@@ -195,6 +197,9 @@ $gibbonSetting[] = "INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` 
 $gibbonSetting[] = "INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Deep Learning', 'enrolmentMin', 'Default Enrolment Min', 'Unit should not run below this number of students.', '4')";
 $gibbonSetting[] = "INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Deep Learning', 'enrolmentMax', 'Default Enrolment Max', 'Enrolment should not exceed this number of students.', '20')";
 $gibbonSetting[] = "INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Deep Learning', 'signUpChoices', 'Sign up Choices', 'How many choices can users make when signing up?', '3')";
+
+// Notification events
+$gibbonSetting[] = "INSERT INTO `gibbonNotificationEvent` (`event`, `moduleName`, `actionName`, `type`, `scopes`, `active`) VALUES ('Enrolment Changes', 'Deep Learning', 'Deep Learning Overview_view', 'Additional', 'All,gibbonYearGroupID', 'Y');";
 
 // Action rows
 // One array per action
@@ -520,11 +525,31 @@ $actionRows[] = [
 ];
 
 $actionRows[] = [
-    'name'                      => 'Deep Learning Overview',
+    'name'                      => 'Deep Learning Overview_view',
     'precedence'                => '0',
     'category'                  => 'Reports',
     'description'               => 'View an overview of all active Deep Learning experiences.',
-    'URLList'                   => 'report_overview.php',
+    'URLList'                   => 'report_overview.php,report_overview_editStatus.php',
+    'entryURL'                  => 'report_overview.php',
+    'entrySidebar'              => 'Y',
+    'menuShow'                  => 'Y',
+    'defaultPermissionAdmin'    => 'Y',
+    'defaultPermissionTeacher'  => 'N',
+    'defaultPermissionStudent'  => 'N',
+    'defaultPermissionParent'   => 'N',
+    'defaultPermissionSupport'  => 'N',
+    'categoryPermissionStaff'   => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent'  => 'N',
+    'categoryPermissionOther'   => 'N',
+];
+
+$actionRows[] = [
+    'name'                      => 'Deep Learning Overview_editAnyStatus',
+    'precedence'                => '1',
+    'category'                  => 'Reports',
+    'description'               => 'View an overview of all active Deep Learning experiences and edit the status of students.',
+    'URLList'                   => 'report_overview.php,report_overview_editStatus.php',
     'entryURL'                  => 'report_overview.php',
     'entrySidebar'              => 'Y',
     'menuShow'                  => 'Y',

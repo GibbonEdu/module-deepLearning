@@ -89,6 +89,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
         'deepLearningExperienceID' => $_POST['deepLearningExperienceID'] ?? '',
         'status'                   => $_POST['status'] ?? '',
         'notes'                    => $_POST['notes'] ?? '',
+        'timestampModified'        => date('Y-m-d H:i:s'),
+        'gibbonPersonIDModified'   => $session->get('gibbonPersonID'),
     ]);
     
     $URL .= $params['mode'] == 'add' && empty($deepLearningEnrolmentID)

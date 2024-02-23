@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+v0.0.06
+-------
+Added the option for Trip Leaders to change the status of students and add notes through Deep Learning Overview
+Added a notification event when enrolment changes are made to DL groups
+
 v0.0.05
 -------
 Added a View Deep Learning page for parents to view their children's DL

@@ -72,6 +72,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/viewMyDL.php
     });
 
     $table = DataTable::create('events');
+    $table->setTitle(__m('My Deep Learning'));
 
     $table->addColumn('name', __('Event'))
         ->sortable(['deepLearningEvent.name'])

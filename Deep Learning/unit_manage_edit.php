@@ -151,12 +151,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
             ->fromArray(['Main' => __m('Main Content'), 'Sidebar' => __m('Sidebar')])
             ->selected('Main')
             ->setClass('w-auto focus:bg-white mr-1');
-        // $row->addTextField('length')->placeholder(__('length (min)'))
-        //     ->maxlength(3)
-        //     ->setClass('w-24 focus:bg-white')->prepend('');
 
     $col = $blockTemplate->addRow()->addClass('showHide w-full')->addColumn();
-        // $col->addLabel('contentLabel', __('Block Contents'))->setClass('mt-3 -mb-2 font-bold');
         $col->addTextArea('content', $guid)->setRows(15)->addData('tinymce')->addData('media', '1');
 
     $row = $form->addRow();
@@ -227,7 +223,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
 
     $blockTemplate = $form->getFactory()->createTable()->setClass('blank');
     $row = $blockTemplate->addRow()->addClass('w-full flex justify-between items-center mt-1 ml-2');
-        $row->addSelectStaff('gibbonPersonID')->photo(true, 'small')->setClass('flex-1 mr-1')->required()->placeholder()
+        $row->addSelectStaff('gibbonPersonID')->photo(false)->setClass('flex-1 mr-1')->required()->placeholder()
             ->append("<input type='hidden' id='deepLearningUnitAuthorID' name='deepLearningUnitAuthorID' value=''/>")
             ->append("<input type='hidden' id='gibbonPersonIDOriginal' name='gibbonPersonIDOriginal' value=''/>");
         $row->addTextField('lastEdit')->readOnly()->setClass('text-xs text-gray-600 italic');

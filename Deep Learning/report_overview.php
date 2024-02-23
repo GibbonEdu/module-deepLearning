@@ -26,12 +26,19 @@ use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Module\DeepLearning\Domain\EnrolmentGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 use Gibbon\Tables\DataTable;
+use Gibbon\Module\DeepLearning\Domain\StaffGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_overview.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
     // Proceed!
+    $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
+    if (empty($highestAction)) {
+        $page->addError(__('You do not have access to this action.'));
+        return;
+    }
+
     $page->breadcrumbs->add(__m('Deep Learning Overview'));
 
     // Setup data
@@ -90,6 +97,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_overv
         return;
     }
 
+    // Get staff access details
+    $staffByExperience = $container->get(StaffGateway::class)->selectStaffByEventAndPerson($params['deepLearningEventID'], $session->get('gibbonPersonID'))->fetchGroupedUnique();
+
     $experiences = $experienceGateway->selectExperiencesByEvent($params['deepLearningEventID'])->fetchKeyPair();
 
     if (!empty($params['deepLearningExperienceID'])) {
@@ -104,6 +114,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_overv
     foreach ($experiences as $deepLearningExperienceID => $experienceName) {
 
         $_GET['deepLearningExperienceID'] = $deepLearningExperienceID;
+        $staff = $staffByExperience[$deepLearningExperienceID] ?? [];
 
         // QUERY
         $criteria = $enrolmentGateway->newQueryCriteria()
@@ -166,7 +177,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_overv
         $table->addColumn('notes', __('Notes'))
             ->format(Format::using('truncate', 'notes'));
 
-        // $table->addColumn('email', __('Email'));
+        // ACTIONS
+        if ($highestAction == 'Deep Learning Overview_editAnyStatus' || (!empty($staff) && ($staff['role'] == 'Trip Leader' || $staff['canEdit'] == 'Y'))) {
+            
+            $table->addActionColumn()
+                ->addParam('search', $criteria->getSearchText(true))
+                ->addParam('deepLearningEventID', $params['deepLearningEventID'])
+                ->addParam('deepLearningExperienceID', $deepLearningExperienceID)
+                ->addParam('deepLearningEnrolmentID')
+                ->format(function ($values, $actions) {
+                    if ($values['roleCategory'] == 'Student') {
+                        $actions->addAction('edit', __('Edit'))
+                                ->setURL('/modules/Deep Learning/report_overview_editStatus.php')
+                                ->addParam('mode', 'edit');
+                    }
+                });
+        }
 
         echo $table->render($enrolment ?? []);
     }

@@ -17,13 +17,15 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Http\Url;
 use Gibbon\Forms\Form;
+use Gibbon\Services\Format;
+use Gibbon\Domain\User\UserGateway;
+use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Domain\System\SettingGateway;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
-use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 use Gibbon\Module\DeepLearning\Domain\EnrolmentGateway;
-use Gibbon\Forms\DatabaseFormFactory;
-use Gibbon\Http\Url;
+use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_manage_byPerson_addEdit.php') == false) {
     // Access denied
@@ -127,13 +129,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
     $row = $form->addRow();
         $row->addLabel('status', __('Status'));
         $row->addSelect('status')
-            ->fromArray(['Pending' => __m('Pending'), 'Confirmed' => __m('Confirmed')])
+            ->fromArray(['Confirmed' => __m('Confirmed'), 'Pending' => __m('Pending')])
             ->required()
             ->selected('Confirmed');
 
     $row = $form->addRow();
         $row->addLabel('notes', __('Notes'));
         $row->addTextArea('notes')->setRows(2);
+
+    $person = $container->get(UserGateway::class)->getByID($values['gibbonPersonIDModified'] ?? '', ['preferredName', 'surname']);
+    if (!empty($values['gibbonPersonIDModified']) && !empty($person)) {
+        $row = $form->addRow()->addClass('text-right');
+        $row->addContent(Format::small(__m('Last modified by {name} on {date}', [
+            'name' => Format::name('', $person['preferredName'], $person['surname'], 'Staff', false, true),
+            'date' => Format::dateTimeReadable($values['timestampModified'] ?? ''),
+        ])));
+    }
     
     $row = $form->addRow();
         $row->addFooter();

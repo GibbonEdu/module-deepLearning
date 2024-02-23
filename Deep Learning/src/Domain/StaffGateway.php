@@ -143,8 +143,8 @@ class StaffGateway extends QueryableGateway
     public function selectStaffByEventAndPerson($deepLearningEventID, $gibbonPersonID)
     {
         $data = ['deepLearningEventID' => $deepLearningEventID, 'gibbonPersonID' => $gibbonPersonID];
-        $sql = "SELECT deepLearningExperience.deepLearningEventID,
-                    deepLearningExperience.deepLearningExperienceID,
+        $sql = "SELECT deepLearningExperience.deepLearningExperienceID,
+                    deepLearningExperience.deepLearningEventID,
                     deepLearningExperience.name,
                     deepLearningStaff.deepLearningStaffID,
                     deepLearningStaff.gibbonPersonID,
