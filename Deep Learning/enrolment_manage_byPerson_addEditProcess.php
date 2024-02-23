@@ -18,10 +18,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Data\Validator;
+use Gibbon\Services\Format;
+use Gibbon\Comms\NotificationEvent;
+use Gibbon\Domain\Students\StudentGateway;
+use Gibbon\Module\DeepLearning\Domain\ChoiceGateway;
 use Gibbon\Module\DeepLearning\Domain\EnrolmentGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
-use Gibbon\Module\DeepLearning\Domain\ChoiceGateway;
-use Gibbon\Domain\User\UserGateway;
 
 require_once '../../gibbon.php';
 
@@ -47,7 +49,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
     $experienceGateway = $container->get(ExperienceGateway::class);
     $enrolmentGateway = $container->get(EnrolmentGateway::class);
     $choiceGateway = $container->get(ChoiceGateway::class);
-    $userGateway = $container->get(UserGateway::class);
+    $studentGateway = $container->get(StudentGateway::class);
 
     $data = [
         'deepLearningExperienceID' => $_POST['deepLearningExperienceID'] ?? '',
@@ -67,7 +69,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
     }
 
     // Validate the database relationships exist
-    if (!$experienceGateway->exists($data['deepLearningExperienceID']) || !$userGateway->exists($data['gibbonPersonID'])) {
+    $experience = $experienceGateway->getExperienceDetailsByID($data['deepLearningExperienceID']);
+    if (empty($experience)) {
+        $URL .= '&return=error2';
+        header("Location: {$URL}");
+        exit;
+    }
+
+    // Validate the user exist
+    $student = $studentGateway->selectActiveStudentByPerson($experience['gibbonSchoolYearID'], $data['gibbonPersonID'])->fetch();
+    if (empty($student)) {
         $URL .= '&return=error2';
         header("Location: {$URL}");
         exit;
@@ -83,6 +94,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
         ? $choice['deepLearningChoiceID']
         : null;
     
+    // Check existing enrolment
+    $enrolment = $enrolmentGateway->getEventEnrolmentByPerson($data['deepLearningEventID'], $data['gibbonPersonID']);
 
     // Create the record
     $deepLearningEnrolmentID = $enrolmentGateway->insertAndUpdate($data, [
@@ -92,6 +105,36 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
         'timestampModified'        => date('Y-m-d H:i:s'),
         'gibbonPersonIDModified'   => $session->get('gibbonPersonID'),
     ]);
+
+    if (!empty($enrolment) && $enrolment['deepLearningExperienceID'] != $data['deepLearningExperienceID']) {
+        $change = __m('Moved to');
+    } elseif (!empty($enrolment) && $enrolment['status'] != $data['status']) {
+        $change = __m('Status changed for');
+    } elseif (empty($enrolment)) {
+        $change = __m('Added to');
+    }
+
+    // Collect a list of enrolment changes
+    if (!empty($change)) {
+        $changeList = [
+            __m('{student} ({formGroup}) - <i>{change} {experience} ({status})</i>', [
+                'student'    => Format::name('', $student['preferredName'], $student['surname'], 'Student', false, true),
+                'formGroup'  => $student['formGroup'],
+                'change'     => $change,
+                'experience' => $experience['name'],
+                'status'     => $data['status'],
+            ]),
+        ];
+
+        // Raise a new notification event
+        $event = new NotificationEvent('Deep Learning', 'Enrolment Changes');
+        $event->setNotificationText(__('{person} has made the following changes to {event} enrolment:', [
+            'person' => Format::name('', $session->get('preferredName'), $session->get('surname'), 'Staff', false, true),
+            'event' => $experience['eventName'] ?? __('Deep Learning'),
+        ]).'<br/>'.Format::list($changeList));
+        $event->setActionLink("/index.php?q=/modules/Deep Learning/report_overview.php&deepLearningEventID=".$params['deepLearningEventID']);
+        $event->sendNotifications($pdo, $session);
+    }
     
     $URL .= $params['mode'] == 'add' && empty($deepLearningEnrolmentID)
         ? "&return=warning1"

@@ -19,6 +19,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Data\Validator;
 use Gibbon\Module\DeepLearning\Domain\EnrolmentGateway;
+use Gibbon\Comms\NotificationEvent;
+use Gibbon\Services\Format;
+use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
+use Gibbon\Domain\Students\StudentGateway;
 
 require_once '../../gibbon.php';
 
@@ -47,16 +51,56 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
     exit;
 } else {
     // Proceed!
+    $experienceGateway = $container->get(ExperienceGateway::class);
     $enrolmentGateway = $container->get(EnrolmentGateway::class);
+    $studentGateway = $container->get(StudentGateway::class);
 
-    $values = $container->get(EnrolmentGateway::class)->getByID($params['deepLearningEnrolmentID']);
-    if (empty($values)) {
+    // Validate the required values are present
+    $enrolment = $container->get(EnrolmentGateway::class)->getByID($params['deepLearningEnrolmentID']);
+    if (empty($enrolment)) {
+        $URL .= '&return=error2';
+        header("Location: {$URL}");
+        exit;
+    }
+
+    // Validate the database relationships exist
+    $experience = $experienceGateway->getExperienceDetailsByID($enrolment['deepLearningExperienceID']);
+    if (empty($experience)) {
+        $URL .= '&return=error2';
+        header("Location: {$URL}");
+        exit;
+    }
+
+    // Validate the user exist
+    $student = $studentGateway->selectActiveStudentByPerson($experience['gibbonSchoolYearID'], $enrolment['gibbonPersonID'])->fetch();
+    if (empty($student)) {
         $URL .= '&return=error2';
         header("Location: {$URL}");
         exit;
     }
 
     $deleted = $enrolmentGateway->delete($params['deepLearningEnrolmentID']);
+
+    // Raise a new notification event
+    if ($deleted) {
+        $changeList = [
+            __m('{student} ({formGroup}) - <i>{change} {experience} ({status})</i>', [
+                'student'    => Format::name('', $student['preferredName'], $student['surname'], 'Student', false, true),
+                'formGroup'  => $student['formGroup'],
+                'change'     => __m('Removed from'),
+                'experience' => $experience['name'],
+                'status'     => $enrolment['status'],
+            ]),
+        ];
+
+        $event = new NotificationEvent('Deep Learning', 'Enrolment Changes');
+        $event->setNotificationText(__('{person} has made the following changes to {event} enrolment:', [
+            'person' => Format::name('', $session->get('preferredName'), $session->get('surname'), 'Staff', false, true),
+            'event' => $experience['eventName'] ?? __('Deep Learning'),
+        ]).'<br/>'.Format::list($changeList));
+        $event->setActionLink("/index.php?q=/modules/Deep Learning/report_overview.php&deepLearningEventID=".$params['deepLearningEventID']);
+        $event->sendNotifications($pdo, $session);
+    }
 
     $URL .= !$deleted
         ? '&return=error2'

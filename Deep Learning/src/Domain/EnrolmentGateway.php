@@ -229,6 +229,19 @@ class EnrolmentGateway extends QueryableGateway
         return $this->db()->select($sql, $data);
     }
 
+    public function getEventEnrolmentByPerson($deepLearningEventID, $gibbonPersonID)
+    {
+        $data = ['deepLearningEventID' => $deepLearningEventID, 'gibbonPersonID' => $gibbonPersonID];
+        $sql = "SELECT deepLearningEnrolment.*, deepLearningExperience.name as experienceName
+                FROM deepLearningEnrolment
+                JOIN deepLearningExperience ON (deepLearningExperience.deepLearningExperienceID=deepLearningEnrolment.deepLearningExperienceID)
+                JOIN deepLearningEvent ON (deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID) 
+                WHERE deepLearningEnrolment.deepLearningEventID=:deepLearningEventID
+                AND deepLearningEnrolment.gibbonPersonID=:gibbonPersonID";
+
+        return $this->db()->selectOne($sql, $data);
+    }
+
     public function getExperienceDetailsByEnrolment($deepLearningEventID, $gibbonPersonID, $deepLearningExperienceID = null)
     {
         $data = ['deepLearningEventID' => $deepLearningEventID, 'gibbonPersonID' => $gibbonPersonID];
