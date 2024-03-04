@@ -23,6 +23,7 @@ use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 use Gibbon\Module\DeepLearning\Domain\StaffGateway;
+use Gibbon\Module\DeepLearning\Domain\ExperienceTripGateway;
 
 require_once '../../gibbon.php';
 
@@ -115,6 +116,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
     // Cleanup staff that have been deleted
     $staffGateway->deleteStaffNotInList($params['deepLearningExperienceID'], $staffIDs);
+
+    // Sync Trip Planner Staff
+    $experienceTripGateway = $container->get(ExperienceTripGateway::class);
+    $tripPlanner = $experienceTripGateway->getTripPlannerModule();
+    if (!empty($tripPlanner)) {
+        $experienceTripGateway->syncTripStaff($params['deepLearningExperienceID']);
+        $experienceTripGateway->syncTripStudents($params['deepLearningExperienceID']);
+        $experienceTripGateway->syncTripGroups($params['deepLearningExperienceID']);
+    }
 
     $URL .= !$updated || $partialFail
         ? "&return=warning1"

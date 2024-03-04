@@ -25,6 +25,8 @@ use Gibbon\Comms\NotificationEvent;
 use Gibbon\Services\Format;
 use Gibbon\Domain\Students\StudentGateway;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
+use Gibbon\Module\DeepLearning\Domain\ExperienceTripGateway;
+use Gibbon\Module\DeepLearning\Domain\StaffGateway;
 
 require_once '../../gibbon.php';
 
@@ -68,6 +70,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
         exit;
     }
 
+    $experiences = [];
     $unassigned = [];
     $changeList = [];
 
@@ -77,7 +80,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
 
         // Get any existing enrolment
         $enrolment = $enrolmentGateway->getEventEnrolmentByPerson($params['deepLearningEventID'], $gibbonPersonID);
-        $experience = $experienceGateway->getByID($deepLearningExperienceID, ['name']);
         $student = $studentGateway->selectActiveStudentByPerson($eventDetails['gibbonSchoolYearID'], $gibbonPersonID)->fetch();
 
         if (empty($student)) {
@@ -90,10 +92,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
             $unassigned[] = $gibbonPersonID;
 
             if (!empty($enrolment['deepLearningExperienceID'])) {
+                $experiences[] = $enrolment['deepLearningExperienceID'];
+                $experienceName = $enrolment['experienceName'];
                 $change = __m('Removed from');
             }
         } else {
             // Connect the choice to the enrolment, for future queries and weighting
+            $experience = $experienceGateway->getByID($deepLearningExperienceID, ['name']);
             $choice = $choiceGateway->getChoiceByExperienceAndPerson($deepLearningExperienceID, $gibbonPersonID);
             $choiceNumber = intval($choice['choice'] ?? 0);
 
@@ -110,6 +115,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
                 ], $data);
 
                 if ($enrolment['deepLearningExperienceID'] != $data['deepLearningExperienceID']) {
+                    $experiences[] = $data['deepLearningExperienceID'];
+                    $experiences[] = $enrolment['deepLearningExperienceID'];
+                    $experienceName = $experience['name'];
                     $change = __m('Moved to');
                 }
             } else {
@@ -127,6 +135,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
 
                 $inserted = $enrolmentGateway->insert($data);
                 $partialFail &= !$inserted;
+
+                $experienceName = $experience['name'];
+                $experiences[] = $deepLearningExperienceID;
                 $change = __m('Added to');
             }
         }
@@ -136,11 +147,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
                 'student'    => Format::name('', $student['preferredName'], $student['surname'], 'Student', false, true),
                 'formGroup'  => $student['formGroup'],
                 'change'     => $change,
-                'experience' => $experience['name'] ?? $enrolment['experienceName'] ?? '',
+                'experience' => $experienceName ?? __('Unknown'),
                 'status'     => $data['status'] ?? $enrolment['status'] ?? __m('Removed'),
             ]);
         }
     }
+
+    $experiences = array_unique($experiences);
 
     // Remove enrolments that have been unassigned
     foreach ($unassigned as $gibbonPersonID) {
@@ -157,8 +170,25 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
             'person' => Format::name('', $session->get('preferredName'), $session->get('surname'), 'Staff', false, true),
             'event' => $eventDetails['name'] ?? __('Deep Learning'),
         ]).'<br/>'.Format::list($changeList));
+
+        // Notify trip leaders
+        $staff = $container->get(StaffGateway::class)->selectTripLeadersByExperience($experiences);
+        foreach ($staff as $person) {
+            $event->addRecipient($person['gibbonPersonID']);
+        }
+
         $event->setActionLink("/index.php?q=/modules/Deep Learning/report_overview.php&deepLearningEventID=".$params['deepLearningEventID']);
         $event->sendNotifications($pdo, $session);
+    }
+
+    // Sync Trip Planner Students
+    $experienceTripGateway = $container->get(ExperienceTripGateway::class);
+    $tripPlanner = $experienceTripGateway->getTripPlannerModule();
+    if (!empty($tripPlanner)) {
+        foreach ($experiences as $deepLearningExperienceID) {
+            $experienceTripGateway->syncTripStudents($deepLearningExperienceID);
+            $experienceTripGateway->syncTripGroups($deepLearningExperienceID);
+        }
     }
 
     $URL .= $partialFail

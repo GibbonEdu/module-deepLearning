@@ -18,11 +18,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Data\Validator;
-use Gibbon\Module\DeepLearning\Domain\EnrolmentGateway;
-use Gibbon\Comms\NotificationEvent;
 use Gibbon\Services\Format;
-use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
+use Gibbon\Comms\NotificationEvent;
 use Gibbon\Domain\Students\StudentGateway;
+use Gibbon\Module\DeepLearning\Domain\StaffGateway;
+use Gibbon\Module\DeepLearning\Domain\EnrolmentGateway;
+use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
+use Gibbon\Module\DeepLearning\Domain\ExperienceTripGateway;
 
 require_once '../../gibbon.php';
 
@@ -98,8 +100,23 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
             'person' => Format::name('', $session->get('preferredName'), $session->get('surname'), 'Staff', false, true),
             'event' => $experience['eventName'] ?? __('Deep Learning'),
         ]).'<br/>'.Format::list($changeList));
+
+
+        $staff = $container->get(StaffGateway::class)->selectTripLeadersByExperience($enrolment['deepLearningExperienceID']);
+        foreach ($staff as $person) {
+            $event->addRecipient($person['gibbonPersonID']);
+        }
+
         $event->setActionLink("/index.php?q=/modules/Deep Learning/report_overview.php&deepLearningEventID=".$params['deepLearningEventID']);
         $event->sendNotifications($pdo, $session);
+    }
+
+    // Sync Trip Planner Students
+    $experienceTripGateway = $container->get(ExperienceTripGateway::class);
+    $tripPlanner = $experienceTripGateway->getTripPlannerModule();
+    if (!empty($tripPlanner) && !empty($enrolment['deepLearningExperienceID'])) {
+        $experienceTripGateway->syncTripStudents($enrolment['deepLearningExperienceID']);
+        $experienceTripGateway->syncTripGroups($enrolment['deepLearningExperienceID']);
     }
 
     $URL .= !$deleted

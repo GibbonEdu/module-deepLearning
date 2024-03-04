@@ -47,5 +47,12 @@ ALTER TABLE `deepLearningEnrolment` ADD `gibbonPersonIDModified` INT(10) UNSIGNE
 INSERT INTO `gibbonAction` (`gibbonActionID`, `gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `entrySidebar`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES (NULL, (SELECT gibbonModuleID FROM gibbonModule WHERE name='Deep Learning'), 'Deep Learning Overview_editAnyStatus', 1, 'Reports', 'View an overview of all active Deep Learning experiences and edit the status of students.', 'report_overview.php,report_overview_editStatus.php','report_overview.php', 'Y', 'Y', 'Y', 'N', 'N', 'N', 'Y', 'N', 'N', 'N');end
 INSERT INTO `gibbonPermission` (`permissionID` ,`gibbonRoleID` ,`gibbonActionID`) VALUES (NULL , '001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Deep Learning' AND gibbonAction.name='Deep Learning Overview_editAnyStatus'));end
 INSERT INTO `gibbonNotificationEvent` (`event`, `moduleName`, `actionName`, `type`, `scopes`, `active`) VALUES ('Enrolment Changes', 'Deep Learning', 'Deep Learning Overview_view', 'Additional', 'All,gibbonYearGroupID', 'Y');end
+";
+
+// v0.0.07
+$sql[$count][0] = "0.0.07";
+$sql[$count][1] = "ALTER TABLE `deepLearningUnit` ADD `letterToParents` TEXT NULL AFTER `teachersNotes`;end
+ALTER TABLE `deepLearningUnit` ADD `riskAssessment` TEXT NULL AFTER `letterToParents`;end
+";
 
 ";

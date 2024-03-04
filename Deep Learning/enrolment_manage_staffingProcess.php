@@ -22,6 +22,7 @@ use Gibbon\Module\DeepLearning\Domain\EnrolmentGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 use Gibbon\Module\DeepLearning\Domain\ChoiceGateway;
 use Gibbon\Module\DeepLearning\Domain\StaffGateway;
+use Gibbon\Module\DeepLearning\Domain\ExperienceTripGateway;
 
 require_once '../../gibbon.php';
 
@@ -54,6 +55,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
         exit;
     }
 
+    $experiences = [];
     $unassigned = [];
 
     // Update staffing
@@ -64,6 +66,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
         }
 
         $staffing = $staffGateway->selectStaffByEventAndPerson($params['deepLearningEventID'], $gibbonPersonID)->fetch();
+        $experiences[] = $deepLearningExperienceID;
 
         if (!empty($staffing)) {
             // Update and existing staffing
@@ -90,6 +93,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
     // Remove staffing that have been unassigned
     foreach ($unassigned as $gibbonPersonID) {
         $staffGateway->deleteStaffByEvent($params['deepLearningEventID'], $gibbonPersonID);
+    }
+
+    // Sync Trip Planner Staff
+    $experienceTripGateway = $container->get(ExperienceTripGateway::class);
+    $tripPlanner = $experienceTripGateway->getTripPlannerModule();
+    if (!empty($tripPlanner)) {
+        $experiences = array_unique($experiences);
+        foreach ($experiences as $deepLearningExperienceID) {
+            $experienceTripGateway->syncTripStaff($deepLearningExperienceID);
+            $experienceTripGateway->syncTripGroups($deepLearningExperienceID);
+        }
     }
 
     $URL .= $partialFail

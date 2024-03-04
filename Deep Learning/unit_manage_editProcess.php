@@ -28,7 +28,7 @@ use Gibbon\Module\DeepLearning\Domain\UnitBlockGateway;
 
 require_once '../../gibbon.php';
 
-$_POST = $container->get(Validator::class)->sanitize($_POST, ['description' => 'HTML', 'teachersNotes' => 'HTML', 'content*' => 'HTML']);
+$_POST = $container->get(Validator::class)->sanitize($_POST, ['description' => 'HTML', 'teachersNotes' => 'HTML', 'letterToParents' => 'HTML', 'riskAssessment' => 'HTML', 'content*' => 'HTML']);
 
 $deepLearningUnitID = $_POST['deepLearningUnitID'] ?? '';
 
@@ -67,6 +67,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         'enrolmentMax'           => $_POST['enrolmentMax'] ?? null,
         'description'            => $_POST['description'] ?? '',
         'teachersNotes'          => $_POST['teachersNotes'] ?? '',
+        'letterToParents'        => $_POST['letterToParents'] ?? '',
+        'riskAssessment'         => $_POST['riskAssessment'] ?? '',
         'timestampModified'      => date('Y-m-d H:i:s'),
         'gibbonPersonIDModified' => $session->get('gibbonPersonID'),
     ];

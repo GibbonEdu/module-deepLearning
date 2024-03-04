@@ -73,6 +73,26 @@ class ExperienceTripGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
+    public function getTripPlannerModule()
+    {
+        $sql = "SELECT gibbonModuleID FROM gibbonModule WHERE name='Trip Planner' AND active='Y'";
+        return $this->db()->selectOne($sql);
+    }
+
+    public function selectTripRequests($gibbonSchoolYearID)
+    {
+        $data = ['gibbonSchoolYearID' => $gibbonSchoolYearID];
+        $sql = "SELECT tripPlannerRequestID as value, CONCAT(tripPlannerRequests.title, ' (', gibbonPerson.preferredName, ' ' , gibbonPerson.surname,')') as name
+                FROM tripPlannerRequests 
+                JOIN gibbonPerson ON (tripPlannerRequests.creatorPersonID=gibbonPerson.gibbonPersonID)
+                WHERE tripPlannerRequests.gibbonSchoolYearID=:gibbonSchoolYearID
+                AND (tripPlannerRequests.status = 'Approved' OR tripPlannerRequests.status = 'Requested' OR tripPlannerRequests.status = 'Awaiting Final Approval' OR tripPlannerRequests.status = 'Draft')
+                AND (SELECT IFNULL(MAX(endDate),CURRENT_DATE) FROM tripPlannerRequestDays WHERE tripPlannerRequestID = tripPlannerRequests.tripPlannerRequestID) >= CURRENT_DATE
+                ORDER BY tripPlannerRequests.title";
+
+        return $this->db()->select($sql, $data);
+    }
+
     public function selectTripRequestsByCreator($gibbonSchoolYearID, $gibbonPersonID)
     {
         $data = ['gibbonSchoolYearID' => $gibbonSchoolYearID, 'gibbonPersonID' => $gibbonPersonID];
@@ -80,11 +100,103 @@ class ExperienceTripGateway extends QueryableGateway
                 FROM tripPlannerRequests 
                 WHERE tripPlannerRequests.creatorPersonID=:gibbonPersonID
                 AND tripPlannerRequests.gibbonSchoolYearID=:gibbonSchoolYearID
-                AND (tripPlannerRequests.status = 'Requested' OR tripPlannerRequests.status = 'Awaiting Final Approval' OR tripPlannerRequests.status = 'Draft')
-                AND (SELECT IFNULL(MAX(endDate),'0000-00-00') FROM tripPlannerRequestDays WHERE tripPlannerRequestID = tripPlannerRequests.tripPlannerRequestID) < CURRENT_DATE
+                AND (tripPlannerRequests.status = 'Approved' OR tripPlannerRequests.status = 'Requested' OR tripPlannerRequests.status = 'Awaiting Final Approval' OR tripPlannerRequests.status = 'Draft')
+                AND (SELECT IFNULL(MAX(endDate),CURRENT_DATE) FROM tripPlannerRequestDays WHERE tripPlannerRequestID = tripPlannerRequests.tripPlannerRequestID) >= CURRENT_DATE
                 ORDER BY tripPlannerRequests.title";
 
         return $this->db()->select($sql, $data);
+    }
+
+    public function syncTripStaff($deepLearningExperienceID)
+    {
+        $data = ['deepLearningExperienceID' => $deepLearningExperienceID];
+        $sql = "DELETE `tripPlannerRequestPerson` 
+            FROM `tripPlannerRequestPerson` 
+            JOIN tripPlannerRequests ON (tripPlannerRequests.tripPlannerRequestID=tripPlannerRequestPerson.tripPlannerRequestID)
+            JOIN deepLearningExperience ON (deepLearningExperience.deepLearningExperienceID=tripPlannerRequests.deepLearningExperienceID)
+            LEFT JOIN deepLearningStaff ON (deepLearningStaff.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID AND tripPlannerRequestPerson.gibbonPersonID=deepLearningStaff.gibbonPersonID)
+            WHERE tripPlannerRequests.deepLearningExperienceID=:deepLearningExperienceID
+            AND tripPlannerRequests.deepLearningSync='Y'
+            AND tripPlannerRequestPerson.role='Teacher'
+            AND deepLearningStaff.deepLearningStaffID IS NULL
+        ";
+
+        $this->db()->statement($sql, $data);
+
+        $data = ['deepLearningExperienceID' => $deepLearningExperienceID];
+        $sql = "INSERT INTO `tripPlannerRequestPerson` (`tripPlannerRequestID`, `gibbonPersonID`, `role`) 
+            SELECT tripPlannerRequests.tripPlannerRequestID, deepLearningStaff.gibbonPersonID, 'Teacher'
+            FROM tripPlannerRequests
+            JOIN deepLearningExperience ON (deepLearningExperience.deepLearningExperienceID=tripPlannerRequests.deepLearningExperienceID)
+            JOIN deepLearningStaff ON (deepLearningStaff.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID)
+            LEFT JOIN tripPlannerRequestPerson ON (tripPlannerRequestPerson.tripPlannerRequestID=tripPlannerRequests.tripPlannerRequestID AND tripPlannerRequestPerson.gibbonPersonID=deepLearningStaff.gibbonPersonID)
+            WHERE tripPlannerRequests.deepLearningExperienceID=:deepLearningExperienceID
+            AND tripPlannerRequests.deepLearningSync='Y'
+            AND tripPlannerRequestPerson.tripPlannerRequestPersonID IS NULL
+        ";
+
+        return $this->db()->statement($sql, $data);
+    }
+
+    public function syncTripStudents($deepLearningExperienceID)
+    {
+        $data = ['deepLearningExperienceID' => $deepLearningExperienceID];
+        $sql = "DELETE `tripPlannerRequestPerson` 
+            FROM `tripPlannerRequestPerson` 
+            JOIN tripPlannerRequests ON (tripPlannerRequests.tripPlannerRequestID=tripPlannerRequestPerson.tripPlannerRequestID)
+            JOIN deepLearningExperience ON (deepLearningExperience.deepLearningExperienceID=tripPlannerRequests.deepLearningExperienceID)
+            LEFT JOIN deepLearningEnrolment ON (deepLearningEnrolment.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID AND tripPlannerRequestPerson.gibbonPersonID=deepLearningEnrolment.gibbonPersonID)
+            WHERE tripPlannerRequests.deepLearningExperienceID=:deepLearningExperienceID
+            AND tripPlannerRequests.deepLearningSync='Y'
+            AND tripPlannerRequestPerson.role='Student'
+            AND deepLearningEnrolment.deepLearningEnrolmentID IS NULL
+        ";
+
+        $this->db()->statement($sql, $data);
+
+        $data = ['deepLearningExperienceID' => $deepLearningExperienceID];
+        $sql = "INSERT INTO `tripPlannerRequestPerson` (`tripPlannerRequestID`, `gibbonPersonID`, `role`) 
+            SELECT tripPlannerRequests.tripPlannerRequestID, deepLearningEnrolment.gibbonPersonID, 'Student'
+            FROM tripPlannerRequests
+            JOIN deepLearningExperience ON (deepLearningExperience.deepLearningExperienceID=tripPlannerRequests.deepLearningExperienceID)
+            JOIN deepLearningEnrolment ON (deepLearningEnrolment.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID)
+            LEFT JOIN tripPlannerRequestPerson ON (tripPlannerRequestPerson.tripPlannerRequestID=tripPlannerRequests.tripPlannerRequestID AND tripPlannerRequestPerson.gibbonPersonID=deepLearningEnrolment.gibbonPersonID)
+            WHERE tripPlannerRequests.deepLearningExperienceID=:deepLearningExperienceID
+            AND tripPlannerRequests.deepLearningSync='Y'
+            AND tripPlannerRequestPerson.tripPlannerRequestPersonID IS NULL
+        ";
+
+        return $this->db()->statement($sql, $data);
+    }
+
+    public function syncTripGroups($deepLearningExperienceID)
+    {
+        $data = ['deepLearningExperienceID' => $deepLearningExperienceID];
+        $sql = "DELETE `gibbonGroupPerson` 
+            FROM `gibbonGroupPerson` 
+            JOIN tripPlannerRequests ON (tripPlannerRequests.messengerGroupID=gibbonGroupPerson.gibbonGroupID)
+            LEFT JOIN tripPlannerRequestPerson ON (tripPlannerRequests.tripPlannerRequestID=tripPlannerRequestPerson.tripPlannerRequestID AND tripPlannerRequestPerson.gibbonPersonID=gibbonGroupPerson.gibbonPersonID)
+            WHERE tripPlannerRequests.deepLearningExperienceID=:deepLearningExperienceID
+            AND tripPlannerRequests.deepLearningSync='Y'
+            AND tripPlannerRequests.messengerGroupID IS NOT NULL
+            AND tripPlannerRequestPerson.tripPlannerRequestPersonID IS NULL
+        ";
+
+        $this->db()->statement($sql, $data);
+
+        $data = ['deepLearningExperienceID' => $deepLearningExperienceID];
+        $sql = "INSERT INTO `gibbonGroupPerson` (`gibbonGroupID`, `gibbonPersonID`) 
+            SELECT tripPlannerRequests.messengerGroupID, tripPlannerRequestPerson.gibbonPersonID
+            FROM tripPlannerRequests
+            JOIN tripPlannerRequestPerson ON (tripPlannerRequests.tripPlannerRequestID=tripPlannerRequestPerson.tripPlannerRequestID)
+            LEFT JOIN gibbonGroupPerson as groupPerson ON (groupPerson.gibbonGroupID=tripPlannerRequests.messengerGroupID AND groupPerson.gibbonPersonID=tripPlannerRequestPerson.gibbonPersonID)
+            WHERE tripPlannerRequests.deepLearningExperienceID=:deepLearningExperienceID
+            AND tripPlannerRequests.deepLearningSync='Y'
+            AND tripPlannerRequests.messengerGroupID IS NOT NULL
+            AND groupPerson.gibbonGroupPersonID IS NULL
+        ";
+
+        return $this->db()->statement($sql, $data);
     }
 
     public function attachTripRequest($deepLearningExperienceID, $tripPlannerRequestID, $deepLearningEventDateIDList = null)
@@ -96,5 +208,67 @@ class ExperienceTripGateway extends QueryableGateway
         $sql = "UPDATE tripPlannerRequests SET deepLearningExperienceID=:deepLearningExperienceID WHERE tripPlannerRequestID=:tripPlannerRequestID";
 
         return $this->db()->update($sql, $data);
+    }
+
+    public function insertTripRequest($data)
+    {
+        $query = $this
+            ->newInsert()
+            ->into('tripPlannerRequests')
+            ->cols($data);
+
+        return $this->runInsert($query);
+    }
+
+    public function updateTripRequest($primaryKeyValue, $data)
+    {
+        $query = $this
+            ->newUpdate()
+            ->table('tripPlannerRequests')
+            ->cols($data)
+            ->where('tripPlannerRequestID = :primaryKey')
+            ->bindValue('primaryKey', $primaryKeyValue);
+
+        return $this->runUpdate($query);
+    }
+
+    public function insertTripPerson($data)
+    {
+        $query = $this
+            ->newInsert()
+            ->into('tripPlannerRequestPerson')
+            ->cols($data);
+
+        return $this->runInsert($query);
+    }
+
+    public function insertTripDays($data)
+    {
+        $query = $this
+            ->newInsert()
+            ->into('tripPlannerRequestDays')
+            ->cols($data);
+
+        return $this->runInsert($query);
+    }
+
+    public function insertGroup($data)
+    {
+        $query = $this
+            ->newInsert()
+            ->into('gibbonGroup')
+            ->cols($data);
+
+        return $this->runInsert($query);
+    }
+
+    public function insertGroupPerson($data)
+    {
+        $query = $this
+            ->newInsert()
+            ->into('gibbonGroupPerson')
+            ->cols($data);
+
+        return $this->runInsert($query);
     }
 }

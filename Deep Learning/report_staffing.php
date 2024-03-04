@@ -126,10 +126,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_staff
             return $values['active'] == 'Y' && $values['viewable'] == 'Y' 
                 ? Format::link($url, $values['name'])
                 : $values['name'];
+        })
+        ->formatDetails(function ($values) {
+            return Format::small($values['role']);
         });
 
-    $table->addColumn('role', __('Role'))
-        ->sortable('roleOrder')
+    $table->addColumn('email', __('Email'))
         ->width('15%')
         ->translatable()
         ->context('secondary');

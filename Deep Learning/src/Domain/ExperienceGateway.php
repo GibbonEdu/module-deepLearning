@@ -186,6 +186,7 @@ class ExperienceGateway extends QueryableGateway
         $sql = "SELECT 
                     deepLearningEvent.deepLearningEventID,
                     deepLearningEvent.name as eventName,
+                    deepLearningEvent.nameShort as eventNameShort,
                     deepLearningEvent.accessOpenDate,
                     deepLearningEvent.accessCloseDate,
                     deepLearningEvent.gibbonSchoolYearID,
@@ -224,18 +225,18 @@ class ExperienceGateway extends QueryableGateway
         return $this->db()->selectOne($sql, $data);
     }
 
-    public function getNextExperienceByID($deepLearningExperienceID)
+    public function getNextExperienceByID($deepLearningEventID, $deepLearningExperienceID)
     {
-        $data = array('deepLearningExperienceID' => $deepLearningExperienceID);
-        $sql = "SELECT * FROM deepLearningExperience WHERE name=(SELECT MIN(name) FROM deepLearningExperience WHERE name > (SELECT name FROM deepLearningExperience WHERE deepLearningExperienceID=:deepLearningExperienceID))";
+        $data = array('deepLearningEventID' => $deepLearningEventID, 'deepLearningExperienceID' => $deepLearningExperienceID);
+        $sql = "SELECT * FROM deepLearningExperience WHERE name=(SELECT MIN(name) FROM deepLearningExperience WHERE name > (SELECT name FROM deepLearningExperience WHERE deepLearningExperienceID=:deepLearningExperienceID AND deepLearningEventID=:deepLearningEventID) AND deepLearningEventID=:deepLearningEventID) AND deepLearningEventID=:deepLearningEventID";
 
         return $this->db()->selectOne($sql, $data);
     }
 
-    public function getPreviousExperienceByID($deepLearningExperienceID)
+    public function getPreviousExperienceByID($deepLearningEventID, $deepLearningExperienceID)
     {
-        $data = array('deepLearningExperienceID' => $deepLearningExperienceID);
-        $sql = "SELECT * FROM deepLearningExperience WHERE name=(SELECT MAX(name) FROM deepLearningExperience WHERE name < (SELECT name FROM deepLearningExperience WHERE deepLearningExperienceID=:deepLearningExperienceID))";
+        $data = array('deepLearningEventID' => $deepLearningEventID, 'deepLearningExperienceID' => $deepLearningExperienceID);
+        $sql = "SELECT * FROM deepLearningExperience WHERE name=(SELECT MAX(name) FROM deepLearningExperience WHERE name < (SELECT name FROM deepLearningExperience WHERE deepLearningExperienceID=:deepLearningExperienceID AND deepLearningEventID=:deepLearningEventID) AND deepLearningEventID=:deepLearningEventID) AND deepLearningEventID=:deepLearningEventID";
 
         return $this->db()->selectOne($sql, $data);
     }

@@ -29,7 +29,7 @@ class StaffGateway extends QueryableGateway
 
     private static $tableName = 'deepLearningStaff';
     private static $primaryKey = 'deepLearningStaffID';
-    private static $searchableColumns = ['gibbonPerson.preferredName', 'gibbonPerson.surname'];
+    private static $searchableColumns = ['gibbonPerson.preferredName', 'gibbonPerson.surname', 'deepLearningStaff.role'];
 
     /**
      * @param QueryCriteria $criteria
@@ -166,6 +166,21 @@ class StaffGateway extends QueryableGateway
                 FROM deepLearningStaff
                 JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=deepLearningStaff.gibbonPersonID) 
                 WHERE deepLearningStaff.deepLearningExperienceID=:deepLearningExperienceID
+                ORDER BY deepLearningStaff.role DESC, gibbonPerson.surname, gibbonPerson.preferredName";
+
+        return $this->db()->select($sql, $data);
+    }
+
+    public function selectTripLeadersByExperience($deepLearningExperienceID)
+    {
+        $deepLearningExperienceIDList = is_array($deepLearningExperienceID) ? implode(',', $deepLearningExperienceID) : $deepLearningExperienceID;
+
+        $data = ['deepLearningExperienceIDList' => $deepLearningExperienceIDList];
+        $sql = "SELECT deepLearningStaff.deepLearningStaffID, deepLearningStaff.role, deepLearningStaff.canEdit, deepLearningStaff.notes, gibbonPerson.gibbonPersonID, gibbonPerson.surname, gibbonPerson.preferredName
+                FROM deepLearningStaff
+                JOIN gibbonPerson ON (gibbonPerson.gibbonPersonID=deepLearningStaff.gibbonPersonID) 
+                WHERE FIND_IN_SET(deepLearningStaff.deepLearningExperienceID, :deepLearningExperienceIDList)
+                AND deepLearningStaff.role='Trip Leader'
                 ORDER BY deepLearningStaff.role DESC, gibbonPerson.surname, gibbonPerson.preferredName";
 
         return $this->db()->select($sql, $data);

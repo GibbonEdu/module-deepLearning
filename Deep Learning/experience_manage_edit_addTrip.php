@@ -17,17 +17,13 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Http\Url;
 use Gibbon\Forms\Form;
 use Gibbon\Forms\DatabaseFormFactory;
-use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
-use Gibbon\Module\DeepLearning\Domain\EventGateway;
-use Gibbon\Http\Url;
-use Gibbon\Module\DeepLearning\Domain\StaffGateway;
-use Gibbon\Module\DeepLearning\Domain\UnitGateway;
-use Gibbon\Services\Format;
-use Gibbon\Tables\DataTable;
-use Gibbon\Module\DeepLearning\Domain\ExperienceTripGateway;
 use Gibbon\Module\DeepLearning\Domain\EventDateGateway;
+use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
+use Gibbon\Module\DeepLearning\Domain\ExperienceTripGateway;
+
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_manage_edit.php') == false) {
     // Access denied
@@ -81,31 +77,46 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         return;
     }
 
-    // $event = $container->get(EventGateway::class)->getByID($experience['deepLearningEventID']);
-    // $unit = $container->get(UnitGateway::class)->getByID($experience['deepLearningUnitID']);
-
     $form = Form::create('experienceTrip', $session->get('absoluteURL').'/modules/'.$session->get('module').'/experience_manage_edit_addTripProcess.php');
     $form->setFactory(DatabaseFormFactory::create($pdo));
 
     $form->addHiddenValue('address', $session->get('address'));
     $form->addHiddenValue('deepLearningEventID', $experience['deepLearningEventID']);
     $form->addHiddenValue('deepLearningExperienceID', $deepLearningExperienceID);
-
+        
     // DETAILS
     $options = ['new' => __m('New Trip Request'), 'existing' => __m('Existing Trip Request')];
     $row = $form->addRow();
         $row->addLabel('type', __('Type'));
-        $row->addSelect('type')->fromArray($options)->required()->selected('new');
+        $row->addSelect('type')->fromArray($options)->required()->placeholder();
+
+    $form->toggleVisibilityByClass('newTrips')->onSelect('type')->when('new');
+
+    $row = $form->addRow()->addClass('newTrips');
+        $row->addLabel('tripName', __m('Trip Name'));
+        $row->addTextField('tripName')->required()->maxLength(60)->setValue($experience['eventNameShort'].' '.$experience['name']);
+
+    $row = $form->addRow()->addClass('newTrips');
+        $row->addLabel('createMessengerGroup', __m('Create messenger group?'));
+        $row->addYesNo('createMessengerGroup')->placeholder()->required()->selected('Y');
 
     $form->toggleVisibilityByClass('existingTrips')->onSelect('type')->when('existing');
-    
-    $existingTrips = $experienceTripGateway->selectTripRequestsByCreator($experience['gibbonSchoolYearID'], $session->get('gibbonPersonID'))->fetchKeyPair();
+
+    $existingTrips = $highestAction == 'Manage Experiences_all'
+        ? $experienceTripGateway->selectTripRequests($experience['gibbonSchoolYearID'])->fetchKeyPair()
+        : $experienceTripGateway->selectTripRequestsByCreator($experience['gibbonSchoolYearID'], $session->get('gibbonPersonID'))->fetchKeyPair();
     $row = $form->addRow()->addClass('existingTrips');
         $row->addLabel('tripPlannerRequestID', __m('My Trip Requests'));
         $row->addSelect('tripPlannerRequestID')->fromArray($existingTrips)->required()->placeholder();
 
+    $row = $form->addRow()->addClass('existingTrips');
+        $row->addLabel('syncParticipants', __m('Sync Trip Participants?'));
+        $row->addYesNo('syncParticipants')->placeholder()->required()->selected('Y');
+
+    $form->toggleVisibilityByClass('tripDays')->onSelect('type')->whenNot('Please select...');
+
     $eventDates = $container->get(EventDateGateway::class)->selectDates($experience['deepLearningEventID']);
-    $row = $form->addRow();
+    $row = $form->addRow()->addClass('tripDays');
         $row->addLabel('deepLearningEventDateIDList', __m('Trip Days'));
         $row->addCheckbox('deepLearningEventDateIDList')->fromResults($eventDates)->addCheckAllNone()->checkAll();
 

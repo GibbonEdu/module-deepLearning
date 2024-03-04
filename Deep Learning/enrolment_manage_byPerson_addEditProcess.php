@@ -24,6 +24,8 @@ use Gibbon\Domain\Students\StudentGateway;
 use Gibbon\Module\DeepLearning\Domain\ChoiceGateway;
 use Gibbon\Module\DeepLearning\Domain\EnrolmentGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
+use Gibbon\Module\DeepLearning\Domain\ExperienceTripGateway;
+use Gibbon\Module\DeepLearning\Domain\StaffGateway;
 
 require_once '../../gibbon.php';
 
@@ -132,8 +134,36 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
             'person' => Format::name('', $session->get('preferredName'), $session->get('surname'), 'Staff', false, true),
             'event' => $experience['eventName'] ?? __('Deep Learning'),
         ]).'<br/>'.Format::list($changeList));
+
+        // Add trip leaders
+        $experiences = [];
+        if (!empty($data['deepLearningExperienceID'])) {
+            $experiences[] = $data['deepLearningExperienceID'];
+        }
+        if (!empty($enrolment['deepLearningExperienceID']) && $enrolment['deepLearningExperienceID'] != $data['deepLearningExperienceID']) {
+            $experiences[] = $enrolment['deepLearningExperienceID'];
+        }
+        $staff = $container->get(StaffGateway::class)->selectTripLeadersByExperience($experiences);
+        foreach ($staff as $person) {
+            $event->addRecipient($person['gibbonPersonID']);
+        }
+
         $event->setActionLink("/index.php?q=/modules/Deep Learning/report_overview.php&deepLearningEventID=".$params['deepLearningEventID']);
         $event->sendNotifications($pdo, $session);
+    }
+
+    // Sync Trip Planner Students
+    $experienceTripGateway = $container->get(ExperienceTripGateway::class);
+    $tripPlanner = $experienceTripGateway->getTripPlannerModule();
+    if (!empty($tripPlanner)) {
+        if (!empty($data['deepLearningExperienceID'])) {
+            $experienceTripGateway->syncTripStudents($data['deepLearningExperienceID']);
+            $experienceTripGateway->syncTripGroups($data['deepLearningExperienceID']);
+        }
+        if (!empty($enrolment['deepLearningExperienceID']) && $enrolment['deepLearningExperienceID'] != $data['deepLearningExperienceID']) {
+            $experienceTripGateway->syncTripStudents($enrolment['deepLearningExperienceID']);
+            $experienceTripGateway->syncTripGroups($enrolment['deepLearningExperienceID']);
+        }
     }
     
     $URL .= $params['mode'] == 'add' && empty($deepLearningEnrolmentID)

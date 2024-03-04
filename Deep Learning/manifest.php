@@ -23,7 +23,7 @@ $description = "Enables schools to implement ICHK's Deep Learning approach, in w
 $entryURL    = "view.php";
 $type        = "Additional";
 $category    = 'Learn';
-$version     = '0.0.06';
+$version     = '0.0.07';
 $author      = 'Sandra Kuipers';
 $url         = 'https://github.com/GibbonEdu';
 
@@ -70,6 +70,8 @@ $moduleTables[] = "CREATE TABLE `deepLearningUnit` (
     `headerImage` VARCHAR(255) NULL,
     `description` TEXT NULL,
     `teachersNotes` TEXT NULL,
+    `letterToParents` TEXT NULL,
+    `riskAssessment` TEXT NULL,
     `timestampCreated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `timestampModified` TIMESTAMP NULL,
     `gibbonPersonIDCreated` INT(10) UNSIGNED ZEROFILL NOT NULL,

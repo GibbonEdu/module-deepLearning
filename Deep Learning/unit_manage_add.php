@@ -131,6 +131,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         $col = $row->addColumn()->setClass('');
         $col->addLabel('teachersNotes', __('Teacher\'s Notes'));
         $col->addEditor('teachersNotes', $guid);
+    
+    $row = $form->addRow();
+        $col = $row->addColumn()->setClass('');
+        $col->addLabel('letterToParents', __m('Parent Letter'))->description(__m('The introductory letter sent to parents, which will be automatically added to the Trip Planner for experiences running this unit.'));
+        $col->addEditor('letterToParents', $guid);
+
+    $row = $form->addRow();
+        $col = $row->addColumn()->setClass('');
+        $col->addLabel('riskAssessment', __m('Risk Assessment'));
+        $col->addEditor('riskAssessment', $guid);
 
     $row = $form->addRow();
         $row->addFooter();

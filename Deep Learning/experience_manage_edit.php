@@ -160,15 +160,16 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     echo $form->getOutput();
 
     // Cancel out if Trip Planner not installed or not accessible
+    $experienceTripGateway = $container->get(ExperienceTripGateway::class);
+    $tripPlanner = $experienceTripGateway->getTripPlannerModule();
+
     $highestTripAction = getHighestGroupedAction($guid, '/modules/Trip Planner/trips_manage.php', $connection2);
-    if (empty($highestTripAction)) {
+    if (empty($tripPlanner) || empty($highestTripAction)) {
         return;
     }
 
     // TRIPS
-    $experienceTripGateway = $container->get(ExperienceTripGateway::class);
     $gibbonPersonID = $session->get('gibbonPersonID');
-
     $criteria = $experienceTripGateway->newQueryCriteria()
         ->sortBy(['title'])
         ->pageSize(-1)
@@ -189,12 +190,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         return $row;
     });
     
-    // $table->addHeaderAction('addTrip', __('Add Trip Request'))
-    //     ->setURL('/modules/Deep Learning/experience_manage_edit_addTrip.php')
-    //     ->setIcon('page_new')
-    //     ->addParam('deepLearningExperienceID', $deepLearningExperienceID)
-    //     ->displayLabel()
-    //     ->modalWindow(650, 400);
+    $table->addHeaderAction('addTrip', __m('Add Trip Request'))
+        ->setURL('/modules/Deep Learning/experience_manage_edit_addTrip.php')
+        ->setIcon('page_new')
+        ->addParam('deepLearningExperienceID', $deepLearningExperienceID)
+        ->displayLabel()
+        ->modalWindow(650, 460);
     
     $table->addExpandableColumn('contents')
         ->format(function ($trip) {

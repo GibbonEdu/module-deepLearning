@@ -118,8 +118,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
         'event'      => $event,
         'experience' => $experience,
 
-        'nextExperience' => $experienceGateway->getNextExperienceByID($deepLearningExperienceID),
-        'prevExperience' => $experienceGateway->getPreviousExperienceByID($deepLearningExperienceID),
+        'nextExperience' => $experienceGateway->getNextExperienceByID($deepLearningEventID, $deepLearningExperienceID),
+        'prevExperience' => $experienceGateway->getPreviousExperienceByID($deepLearningEventID, $deepLearningExperienceID),
 
         'canViewInactive' => $canViewInactive,
         'canSignUp'  => $canSignUp,
