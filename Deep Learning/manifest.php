@@ -23,7 +23,7 @@ $description = "Enables schools to implement ICHK's Deep Learning approach, in w
 $entryURL    = "view.php";
 $type        = "Additional";
 $category    = 'Learn';
-$version     = '0.0.07';
+$version     = '0.0.09';
 $author      = 'Sandra Kuipers';
 $url         = 'https://github.com/GibbonEdu';
 
@@ -137,6 +137,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningExperienceVenue` (
     `venueExternal` VARCHAR(255) NOT NULL,
     `venueExternalUrl` VARCHAR(255) NOT NULL,
     `description` TEXT NULL,
+    `allDay` ENUM('Y','N') NOT NULL DEFAULT 'Y',
     `timeStart` TIME NULL,
     `timeEnd` TIME NULL,
     PRIMARY KEY (`deepLearningExperienceVenueID`)
@@ -657,6 +658,26 @@ $actionRows[] = [
     'menuShow'                  => 'Y',
     'defaultPermissionAdmin'    => 'Y',
     'defaultPermissionTeacher'  => 'N',
+    'defaultPermissionStudent'  => 'N',
+    'defaultPermissionParent'   => 'N',
+    'defaultPermissionSupport'  => 'N',
+    'categoryPermissionStaff'   => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent'  => 'N',
+    'categoryPermissionOther'   => 'N',
+];
+
+$actionRows[] = [
+    'name'                      => 'Student Attendance by Group',
+    'precedence'                => '0',
+    'category'                  => 'Reports',
+    'description'               => 'View student attendance for a DL event.',
+    'URLList'                   => 'report_attendance.php',
+    'entryURL'                  => 'report_attendance.php',
+    'entrySidebar'              => 'Y',
+    'menuShow'                  => 'Y',
+    'defaultPermissionAdmin'    => 'Y',
+    'defaultPermissionTeacher'  => 'Y',
     'defaultPermissionStudent'  => 'N',
     'defaultPermissionParent'   => 'N',
     'defaultPermissionSupport'  => 'N',

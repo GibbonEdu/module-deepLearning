@@ -1,5 +1,13 @@
 CHANGELOG
 =========
+v0.0.09
+-------
+Added a report for student attendance during DL Events
+
+v0.0.08
+-------
+Added the ability to assign venues to experiences
+
 v0.0.07
 -------
 Added a field in units to hold the parent letter, to auto-populate in trip plans

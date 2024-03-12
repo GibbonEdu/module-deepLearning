@@ -194,6 +194,75 @@ class EnrolmentGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
+    public function queryEnrolledStudentsNotPresent(QueryCriteria $criteria, $deepLearningEventID, $date, $showAll = 'N')
+    {
+        $subSelect = $this
+            ->newSelect()
+            ->from('gibbonAttendanceLogPerson')
+            ->cols(['gibbonPersonID', 'date', 'MAX(timestampTaken) as maxTimestamp', 'context', 'MAX(gibbonAttendanceLogPersonID) as gibbonAttendanceLogPersonID'])
+            ->where("date=:date")
+            ->groupBy(['gibbonPersonID', 'date']);
+
+        $query = $this
+            ->newQuery()
+            ->cols([
+                'gibbonPerson.gibbonPersonID',
+                'gibbonPerson.title',
+                'gibbonPerson.preferredName',
+                'gibbonPerson.surname',
+                'gibbonFormGroup.name as formGroupName',
+                'gibbonFormGroup.nameShort as formGroup',
+                'gibbonAttendanceLogPerson.type',
+                'gibbonAttendanceLogPerson.reason',
+                'gibbonAttendanceLogPerson.comment',
+                'deepLearningExperience.deepLearningExperienceID',
+                'deepLearningExperience.name',
+                'deepLearningExperience.active',
+                "(CASE WHEN CURRENT_TIMESTAMP >= deepLearningEvent.viewableDate THEN 'Y' ELSE 'N' END) as viewable",
+                "GROUP_CONCAT(DISTINCT CONCAT(tripLeaderPerson.preferredName, ' ', tripLeaderPerson.surname) ORDER BY tripLeaderPerson.surname SEPARATOR '<br/>') as tripLeaders",
+            ])
+            ->from('gibbonPerson')
+            ->innerJoin('gibbonStudentEnrolment', 'gibbonPerson.gibbonPersonID = gibbonStudentEnrolment.gibbonPersonID')
+            ->innerJoin('gibbonFormGroup', 'gibbonStudentEnrolment.gibbonFormGroupID = gibbonFormGroup.gibbonFormGroupID')
+            ->innerJoin('deepLearningEnrolment', 'deepLearningEnrolment.gibbonPersonID = gibbonPerson.gibbonPersonID')
+            ->innerJoin('deepLearningExperience', 'deepLearningExperience.deepLearningExperienceID = deepLearningEnrolment.deepLearningExperienceID')
+            ->innerJoin('deepLearningEvent', 'deepLearningEvent.deepLearningEventID = deepLearningExperience.deepLearningEventID')
+            ->innerJoin('deepLearningEventDate', 'deepLearningEvent.deepLearningEventID = deepLearningEventDate.deepLearningEventID AND deepLearningEventDate.eventDate=:date')
+            ->leftJoin('gibbonAttendanceLogPerson', 'gibbonAttendanceLogPerson.gibbonPersonID = gibbonPerson.gibbonPersonID AND gibbonAttendanceLogPerson.date = :date')
+            ->joinSubSelect(
+                'LEFT',
+                $subSelect,
+                'log',
+                'gibbonAttendanceLogPerson.gibbonPersonID=log.gibbonPersonID AND gibbonAttendanceLogPerson.date=log.date'
+            )
+            ->leftJoin('deepLearningStaff as tripLeader', 'tripLeader.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID AND tripLeader.role="Trip Leader"')
+            ->leftJoin('gibbonPerson tripLeaderPerson', 'tripLeaderPerson.gibbonPersonID=tripLeader.gibbonPersonID')
+            ->where('deepLearningEnrolment.deepLearningEventID=:deepLearningEventID')
+            ->bindValue('deepLearningEventID', $deepLearningEventID)
+            ->where('gibbonStudentEnrolment.gibbonSchoolYearID=deepLearningEvent.gibbonSchoolYearID')
+            ->where('deepLearningEnrolment.status = "Confirmed"')
+            ->where('gibbonPerson.status = "Full"')
+            ->where('(gibbonPerson.dateStart IS NULL OR gibbonPerson.dateStart <= CURRENT_TIMESTAMP)')
+            ->where('(gibbonPerson.dateEnd IS NULL OR gibbonPerson.dateEnd >= CURRENT_TIMESTAMP)')
+            ->groupBy(['gibbonStudentEnrolment.gibbonPersonID'])
+            ->bindValue('date', $date);
+
+        if ($showAll != 'Y') {
+            $query->where("(gibbonAttendanceLogPerson.gibbonAttendanceLogPersonID IS NULL OR (gibbonAttendanceLogPerson.direction = 'Out' AND gibbonAttendanceLogPerson.timestampTaken=log.maxTimestamp AND gibbonAttendanceLogPerson.gibbonAttendanceLogPersonID>=log.gibbonAttendanceLogPersonID))");
+        }
+
+        $criteria->addFilterRules([
+            'yearGroup' => function ($query, $gibbonYearGroupIDList) {
+                if (empty($gibbonYearGroupIDList)) return $query;
+                return $query
+                    ->where('FIND_IN_SET(gibbonStudentEnrolment.gibbonYearGroupID, :gibbonYearGroupIDList)')
+                    ->bindValue('gibbonYearGroupIDList', $gibbonYearGroupIDList);
+            },
+        ]);
+
+        return $this->runQuery($query, $criteria);
+    }
+
     public function selectEnrolmentsByEvent($deepLearningEventID)
     {
         $data = ['deepLearningEventID' => $deepLearningEventID, 'today' => date('Y-m-d')];

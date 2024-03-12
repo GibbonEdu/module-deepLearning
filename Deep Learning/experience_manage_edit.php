@@ -27,6 +27,8 @@ use Gibbon\Module\DeepLearning\Domain\UnitGateway;
 use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
 use Gibbon\Module\DeepLearning\Domain\ExperienceTripGateway;
+use Gibbon\Module\DeepLearning\Domain\EventDateGateway;
+use Gibbon\Module\DeepLearning\Domain\ExperienceVenueGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_manage_edit.php') == false) {
     // Access denied
@@ -116,8 +118,78 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
             ->addCheckAllNone()
             ->loadFromCSV($values);
 
+    // VENUES
+    $form->addRow()->addHeading(__m('Venues'))->append(__m('A venue can be assigned to an experience for each day of the Deep Learning event. These are then used for generating reports as well as helping book rooms for the event.'));
+
+    $eventDates = $container->get(EventDateGateway::class)->selectDates($values['deepLearningEventID'])->fetchAll();
+
+    // Custom Block Template
+    $addBlockButton = $form->getFactory()->createButton(__m('Add Venue'))->addClass('addBlock');
+
+    $blockTemplate = $form->getFactory()->createTable()->setClass('blank');
+    $row = $blockTemplate->addRow()->addClass('w-full flex justify-between items-center mt-1 ml-2');
+    //     $row->addSelectStaff('gibbonPersonID')->photo(false)->setClass('flex-1 mr-1')->required()->placeholder();
+    //     $row->addSelect('role')->fromArray($roles)->setClass('w-48 mr-1')->required()->placeholder();
+    //     $row->addCheckbox('canEdit')->setLabelClass('w-32')->alignLeft()->setValue('Y')->description(__m('Can Edit?'))
+    //         ->append("<input type='hidden' id='deepLearningStaffID' name='deepLearningStaffID' value=''/>");
+    // $row = $blockTemplate->addRow()->addClass('w-full flex justify-between items-center mt-1 ml-2');
+    //     $row->addTextField('notes')->setClass('w-full')->placeholder(__m('Notes'));
+
+    // Custom Blocks
+    $row = $form->addRow();
+    $customBlocks = $row->addCustomBlocks('venues', $session)
+        ->fromTemplate($blockTemplate)
+        ->settings(array('inputNameStrategy' => 'object', 'addOnEvent' => 'click'))
+        ->placeholder(__m('Add a Venue...'))
+        ->addToolInput($addBlockButton);
+
+    $venues = $container->get(ExperienceVenueGateway::class)->selectVenuesByExperience($deepLearningExperienceID);
+    while ($venue = $venues->fetch()) {
+        $customBlocks->addBlock($venue['deepLearningExperienceVenueID'], [
+            'deepLearningExperienceID' => $venue['deepLearningExperienceID'],
+            'deepLearningEventDateID'  => $venue['deepLearningEventDateID'],
+            'gibbonSpaceID'            => $venue['gibbonSpaceID'],
+            'venueExternal'            => $venue['venueExternal'],
+            'venueExternalUrl'         => $venue['venueExternalUrl'],
+            'description'              => $venue['description'],
+            'allDay'                   => $venue['allDay'],
+            'timeStart'                => $venue['timeStart'],
+            'timeEnd'                  => $venue['timeEnd'],
+
+        ]);
+    }
+
+    // foreach ($eventDates as $eventDate) {
+    //     $index = $eventDate['deepLearningEventDateID'];
+
+    //     $form->toggleVisibilityByClass("venueInternal{$index}")->onRadio("venue[{$index}][type]")->when('Internal');
+    //     $form->toggleVisibilityByClass("venueExternal{$index}")->onRadio("venue[{$index}][type]")->when('External');
+
+    //     $row = $form->addRow();
+    //         $row->addLabel("venue[{$index}][type]", $eventDate['name']);
+    //         $col = $row->addColumn()->setClass('flex flex-col');
+    //             $col->addRadio("venue[{$index}][type]")
+    //                 ->inline()
+    //                 ->alignLeft()
+    //                 ->fromArray([
+    //                     'Internal' => __('Internal'),
+    //                     'External' => __('External')
+    //                 ]);
+
+    //             $col->addSelectSpace("venue[{$index}]['gibbonSpaceID']")
+    //                 ->addClass("venueInternal{$index}")
+    //                 ->placeholder()
+    //                 ->addClass('sm:max-w-full w-full');
+
+    //             $col->addTextField("venue[{$index}]['external']")
+    //                 ->addClass("venueExternal{$index}")
+    //                 ->maxLength(50)
+    //                 ->addClass('sm:max-w-full w-full');
+
+    // }
+
     // STAFF
-    $form->addRow()->addHeading(__('Staff'));
+    $form->addRow()->addHeading(__('Staff'))->append(__m('Staff can be added here, as well as through the Manage DL Staffing page. Staff added to an experience are listed in the Deep Learning Overview, and can be given access to edit the experience details.'));
 
     // Custom Block Template
     $addBlockButton = $form->getFactory()->createButton(__m('Add Staff'))->addClass('addBlock');

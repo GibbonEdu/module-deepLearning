@@ -55,4 +55,13 @@ $sql[$count][1] = "ALTER TABLE `deepLearningUnit` ADD `letterToParents` TEXT NUL
 ALTER TABLE `deepLearningUnit` ADD `riskAssessment` TEXT NULL AFTER `letterToParents`;end
 ";
 
+// v0.0.08
+$sql[$count][0] = "0.0.08";
+$sql[$count][1] = "ALTER TABLE `deepLearningExperienceVenue` ADD `allDay` ENUM('Y','N') NOT NULL DEFAULT 'Y' AFTER `description`;end
+";
+
+// v0.0.09
+$sql[$count][0] = "0.0.09";
+$sql[$count][1] = "INSERT INTO `gibbonAction` (`gibbonActionID`, `gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `entrySidebar`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES (NULL, (SELECT gibbonModuleID FROM gibbonModule WHERE name='Deep Learning'), 'Student Attendance by Group', 0, 'Reports', 'View student attendance for a DL event.', 'report_attendance.php','report_attendance.php', 'Y', 'Y', 'Y', 'N', 'N', 'N', 'Y', 'N', 'N', 'N');end
+INSERT INTO `gibbonPermission` (`permissionID` ,`gibbonRoleID` ,`gibbonActionID`) VALUES (NULL , '001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Deep Learning' AND gibbonAction.name='Student Attendance by Group'));end
 ";
