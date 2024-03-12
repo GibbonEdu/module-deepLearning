@@ -23,7 +23,7 @@ $description = "Enables schools to implement ICHK's Deep Learning approach, in w
 $entryURL    = "view.php";
 $type        = "Additional";
 $category    = 'Learn';
-$version     = '0.0.09';
+$version     = '0.0.10';
 $author      = 'Sandra Kuipers';
 $url         = 'https://github.com/GibbonEdu';
 
@@ -690,3 +690,10 @@ $actionRows[] = [
 
 // Hooks
 // $hooks[] = ''; // Serialised array to create hook and set options. See Hooks documentation online.
+
+$array = [
+    'sourceModuleName' => 'Deep Learning',
+    'sourceModuleAction' => 'Deep Learning Events_view',
+    'sourceModuleInclude' => 'hook_studentProfile_deepLearning.php',
+];
+$hooks[] = "INSERT INTO `gibbonHook` (`gibbonHookID`, `name`, `type`, `options`, gibbonModuleID) VALUES (NULL, 'Deep Learning', 'Student Profile', '".serialize($array)."', (SELECT gibbonModuleID FROM gibbonModule WHERE name='Deep Learning'));";

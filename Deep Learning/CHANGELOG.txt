@@ -1,5 +1,9 @@
 CHANGELOG
 =========
+v0.0.10
+-------
+Added a Deep Learning page to the student profile
+
 v0.0.09
 -------
 Added a report for student attendance during DL Events

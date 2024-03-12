@@ -65,3 +65,8 @@ $sql[$count][0] = "0.0.09";
 $sql[$count][1] = "INSERT INTO `gibbonAction` (`gibbonActionID`, `gibbonModuleID`, `name`, `precedence`, `category`, `description`, `URLList`, `entryURL`, `entrySidebar`, `defaultPermissionAdmin`, `defaultPermissionTeacher`, `defaultPermissionStudent`, `defaultPermissionParent`, `defaultPermissionSupport`, `categoryPermissionStaff`, `categoryPermissionStudent`, `categoryPermissionParent`, `categoryPermissionOther`) VALUES (NULL, (SELECT gibbonModuleID FROM gibbonModule WHERE name='Deep Learning'), 'Student Attendance by Group', 0, 'Reports', 'View student attendance for a DL event.', 'report_attendance.php','report_attendance.php', 'Y', 'Y', 'Y', 'N', 'N', 'N', 'Y', 'N', 'N', 'N');end
 INSERT INTO `gibbonPermission` (`permissionID` ,`gibbonRoleID` ,`gibbonActionID`) VALUES (NULL , '001', (SELECT gibbonActionID FROM gibbonAction JOIN gibbonModule ON (gibbonAction.gibbonModuleID=gibbonModule.gibbonModuleID) WHERE gibbonModule.name='Deep Learning' AND gibbonAction.name='Student Attendance by Group'));end
 ";
+
+// v0.0.10
+$sql[$count][0] = "0.0.10";
+$sql[$count][1] = "INSERT INTO `gibbonHook` (`gibbonHookID`, `name`, `type`, `options`, gibbonModuleID) VALUES (NULL, 'Deep Learning', 'Student Profile', 'a:3:{s:16:\"sourceModuleName\";s:13:\"Deep Learning\";s:18:\"sourceModuleAction\";s:25:\"Deep Learning Events_view\";s:19:\"sourceModuleInclude\";s:36:\"hook_studentProfile_deepLearning.php\";}', (SELECT gibbonModuleID FROM gibbonModule WHERE name='Deep Learning'));end
+";
