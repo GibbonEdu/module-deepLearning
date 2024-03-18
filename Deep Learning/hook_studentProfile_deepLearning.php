@@ -42,7 +42,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php') =
 
     include_once $session->get('absolutePath').'/modules/Deep Learning/src/Domain/EventGateway.php';
     include_once $session->get('absolutePath').'/modules/Deep Learning/src/Domain/EnrolmentGateway.php';
-    include_once $session->get('absolutePath').'/modules/Deep Learning/src/Domain/StaffGateway.php';
 
     $canSignUp = isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php', 'Deep Learning Events_signUp');
     $canView = isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php');
@@ -53,21 +52,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php') =
     // Query events
     $eventGateway = $container->get(EventGateway::class);
     $enrolmentGateway = $container->get(EnrolmentGateway::class);
-    $staffGateway = $container->get(StaffGateway::class);
     
     $criteria = $eventGateway->newQueryCriteria()
         ->sortBy(['startDate'])
         ->fromPOST();
 
-    $events = $eventGateway->queryEventsByPerson($criteria, $session->get('gibbonSchoolYearID'), $gibbonPersonID);
+    $events = $eventGateway->queryEventsByPerson($criteria, $session->get('gibbonSchoolYearID'), $gibbonPersonID, true);
     $yearGroupCount = $container->get(YearGroupGateway::class)->getYearGroupCount();
     
-    $events->transform(function (&$values) use (&$eventGateway, &$enrolmentGateway, &$staffGateway) {
+    $events->transform(function (&$values) use (&$eventGateway, &$enrolmentGateway) {
         $event = $eventGateway->getEventDetailsByID($values['deepLearningEventID']);
-        $staff = $staffGateway->selectStaffByEventAndPerson($values['deepLearningEventID'], $values['gibbonPersonID'])->fetchAll();
         $enrolment = $enrolmentGateway->getExperienceDetailsByEnrolment($values['deepLearningEventID'], $values['gibbonPersonID']);
 
-        $values['staff'] = $staff ?? [];
         $values['enrolment'] = $enrolment ?? [];
         $values['yearGroups'] = $event['yearGroups'] ?? '';
         $values['yearGroupCount'] = $event['yearGroupCount'] ?? '';
@@ -127,7 +123,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php') =
 
     $table->addColumn('status', __('Status'))
         ->format(function ($values) use ($canSignUp) {
-            if ($values['viewable'] != 'Y') {
+            if ($values['viewable'] != 'Y' || empty($values['signUpEvent'])) {
                 return;
             }
 

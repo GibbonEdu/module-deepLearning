@@ -129,18 +129,22 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
 {% endmacro enrolment %}
 
 {% macro staffing(person) %}
-<div class="{{ person.role == 'Trip Leader' ? 'groupStaff cursor-not-allowed' : 'groupStaff enrolmentPerson cursor-move hover:bg-blue-100 hover:border-blue-500' }}  flex items-center justify-between bg-white shadow rounded-sm mb-2 p-3 text-sm border group"
+<div class="groupStaff enrolmentPerson cursor-move hover:bg-blue-100 hover:border-blue-500 flex items-center justify-between bg-white shadow rounded-sm mb-2 p-3 text-sm border group"
     style="max-width: 18rem;" data-person="{{ person.gibbonPersonID }}" data-preferredName="{{ person.preferredName }}"
     data-surname="{{ person.surname }}">
 
     <input type="hidden" name="person[{{ person.gibbonPersonID }}]" value="{{ person.deepLearningExperienceID ?? 0 }}">
-    <input type="hidden" name="role[{{ person.gibbonPersonID }}]" value="{{ person.role ?? person.type ?? '' }}">
+    <!-- <input type="hidden" name="role[{{ person.gibbonPersonID }}]" value="{{ person.role ?? person.type ?? '' }}"> -->
 
     <div>{{ person.preferredName }} {{ person.surname }}</div>
 
-    <span
-        class="choiceTag tag {{ person.role == 'Trip Leader' ? 'success' : person.type == 'Teacher' or person.role == 'Teacher' ? 'message' : 'bg-purple-200' }} text-xxs ml-2"
-        title="">{{ person.role ?? person.type }}</span>
+    {% set role = person.role ?? person.type ?? '' %}
+
+    <select name="role[{{ person.gibbonPersonID }}]" class="ml-2 text-xxs py-1 px-2  h-6 {{ person.role == 'Trip Leader' ? 'success' : role == 'Teacher' ? 'message' : 'bg-purple-200 text-purple-700' }} border-0">
+        <option value="Trip Leader" {{ person.role == 'Trip Leader' ? 'selected' }}>{{ __m('Trip Leader') }}</option>
+        <option value="Teacher" {{ role == 'Teacher' ? 'selected' }}>{{ __m('Teacher') }}</option>
+        <option value="Support" {{ role == 'Support' ? 'selected' }}>{{ __m('Support') }}</option>
+    </select>
 </div>
 {% endmacro staffing %}
 
@@ -276,6 +280,16 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
         $('#generateGroups .enrolmentPerson').each(function (element) {
             recalculateStatus(this, $(this).parent());
         });
+    });
+
+    $(document).on('change', 'select[name^="role"]', function() {
+        if ($(this).val() == 'Trip Leader') {
+            $(this).removeClass('message bg-purple-200 text-purple-700').addClass('success');
+        } else if ($(this).val() == 'Teacher') {
+            $(this).removeClass('success bg-purple-200 text-purple-700').addClass('message');
+        } else if ($(this).val() == 'Support') {
+            $(this).removeClass('success message').addClass('bg-purple-200 text-purple-700');
+        }
     });
 
 </script>

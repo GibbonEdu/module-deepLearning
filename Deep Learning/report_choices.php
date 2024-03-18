@@ -98,14 +98,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_choic
         ->context('primary')
         ->width('30%')
         ->format(function ($values) {
-            if (empty($values['choices'])) return '';
+            if (empty($values['choiceList'])) return '';
             $output = '';
             $choices = explode(',', $values['choiceList']);
             foreach ($choices as $choice) {
-                list($choiceNumber,$choiceName) = explode(':', $choice);
+                list($choiceNumber,$choiceName) = array_pad(explode(':', $choice),2,'');
                 $output .= $choiceNumber.'. '.$choiceName.'<br/>';
             }
             return $output;
+        })
+        ->formatDetails(function ($values) {
+            return !empty($values['enrolledExperience'])
+                ? Format::small(__m('Enrolled in {name}', ['name' => $values['enrolledExperience']]))
+                : '';
         });
 
     $table->addColumn('timestampModified', __('When'))

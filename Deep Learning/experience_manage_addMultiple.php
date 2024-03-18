@@ -31,8 +31,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 } else {
     // Proceed!
     $params = [
-        'gibbonSchoolYearID' => $_REQUEST['gibbonSchoolYearID'] ?? $session->get('gibbonSchoolYearID'),
-        'search'             => $_REQUEST['search'] ?? ''
+        'gibbonSchoolYearID'  => $_REQUEST['gibbonSchoolYearID'] ?? $session->get('gibbonSchoolYearID'),
+        'deepLearningEventID' => $_REQUEST['deepLearningEventID'] ?? '',
+        'search'              => $_REQUEST['search'] ?? ''
     ];
 
     $page->breadcrumbs
@@ -48,7 +49,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     $enrolmentMax = $settingGateway->getSettingByScope('Deep Learning', 'enrolmentMax');
 
     $events = $container->get(EventGateway::class)->selectAllEvents();
-    $units = $container->get(UnitGateway::class)->selectPublishedUnits();
+    $units = $container->get(UnitGateway::class)->selectPublishedUnits($params['deepLearningEventID']);
 
     // FORM
     $form = Form::create('experience', $session->get('absoluteURL').'/modules/'.$session->get('module').'/experience_manage_addMultipleProcess.php');
@@ -62,7 +63,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
     $row = $form->addRow();
         $row->addLabel('deepLearningEventID', __('Event'))->description(__m('Each experience is part of a Deep Learning event.'));
-        $row->addSelect('deepLearningEventID')->fromResults($events, 'groupBy')->required()->placeholder();
+        $row->addSelect('deepLearningEventID')->fromResults($events, 'groupBy')->required()->placeholder()->selected($params['deepLearningEventID']);
 
     // STAFF
     $form->addRow()->addHeading(__('Experiences'));
@@ -72,7 +73,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
     $blockTemplate = $form->getFactory()->createTable()->setClass('blank');
     $row = $blockTemplate->addRow()->addClass('w-3/4 flex justify-start items-center mt-1 ml-2 pr-8');
-        $row->addSelect('deepLearningUnitID')->fromResults($units)->setClass('w-full')->required()->placeholder(__m('Unit'));
+        $row->addSelect('deepLearningUnitID')->fromResults($units)->setClass('experienceSelect w-full')->required()->placeholder(__m('Unit'));
         $row->addContent()->setClass('w-32');
         $row->addSelectStaff('gibbonPersonID')->photo(true, 'small')->setClass('w-56')->required()->placeholder(__m('Trip Leader'));
 
@@ -92,3 +93,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
     echo $form->getOutput();
 }
+?>
+
+<script>
+$(document).on('change', 'select.experienceSelect:not(:disabled)', function () {
+    var selectedOptions = [];
+
+    $('select.experienceSelect').each(function() {
+        if ($(this).val() != "Unit") {
+            selectedOptions.push($(this).val());
+        }
+    });
+
+    $('select.experienceSelect option:not(:selected)').each(function() {
+        if (selectedOptions.includes($(this).val()) && !$(this).html().toString().includes("In Use")) {
+            $(this).html($(this).html() + " [In Use]");
+        }
+    });
+});
+</script>

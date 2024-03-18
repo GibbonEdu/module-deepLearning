@@ -108,6 +108,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_overv
 
     if (empty($experiences)) {
         $experiences = [-1 => ''];
+    } else if (empty($viewMode)) {
+        $form = Form::create('print', '');
+        $form->addHeaderAction('print', __m('Print All'))
+            ->setUrl('/report.php')
+            ->addParam('q', '/modules/Deep Learning/report_overview.php')
+            ->addParam('deepLearningEventID', $params['deepLearningEventID'])
+            ->addParam('format', 'print')
+            ->setTarget('_blank')
+            ->directLink()
+            ->displayLabel();
+
+        echo $form->getOutput();
     }
 
     // TABLES
@@ -135,6 +147,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_overv
         });
 
         $table->addMetaData('hidePagination', true);
+        $table->addMetaData('hideHeaderActions', true);
 
         $table->addColumn('image_240', __('Photo'))
             ->context('primary')
@@ -192,6 +205,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_overv
                                 ->addParam('mode', 'edit');
                     }
                 });
+        }
+
+        if ($viewMode == 'print') {
+            $table->setHeader([]);
         }
 
         echo $table->render($enrolment ?? []);

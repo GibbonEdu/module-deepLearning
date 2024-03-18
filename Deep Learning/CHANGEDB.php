@@ -70,3 +70,8 @@ INSERT INTO `gibbonPermission` (`permissionID` ,`gibbonRoleID` ,`gibbonActionID`
 $sql[$count][0] = "0.0.10";
 $sql[$count][1] = "INSERT INTO `gibbonHook` (`gibbonHookID`, `name`, `type`, `options`, gibbonModuleID) VALUES (NULL, 'Deep Learning', 'Student Profile', 'a:3:{s:16:\"sourceModuleName\";s:13:\"Deep Learning\";s:18:\"sourceModuleAction\";s:25:\"Deep Learning Events_view\";s:19:\"sourceModuleInclude\";s:36:\"hook_studentProfile_deepLearning.php\";}', (SELECT gibbonModuleID FROM gibbonModule WHERE name='Deep Learning'));end
 ";
+
+// v0.0.11
+$sql[$count][0] = "0.0.11";
+$sql[$count][1] = "
+";

@@ -1,5 +1,12 @@
 CHANGELOG
 =========
+v0.0.11
+-------
+Added a Print All button to the top of the Deep Learning Overview page
+Trip leaders can now be added and moved between experiences using the drag-drop staffing tool
+When adding experiences to an event, it will indicate which units have already been added
+The View Student Choices can let you cross check what a student's actual enrolment ended up being
+
 v0.0.10
 -------
 Added a Deep Learning page to the student profile

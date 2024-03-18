@@ -54,6 +54,7 @@ class ChoiceGateway extends QueryableGateway
                 'gibbonYearGroup.nameShort as yearGroup',
                 "GROUP_CONCAT(deepLearningExperience.name ORDER BY deepLearningChoice.choice SEPARATOR ',') as choices",
                 "GROUP_CONCAT(CONCAT(deepLearningChoice.choice, ':', deepLearningExperience.name) ORDER BY deepLearningChoice.choice SEPARATOR ',') as choiceList",
+                "(CASE WHEN deepLearningEnrolment.deepLearningEnrolmentID IS NOT NULL THEN enrolledExperience.name ELSE '' END) as enrolledExperience"
                 
             ])
             ->innerJoin('deepLearningExperience', 'deepLearningExperience.deepLearningExperienceID=deepLearningChoice.deepLearningExperienceID')
@@ -62,6 +63,8 @@ class ChoiceGateway extends QueryableGateway
             ->leftJoin('gibbonStudentEnrolment', 'gibbonStudentEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID AND gibbonStudentEnrolment.gibbonSchoolYearID=deepLearningEvent.gibbonSchoolYearID')
             ->leftJoin('gibbonFormGroup', 'gibbonFormGroup.gibbonFormGroupID=gibbonStudentEnrolment.gibbonFormGroupID')
             ->leftJoin('gibbonYearGroup', 'gibbonYearGroup.gibbonYearGroupID=gibbonStudentEnrolment.gibbonYearGroupID')
+            ->leftJoin('deepLearningEnrolment', 'deepLearningEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID AND deepLearningEnrolment.deepLearningEventID=deepLearningEvent.deepLearningEventID')
+            ->leftJoin('deepLearningExperience as enrolledExperience', 'enrolledExperience.deepLearningExperienceID=deepLearningEnrolment.deepLearningExperienceID')
             ->where('deepLearningEvent.gibbonSchoolYearID=:gibbonSchoolYearID')
             ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID)
             ->groupBy(['deepLearningChoice.gibbonPersonID']);

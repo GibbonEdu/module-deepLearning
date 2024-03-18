@@ -73,11 +73,16 @@ class UnitGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
-    public function selectPublishedUnits()
+    public function selectPublishedUnits($deepLearningEventID = null)
     {
-        $sql = "SELECT deepLearningUnitID as value, name FROM deepLearningUnit WHERE status='Published' ORDER BY name";
+        $data = ['deepLearningEventID' => $deepLearningEventID];
+        $sql = "SELECT deepLearningUnit.deepLearningUnitID as value, (CASE WHEN deepLearningExperience.deepLearningExperienceID IS NOT NULL THEN CONCAT(deepLearningUnit.name, ' [In Use]') ELSE deepLearningUnit.name END) name 
+                FROM deepLearningUnit 
+                LEFT JOIN deepLearningExperience ON (deepLearningExperience.deepLearningUnitID=deepLearningUnit.deepLearningUnitID AND deepLearningExperience.deepLearningEventID=:deepLearningEventID AND :deepLearningEventID IS NOT NULL)
+                WHERE deepLearningUnit.status='Published' 
+                ORDER BY deepLearningUnit.name";
 
-        return $this->db()->select($sql);
+        return $this->db()->select($sql, $data );
     }
 
     public function getUnitEditAccess($deepLearningUnitID, $gibbonPersonID)
