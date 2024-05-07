@@ -205,8 +205,7 @@ class StaffGateway extends QueryableGateway
                 FROM deepLearningStaff 
                 JOIN deepLearningExperience ON (deepLearningExperience.deepLearningExperienceID=deepLearningStaff.deepLearningExperienceID) 
                 WHERE deepLearningExperience.deepLearningEventID=:deepLearningEventID 
-                AND deepLearningStaff.gibbonPersonID=:gibbonPersonID
-                AND deepLearningStaff.role <> 'Trip Leader'";
+                AND deepLearningStaff.gibbonPersonID=:gibbonPersonID";
 
         return $this->db()->delete($sql, $data);
     }

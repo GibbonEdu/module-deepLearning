@@ -72,15 +72,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
 
     // Get experiences
     $experiences = $experienceGateway->selectExperiencesByEventAndPerson($deepLearningEventID, $session->get('gibbonPersonID'))->fetchKeyPair();
-    $choices = $choiceGateway->selectChoicesByPerson($deepLearningEventID, $session->get('gibbonPersonID'))->fetchGroupedUnique();
+    $choicesSelected = $choiceGateway->selectChoicesByPerson($deepLearningEventID, $session->get('gibbonPersonID'))->fetchGroupedUnique();
 
     $signUpText = $settingGateway->getSettingByScope('Deep Learning', 'signUpText');
     $signUpChoices = $settingGateway->getSettingByScope('Deep Learning', 'signUpChoices');
 
+    // Lower the choice limit if there are less options
+    if (count($experiences) < $signUpChoices) {
+        $signUpChoices = count($experiences);
+    }
+
     $choiceList = [1 => __m('First Choice'), 2 => __m('Second Choice'), 3 => __m('Third Choice'), 4 => __m('Fourth Choice'), 5 => __m('Fifth Choice')];
     $choice = [];
     for ($i = 1; $i <= $signUpChoices; $i++) {
-        $choice[$i] = $choices[$i]['deepLearningExperienceID'] ?? '';
+        $choice[$i] = $choicesSelected[$i]['deepLearningExperienceID'] ?? '';
         if ($i == 1 && empty($choice[$i])) $choice[$i] = $deepLearningExperienceID;
     }
     

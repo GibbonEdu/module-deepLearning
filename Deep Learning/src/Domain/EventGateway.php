@@ -108,7 +108,7 @@ class EventGateway extends QueryableGateway
                 "GROUP_CONCAT(DISTINCT deepLearningExperience.name ORDER BY deepLearningChoice.choice SEPARATOR ',') as choices",
 
             ])
-            ->innerJoin('deepLearningEventDate', 'deepLearningEvent.deepLearningEventID=deepLearningEventDate.deepLearningEventID')
+            ->leftJoin('deepLearningEventDate', 'deepLearningEvent.deepLearningEventID=deepLearningEventDate.deepLearningEventID')
             ->leftJoin('deepLearningChoice', 'deepLearningChoice.deepLearningEventID=deepLearningEvent.deepLearningEventID AND deepLearningChoice.gibbonPersonID=:gibbonPersonID')
             ->leftJoin('deepLearningExperience', 'deepLearningExperience.deepLearningExperienceID=deepLearningChoice.deepLearningExperienceID')
             ->bindValue('gibbonPersonID', $gibbonPersonID)
@@ -143,7 +143,7 @@ class EventGateway extends QueryableGateway
         $data = ['gibbonSchoolYearID' => $gibbonSchoolYearID];
         $sql = "SELECT deepLearningEvent.deepLearningEventID as value, deepLearningEvent.name 
                 FROM deepLearningEvent
-                JOIN deepLearningEventDate ON (deepLearningEventDate.deepLearningEventID=deepLearningEvent.deepLearningEventID)
+                LEFT JOIN deepLearningEventDate ON (deepLearningEventDate.deepLearningEventID=deepLearningEvent.deepLearningEventID)
                 WHERE deepLearningEvent.active='Y'
                 AND deepLearningEvent.gibbonSchoolYearID=:gibbonSchoolYearID
                 ORDER BY deepLearningEventDate.eventDate, deepLearningEvent.name";
@@ -191,7 +191,7 @@ class EventGateway extends QueryableGateway
                     COUNT(DISTINCT gibbonYearGroup.gibbonYearGroupID) as yearGroupCount
                 FROM deepLearningEvent
                 JOIN gibbonSchoolYear ON (deepLearningEvent.gibbonSchoolYearID=gibbonSchoolYear.gibbonSchoolYearID) 
-                JOIN deepLearningEventDate ON (deepLearningEvent.deepLearningEventID=deepLearningEventDate.deepLearningEventID)
+                LEFT JOIN deepLearningEventDate ON (deepLearningEvent.deepLearningEventID=deepLearningEventDate.deepLearningEventID)
                 LEFT JOIN gibbonYearGroup ON (FIND_IN_SET(gibbonYearGroup.gibbonYearGroupID, deepLearningEvent.gibbonYearGroupIDList))
                 WHERE deepLearningEvent.deepLearningEventID=:deepLearningEventID
                 GROUP BY deepLearningEvent.deepLearningEventID";

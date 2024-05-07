@@ -184,7 +184,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
     $row = $form->addRow();
         $col = $row->addColumn()->setClass('');
         $col->addLabel('teachersNotes', __('Teacher\'s Notes'));
-        $col->addEditor('teachersNotes', $guid);
+        $col->addEditor('teachersNotes', $guid)->showMedia(true);
 
     $row = $form->addRow();
         $col = $row->addColumn()->setClass('');

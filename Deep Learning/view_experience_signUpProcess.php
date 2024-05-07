@@ -30,7 +30,7 @@ $_POST = $container->get(Validator::class)->sanitize($_POST);
 
 $params = [
     'deepLearningEventID' => $_REQUEST['deepLearningEventID'] ?? '',
-    'deepLearningExperienceID' => $_REQUEST['deepLearningExperienceID'] ?? '',
+    'deepLearningExperienceID' => $_REQUEST['deepLearningExperienceID'] ?? (!empty($_POST['choices'])? current($_POST['choices']) : ''),
 ];
 
 $URL = $session->get('absoluteURL').'/index.php?q=/modules/Deep Learning/view_experience.php&sidebar=false&'.http_build_query($params);
@@ -92,8 +92,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
         exit;
     }
 
-    $Choices = $choiceGateway->selectChoicesByPerson($params['deepLearningEventID'], $gibbonPersonID)->fetchGroupedUnique();
+    // Get experiences and choices
+    $experiences = $experienceGateway->selectExperiencesByEventAndPerson($params['deepLearningEventID'], $gibbonPersonID)->fetchKeyPair();
+    $choicesSelected = $choiceGateway->selectChoicesByPerson($params['deepLearningEventID'], $gibbonPersonID)->fetchGroupedUnique();
     $signUpChoices = $settingGateway->getSettingByScope('Deep Learning', 'signUpChoices');
+
+    // Lower the choice limit if there are less options
+    if (count($experiences) < $signUpChoices) {
+        $signUpChoices = count($experiences);
+    }
 
     // Update the sign up choices
     $choiceIDs = [];
@@ -131,7 +138,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view_experie
             'gibbonPersonIDModified'   => $session->get('gibbonPersonID'),
         ];
 
-        $deepLearningChoiceID = $Choices[$choice]['deepLearningChoiceID'] ?? '';
+        $deepLearningChoiceID = $choicesSelected[$choice]['deepLearningChoiceID'] ?? '';
 
         if (!empty($deepLearningChoiceID)) {
             $partialFail &= !$choiceGateway->update($deepLearningChoiceID, $signUpData);

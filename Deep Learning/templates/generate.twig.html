@@ -134,7 +134,6 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
     data-surname="{{ person.surname }}">
 
     <input type="hidden" name="person[{{ person.gibbonPersonID }}]" value="{{ person.deepLearningExperienceID ?? 0 }}">
-    <!-- <input type="hidden" name="role[{{ person.gibbonPersonID }}]" value="{{ person.role ?? person.type ?? '' }}"> -->
 
     <div>{{ person.preferredName }} {{ person.surname }}</div>
 

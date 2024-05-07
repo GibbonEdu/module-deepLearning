@@ -23,7 +23,7 @@ $description = "Enables schools to implement ICHK's Deep Learning approach, in w
 $entryURL    = "view.php";
 $type        = "Additional";
 $category    = 'Learn';
-$version     = '0.0.11';
+$version     = '0.0.12';
 $author      = 'Sandra Kuipers';
 $url         = 'https://github.com/GibbonEdu';
 
@@ -512,7 +512,7 @@ $actionRows[] = [
     'precedence'                => '0',
     'category'                  => 'Explore',
     'description'               => 'Enables parents to view enrolled Deep Learning events for their children.',
-    'URLList'                   => 'viewDL.php',
+    'URLList'                   => 'viewDL.php,viewMyDL.php',
     'entryURL'                  => 'viewDL.php',
     'entrySidebar'              => 'Y',
     'menuShow'                  => 'Y',

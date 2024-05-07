@@ -1,5 +1,9 @@
 CHANGELOG
 =========
+v0.0.12
+-------
+Update parent permission to include viewMyDL.php page
+
 v0.0.11
 -------
 Added a Print All button to the top of the Deep Learning Overview page

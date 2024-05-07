@@ -41,15 +41,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
     $eventGateway = $container->get(EventGateway::class);
     $experienceGateway = $container->get(ExperienceGateway::class);
-
-    $events = $eventGateway->selectEventsBySchoolYear($session->get('gibbonSchoolYearID'))->fetchKeyPair();
-    $activeEvent = $eventGateway->getNextActiveEvent($session->get('gibbonSchoolYearID'));
     
     $params = [
         'gibbonSchoolYearID' => $_REQUEST['gibbonSchoolYearID'] ?? $session->get('gibbonSchoolYearID'),
         'deepLearningEventID' => $_REQUEST['deepLearningEventID'] ?? $activeEvent ?? '',
         'search'             => $_REQUEST['search'] ?? ''
     ];
+
+    $events = $eventGateway->selectEventsBySchoolYear($params['gibbonSchoolYearID'])->fetchKeyPair();
+    $activeEvent = $eventGateway->getNextActiveEvent($params['gibbonSchoolYearID']);
 
     $page->navigator->addSchoolYearNavigation($params['gibbonSchoolYearID']);
 
@@ -66,6 +66,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         $form->setClass('noIntBorder fullWidth');
 
         $form->addHiddenValue('q', '/modules/Deep Learning/experience_manage.php');
+        $form->addHiddenValue('gibbonSchoolYearID', $params['gibbonSchoolYearID']);
 
         $row = $form->addRow();
             $row->addLabel('deepLearningEventID', __('Event'));
@@ -77,7 +78,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
         $row = $form->addRow();
             $row->addFooter();
-            $row->addSearchSubmit($session, 'Clear Filters', ['view', 'sidebar']);
+            $row->addSearchSubmit($session, 'Clear Filters', ['view', 'sidebar', 'gibbonSchoolYearID']);
 
         echo $form->getOutput();
     }

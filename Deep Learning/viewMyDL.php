@@ -41,6 +41,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/viewMyDL.php
 
     $roleCategory = $session->get('gibbonRoleIDCurrentCategory');
 
+    if ($roleCategory == 'Parent') {
+        include 'viewDL.php';
+        return;
+    }
+
     $canSignUp = isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php', 'Deep Learning Events_signUp');
     $canView = isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php');
     $canViewInactive = isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php', 'Deep Learning Events_viewInactive');
@@ -127,8 +132,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/viewMyDL.php
                     if (!empty($values['enrolment'])) {
                         $url = Url::fromModuleRoute('Deep Learning', 'view_experience.php')->withQueryParams(['deepLearningEventID' => $values['deepLearningEventID'], 'deepLearningExperienceID' => $values['enrolment']['deepLearningExperienceID'], 'sidebar' => 'false']);
                         return Format::small(__m('Enrolled in')).':<br>'.Format::link($url, $values['enrolment']['name']);
-                    } else {
-                        return '';
                     }
                 }
 

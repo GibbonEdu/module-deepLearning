@@ -75,3 +75,8 @@ $sql[$count][1] = "INSERT INTO `gibbonHook` (`gibbonHookID`, `name`, `type`, `op
 $sql[$count][0] = "0.0.11";
 $sql[$count][1] = "
 ";
+
+// v0.0.12
+$sql[$count][0] = "0.0.12";
+$sql[$count][1] = "UPDATE `gibbonAction` SET `URLList`='viewDL.php,viewMyDL.php' WHERE gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Deep Learning') AND name='View Deep Learning_myChildren';end
+";
