@@ -126,6 +126,49 @@ class ExperienceGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
+    public function syncExperienceMessengerGroup($deepLearningExperienceID)
+    {
+        $data = ['deepLearningExperienceID' => $deepLearningExperienceID];
+        $sql = "DELETE `gibbonGroupPerson` 
+            FROM `gibbonGroupPerson` 
+            JOIN deepLearningExperience ON (deepLearningExperience.gibbonGroupID=gibbonGroupPerson.gibbonGroupID)
+            LEFT JOIN deepLearningEnrolment ON (deepLearningEnrolment.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID AND gibbonGroupPerson.gibbonPersonID=deepLearningEnrolment.gibbonPersonID)
+            LEFT JOIN deepLearningStaff ON (deepLearningStaff.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID AND gibbonGroupPerson.gibbonPersonID=deepLearningStaff.gibbonPersonID)
+            WHERE deepLearningExperience.deepLearningExperienceID=:deepLearningExperienceID
+            AND deepLearningExperience.gibbonGroupID IS NOT NULL
+            AND deepLearningEnrolment.deepLearningEnrolmentID IS NULL
+            AND deepLearningStaff.deepLearningStaffID IS NULL
+        ";
+
+        $this->db()->statement($sql, $data);
+
+        $data = ['deepLearningExperienceID' => $deepLearningExperienceID];
+        $sql = "INSERT INTO `gibbonGroupPerson` (`gibbonGroupID`, `gibbonPersonID`) 
+            SELECT deepLearningExperience.gibbonGroupID, deepLearningEnrolment.gibbonPersonID
+            FROM deepLearningExperience
+            JOIN deepLearningEnrolment ON (deepLearningEnrolment.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID AND deepLearningEnrolment.status='Confirmed')
+            LEFT JOIN gibbonGroupPerson as groupPerson ON (groupPerson.gibbonGroupID=deepLearningExperience.gibbonGroupID AND groupPerson.gibbonPersonID=deepLearningEnrolment.gibbonPersonID)
+            WHERE deepLearningExperience.deepLearningExperienceID=:deepLearningExperienceID
+            AND deepLearningExperience.gibbonGroupID IS NOT NULL
+            AND groupPerson.gibbonGroupPersonID IS NULL
+        ";
+
+        $this->db()->statement($sql, $data);
+
+        $data = ['deepLearningExperienceID' => $deepLearningExperienceID];
+        $sql = "INSERT INTO `gibbonGroupPerson` (`gibbonGroupID`, `gibbonPersonID`) 
+            SELECT deepLearningExperience.gibbonGroupID, deepLearningStaff.gibbonPersonID
+            FROM deepLearningExperience
+            JOIN deepLearningStaff ON (deepLearningStaff.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID)
+            LEFT JOIN gibbonGroupPerson as groupPerson ON (groupPerson.gibbonGroupID=deepLearningExperience.gibbonGroupID AND groupPerson.gibbonPersonID=deepLearningStaff.gibbonPersonID)
+            WHERE deepLearningExperience.deepLearningExperienceID=:deepLearningExperienceID
+            AND deepLearningExperience.gibbonGroupID IS NOT NULL
+            AND groupPerson.gibbonGroupPersonID IS NULL
+        ";
+
+        return $this->db()->statement($sql, $data);
+    }
+
     public function selectExperiences()
     {
         $sql = "SELECT deepLearningEvent.name as eventName, deepLearningEvent.deepLearningEventID, deepLearningExperience.deepLearningExperienceID, deepLearningExperience.name 

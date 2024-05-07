@@ -170,7 +170,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
                 // Update to attach the group to the trip planner
                 $experienceTripGateway->updateTripRequest($tripPlannerRequestID, ['messengerGroupID' => $gibbonGroupID]);
+                $experienceGateway->update($params['deepLearningExperienceID'], ['gibbonGroupID' => $gibbonGroupID]);
             }
+        } else {
+            $experienceTripGateway->updateTripRequest($tripPlannerRequestID, ['messengerGroupID' => $experience['gibbonGroupID']]);
         }
 
         // Update the trip request and experience to link to each other
@@ -197,10 +200,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
         // Sync trip participants
         if ($syncParticipants == 'Y') {
-            $experienceTripGateway->updateTripRequest($tripPlannerRequestID, ['deepLearningSync' => 'Y']);
+            $experienceTripGateway->updateTripRequest($tripPlannerRequestID, [
+                'deepLearningSync' => 'Y', 
+                'gibbonGroupID' => $experience['gibbonGroupID'],
+            ]);
             $experienceTripGateway->syncTripStaff($params['deepLearningExperienceID']);
             $experienceTripGateway->syncTripStudents($params['deepLearningExperienceID']);
             $experienceTripGateway->syncTripGroups($params['deepLearningExperienceID']);
+            $experienceGateway->syncExperienceMessengerGroup($params['deepLearningExperienceID']);
         }
     }
 

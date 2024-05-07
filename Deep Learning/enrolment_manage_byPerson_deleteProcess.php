@@ -119,6 +119,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
         $experienceTripGateway->syncTripGroups($enrolment['deepLearningExperienceID']);
     }
 
+    // Sync the messenger group (leaving)
+    $experienceGateway->syncExperienceMessengerGroup($enrolment['deepLearningExperienceID']);
+
     $URL .= !$deleted
         ? '&return=error2'
         : '&return=success0';

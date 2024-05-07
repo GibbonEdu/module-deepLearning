@@ -118,6 +118,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
             ->addCheckAllNone()
             ->loadFromCSV($values);
 
+    if (!empty($values['gibbonGroupID'])) {
+        $url = Url::fromModuleRoute('Messenger', 'groups_manage_edit')->withQueryParams(['gibbonGroupID' => $values['gibbonGroupID']]);
+        $row = $form->addRow();
+        $row->addLabel('messengerGroup', __m('Messenger Group'))->description(__m('This messenger group was created automatically when the Experience was created.'));
+        $row->addContent(Format::link($url, __m('View Group')));
+    } else {
+        $row = $form->addRow();
+            $row->addLabel('createGroup', __m('Create Messenger Group?'));
+            $row->addYesNo('createGroup')
+                ->selected('N');
+    }
+
     // VENUES
     $form->addRow()->addHeading(__m('Venues'))->append(__m('A venue can be assigned to an experience for each day of the Deep Learning event. These are then used for generating reports as well as helping book rooms for the event.'));
 

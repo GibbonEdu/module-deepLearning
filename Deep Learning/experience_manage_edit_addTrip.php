@@ -23,6 +23,7 @@ use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Module\DeepLearning\Domain\EventDateGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceTripGateway;
+use Gibbon\Services\Format;
 
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_manage_edit.php') == false) {
@@ -96,9 +97,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         $row->addLabel('tripName', __m('Trip Name'));
         $row->addTextField('tripName')->required()->maxLength(60)->setValue($experience['eventNameShort'].' '.$experience['name']);
 
-    $row = $form->addRow()->addClass('newTrips');
-        $row->addLabel('createMessengerGroup', __m('Create messenger group?'));
-        $row->addYesNo('createMessengerGroup')->placeholder()->required()->selected('Y');
+    if (empty($experience['gibbonGroupID'])) {
+        $row = $form->addRow()->addClass('newTrips');
+            $row->addLabel('createMessengerGroup', __m('Create messenger group?'));
+            $row->addYesNo('createMessengerGroup')->placeholder()->required()->selected('Y');
+    }
 
     $form->toggleVisibilityByClass('existingTrips')->onSelect('type')->when('existing');
 

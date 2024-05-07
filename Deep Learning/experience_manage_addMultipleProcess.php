@@ -23,6 +23,7 @@ use Gibbon\Module\DeepLearning\Domain\UnitGateway;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 use Gibbon\Module\DeepLearning\Domain\StaffGateway;
+use Gibbon\Domain\Messenger\GroupGateway;
 
 require_once '../../gibbon.php';
 
@@ -45,6 +46,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
     $experienceGateway = $container->get(ExperienceGateway::class);
     $staffGateway = $container->get(StaffGateway::class);
+    $groupGateway = $container->get(GroupGateway::class);
     
     $data = [
         'deepLearningEventID'    => $_POST['deepLearningEventID'] ?? '',
@@ -104,6 +106,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         ]);
 
         $partialFail = !$deepLearningStaffID;
+
+        // Create the group
+        $gibbonGroupID = $groupGateway->insertGroup([
+            'gibbonPersonIDOwner' => $experience['gibbonPersonID'],
+            'gibbonSchoolYearID'  => $params['gibbonSchoolYearID'],
+            'name'                => $data['name'],
+        ]);
+
+        // Attach the group to the experience
+        $experienceGateway->update($deepLearningExperienceID, [
+            'gibbonGroupID' => $gibbonGroupID,
+        ]);
+
+        // Sync the Messenger Group participants
+        $experienceGateway->syncExperienceMessengerGroup($deepLearningExperienceID);
     }
     
     $URL .= $partialFail

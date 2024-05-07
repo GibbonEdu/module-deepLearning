@@ -95,16 +95,20 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
         $staffGateway->deleteStaffByEvent($params['deepLearningEventID'], $gibbonPersonID);
     }
 
-    // Sync Trip Planner Staff
+    // Sync Trip Planner Staff and Messenger Group
     $experienceTripGateway = $container->get(ExperienceTripGateway::class);
     $tripPlanner = $experienceTripGateway->getTripPlannerModule();
-    if (!empty($tripPlanner)) {
-        $experiences = array_unique($experiences);
-        foreach ($experiences as $deepLearningExperienceID) {
+    
+    $experiences = array_unique($experiences);
+    foreach ($experiences as $deepLearningExperienceID) {
+        $experienceGateway->syncExperienceMessengerGroup($deepLearningExperienceID);
+
+        if (!empty($tripPlanner)) {
             $experienceTripGateway->syncTripStaff($deepLearningExperienceID);
             $experienceTripGateway->syncTripGroups($deepLearningExperienceID);
         }
     }
+    
 
     $URL .= $partialFail
         ? "&return=warning1"

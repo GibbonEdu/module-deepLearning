@@ -80,3 +80,9 @@ $sql[$count][1] = "
 $sql[$count][0] = "0.0.12";
 $sql[$count][1] = "UPDATE `gibbonAction` SET `URLList`='viewDL.php,viewMyDL.php' WHERE gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Deep Learning') AND name='View Deep Learning_myChildren';end
 ";
+
+// v0.0.13
+$sql[$count][0] = "0.0.13";
+$sql[$count][1] = "ALTER TABLE `deepLearningExperience` ADD `gibbonGroupID` INT(8) UNSIGNED ZEROFILL NULL AFTER `active`;end
+UPDATE deepLearningExperience SET gibbonGroupID=(SELECT tripPlannerRequests.messengerGroupID FROM deepLearningExperienceTrip JOIN tripPlannerRequests ON (tripPlannerRequests.tripPlannerRequestID=deepLearningExperienceTrip.tripPlannerRequestID) WHERE deepLearningExperienceTrip.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID AND tripPlannerRequests.messengerGroupID IS NOT NULL ORDER BY deepLearningExperienceTripID LIMIT 1) WHERE deepLearningExperience.gibbonGroupID IS NULL;end
+";

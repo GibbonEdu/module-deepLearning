@@ -181,15 +181,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
         $event->sendNotifications($pdo, $session);
     }
 
-    // Sync Trip Planner Students
+    // Sync Trip Planner Students and Messenger Group
     $experienceTripGateway = $container->get(ExperienceTripGateway::class);
     $tripPlanner = $experienceTripGateway->getTripPlannerModule();
-    if (!empty($tripPlanner)) {
-        foreach ($experiences as $deepLearningExperienceID) {
+    foreach ($experiences as $deepLearningExperienceID) {
+        $experienceGateway->syncExperienceMessengerGroup($deepLearningExperienceID);
+
+        if (!empty($tripPlanner)) {
             $experienceTripGateway->syncTripStudents($deepLearningExperienceID);
             $experienceTripGateway->syncTripGroups($deepLearningExperienceID);
         }
+        
     }
+    
 
     $URL .= $partialFail
         ? "&return=warning1"

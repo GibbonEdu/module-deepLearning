@@ -1,5 +1,9 @@
 CHANGELOG
 =========
+v0.0.13
+-------
+Added the ability to attach Messenger Groups directly to Experiences
+
 v0.0.12
 -------
 Update parent permission to include viewMyDL.php page

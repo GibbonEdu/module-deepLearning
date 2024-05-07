@@ -165,6 +165,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
             $experienceTripGateway->syncTripGroups($enrolment['deepLearningExperienceID']);
         }
     }
+
+    // Sync the messenger group (entering)
+    if (!empty($data['deepLearningExperienceID'])) {
+        $experienceGateway->syncExperienceMessengerGroup($data['deepLearningExperienceID']);
+    }
+
+    // Sync the messenger group (leaving)
+    if (!empty($enrolment['deepLearningExperienceID']) && $enrolment['deepLearningExperienceID'] != $data['deepLearningExperienceID']) {
+        $experienceGateway->syncExperienceMessengerGroup($enrolment['deepLearningExperienceID']);
+    }
+    
     
     $URL .= $params['mode'] == 'add' && empty($deepLearningEnrolmentID)
         ? "&return=warning1"

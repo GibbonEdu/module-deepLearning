@@ -24,6 +24,7 @@ use Gibbon\Module\DeepLearning\Domain\UnitGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 use Gibbon\Module\DeepLearning\Domain\StaffGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceTripGateway;
+use Gibbon\Domain\Messenger\GroupGateway;
 
 require_once '../../gibbon.php';
 
@@ -74,7 +75,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     }
 
     // Validate the database relationships exist
-    if (!$experienceGateway->exists($params['deepLearningExperienceID'])) {
+    $values = $experienceGateway->getByID($params['deepLearningExperienceID']);
+    if (empty($values)) {
         $URL .= '&return=error2';
         header("Location: {$URL}");
         exit;
@@ -85,6 +87,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         $URL .= '&return=error7';
         header("Location: {$URL}");
         exit;
+    }
+
+    // Update or create the group, if needed
+    $groupGateway = $container->get(GroupGateway::class);
+    $createGroup = $_POST['createGroup'] ?? 'N';
+    
+    if (empty($values['gibbonGroupID']) && $createGroup == 'Y') {
+        $data['gibbonGroupID'] = $groupGateway->insertGroup([
+            'gibbonPersonIDOwner' => $session->get('gibbonPersonID'),
+            'gibbonSchoolYearID'  => $params['gibbonSchoolYearID'],
+            'name'                => $data['name'],
+        ]);
     }
 
     // Update the record
@@ -125,6 +139,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         $experienceTripGateway->syncTripStudents($params['deepLearningExperienceID']);
         $experienceTripGateway->syncTripGroups($params['deepLearningExperienceID']);
     }
+
+    // Sync the Messenger Group
+    $experienceGateway->syncExperienceMessengerGroup($params['deepLearningExperienceID']);
 
     $URL .= !$updated || $partialFail
         ? "&return=warning1"
