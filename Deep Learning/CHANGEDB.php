@@ -86,3 +86,10 @@ $sql[$count][0] = "0.0.13";
 $sql[$count][1] = "ALTER TABLE `deepLearningExperience` ADD `gibbonGroupID` INT(8) UNSIGNED ZEROFILL NULL AFTER `active`;end
 UPDATE deepLearningExperience SET gibbonGroupID=(SELECT tripPlannerRequests.messengerGroupID FROM deepLearningExperienceTrip JOIN tripPlannerRequests ON (tripPlannerRequests.tripPlannerRequestID=deepLearningExperienceTrip.tripPlannerRequestID) WHERE deepLearningExperienceTrip.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID AND tripPlannerRequests.messengerGroupID IS NOT NULL ORDER BY deepLearningExperienceTripID LIMIT 1) WHERE deepLearningExperience.gibbonGroupID IS NULL;end
 ";
+
+//v0.1.00
+++$count;
+$sql[$count][0] = '0.1.00';
+$sql[$count][1] = "
+UPDATE gibbonModule SET author='Gibbon Foundation', url='https://gibbonedu.org' WHERE name='Deep Learning';end
+";

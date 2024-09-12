@@ -1,5 +1,9 @@
 CHANGELOG
 =========
+v0.1.00
+-------
+Transferred ownership from Ross Parker to Gibbon Foundation
+
 v0.0.13
 -------
 Added the ability to attach Messenger Groups directly to Experiences
