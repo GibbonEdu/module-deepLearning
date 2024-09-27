@@ -200,6 +200,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/viewMyDL.php
                     $actions->addAction('edit', __('Edit'))
                             ->setURL('/modules/Deep Learning/experience_manage.php');
                 }
+
+                if ($canManage && count($values['staff']) == 1 && !empty($staff['gibbonGroupID'])) {
+                    $actions->addAction('attendance', __('Attendance'))
+                            ->setURL('/modules/Attendance/attendance_take_adHoc.php')
+                            ->setIcon('attendance')
+                            ->addParams(['gibbonGroupID' => $staff['gibbonGroupID'], 'target' => 'Messenger', 'currentDate' => Format::date(date('Y-m-d'))]);
+                }
             }
             elseif ($roleCategory == 'Student') {
                 if (empty($values['signUpEvent'])) {

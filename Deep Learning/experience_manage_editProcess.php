@@ -84,6 +84,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         exit;
     }
 
+    // Validate that the relational data exists
+    $event = $eventGateway->getByID($values['deepLearningEventID']);
+    if (empty($event)) {
+        $URL .= '&return=error2';
+        header("Location: {$URL}");
+        exit;
+    }
+
     // Validate that this record is unique
     if (!$experienceGateway->unique($data, ['name', 'deepLearningEventID'], $params['deepLearningExperienceID'])) {
         $URL .= '&return=error7';
@@ -99,7 +107,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         $data['gibbonGroupID'] = $groupGateway->insertGroup([
             'gibbonPersonIDOwner' => $session->get('gibbonPersonID'),
             'gibbonSchoolYearID'  => $params['gibbonSchoolYearID'],
-            'name'                => $data['name'],
+            'name'                => $event['nameShort'].' '.$data['name'],
         ]);
     }
 

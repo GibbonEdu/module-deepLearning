@@ -26,6 +26,7 @@ use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
 use Gibbon\Http\Url;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Domain\School\YearGroupGateway;
+use Gibbon\Module\DeepLearning\Domain\ExperienceTripGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_manage.php') == false) {
     // Access denied
@@ -36,6 +37,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         ->add(__m('Manage Experiences'));
 
     $highestAction = getHighestGroupedAction($guid, $_GET['q'], $connection2);
+    $highestTripAction = getHighestGroupedAction($guid, '/modules/Trip Planner/trips_manage.php', $connection2);
     if (empty($highestAction)) {
         $page->addError(__('You do not have access to this action.'));
         return;
@@ -43,10 +45,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
     $eventGateway = $container->get(EventGateway::class);
     $experienceGateway = $container->get(ExperienceGateway::class);
+    $experienceTripGateway = $container->get(ExperienceTripGateway::class);
     
     $params = [
         'gibbonSchoolYearID' => $_REQUEST['gibbonSchoolYearID'] ?? $session->get('gibbonSchoolYearID'),
-        'deepLearningEventID' => $_REQUEST['deepLearningEventID'] ?? $activeEvent ?? '',
+        'deepLearningEventID' => $_REQUEST['deepLearningEventID'] ?? null,
         'search'             => $_REQUEST['search'] ?? ''
     ];
 
@@ -58,7 +61,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     // Setup criteria
     $criteria = $experienceGateway->newQueryCriteria(true)
         ->searchBy($experienceGateway->getSearchableColumns(), $params['search'])
-        ->filterBy('event', $highestAction == 'Manage Experiences_all' ?$params['deepLearningEventID'] : null)
+        ->filterBy('event', $highestAction == 'Manage Experiences_all' ?($params['deepLearningEventID'] ?? $activeEvent) : null)
         ->sortBy(['eventName', 'name'])
         ->fromPOST();
 
@@ -72,7 +75,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
         $row = $form->addRow();
             $row->addLabel('deepLearningEventID', __('Event'));
-            $row->addSelect('deepLearningEventID')->fromArray($events)->placeholder()->selected($params['deepLearningEventID']);
+            $row->addSelect('deepLearningEventID')->fromArray($events)->placeholder()->selected($params['deepLearningEventID'] ?? $activeEvent);
 
         $row = $form->addRow();
             $row->addLabel('search', __('Search For'))->description(__m('Experience name, unit name, event name'));
@@ -88,7 +91,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     // Query experiences
     $gibbonPersonID = $highestAction == 'Manage Experiences_my' ? $session->get('gibbonPersonID') : null;
     $yearGroupCount = $container->get(YearGroupGateway::class)->getYearGroupCount();
+
     $experiences = $experienceGateway->queryExperiences($criteria, $params['gibbonSchoolYearID'], $gibbonPersonID);
+    $tripRequests = !empty($highestTripAction)
+        ? $experienceTripGateway->selectDeepLearningTripRequests($params['gibbonSchoolYearID'])->fetchKeyPair()
+        : [];
 
     // Render table
     $table = DataTable::createPaginated('experiences', $criteria);
@@ -126,14 +133,25 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
     $table->addColumn('tripLeaders', __m('Trip Leader(s)'));
 
+    if (!empty($highestTripAction)) {
+        $table->addColumn('tripPlan', __('Trip Plan'))
+            ->format(function ($values) use ($tripRequests, $params) {
+                $tripPlannerRequestID = $tripRequests[$values['deepLearningExperienceID']] ?? [];
+                if (empty($tripPlannerRequestID)) return '';
+
+                $url = Url::fromModuleRoute('Trip Planner', 'trips_requestView.php')->withQueryParams(['gibbonSchoolYearID' => $params['gibbonSchoolYearID'], 'tripPlannerRequestID' => $tripPlannerRequestID]);
+                return Format::link($url, __('View'));
+            });
+    }
+
     $table->addColumn('teacherCount', __('Teachers'))
-        ->width('10%');
+        ->width('8%');
 
     $table->addColumn('supportCount', __('Support'))
-        ->width('10%');
+        ->width('8%');
 
     $table->addColumn('studentCount', __('Students'))
-        ->width('10%');
+        ->width('8%');
 
     $table->addColumn('active', __('Active'))
         ->format(Format::using('yesNo', 'active'))

@@ -100,7 +100,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_overv
     // Get staff access details
     $staffByExperience = $container->get(StaffGateway::class)->selectStaffByEventAndPerson($params['deepLearningEventID'], $session->get('gibbonPersonID'))->fetchGroupedUnique();
 
-    $experiences = $experienceGateway->selectExperiencesByEvent($params['deepLearningEventID'])->fetchKeyPair();
+    $experiences = $experienceGateway->selectExperienceDetailsByEvent($params['deepLearningEventID'])->fetchGroupedUnique();
 
     if (!empty($params['deepLearningExperienceID'])) {
         $experiences = [$params['deepLearningExperienceID'] => $experiences[$params['deepLearningExperienceID']] ?? ''];
@@ -123,7 +123,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_overv
     }
 
     // TABLES
-    foreach ($experiences as $deepLearningExperienceID => $experienceName) {
+    foreach ($experiences as $deepLearningExperienceID => $experience) {
 
         $_GET['deepLearningExperienceID'] = $deepLearningExperienceID;
         $staff = $staffByExperience[$deepLearningExperienceID] ?? [];
@@ -136,7 +136,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_overv
         $enrolment = $enrolmentGateway->queryEnrolmentByExperience($criteria, $deepLearningExperienceID);
 
         $table = ReportTable::createPaginated('report_overview'.$deepLearningExperienceID, $criteria)->setViewMode($viewMode, $session);
-        $table->setTitle($experienceName);
+        $table->setTitle($experience['name']);
+        $table->setDescription(__m('Location').': '.$experience['location'].(!empty($experience['provider']) ? ' ('.__m('Provider').': '.$experience['provider'].')' : ''));
 
         $table->modifyRows(function($values, $row) {
             if ($values['role'] == 'Trip Leader') $row->addClass('success');

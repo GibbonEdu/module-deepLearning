@@ -95,6 +95,18 @@ class ExperienceTripGateway extends QueryableGateway
         return $this->db()->select($sql, $data);
     }
 
+    public function selectDeepLearningTripRequests($gibbonSchoolYearID)
+    {
+        $data = ['gibbonSchoolYearID' => $gibbonSchoolYearID];
+        $sql = "SELECT deepLearningExperienceTrip.deepLearningExperienceID, tripPlannerRequests.tripPlannerRequestID
+                FROM deepLearningExperienceTrip
+                JOIN tripPlannerRequests ON (deepLearningExperienceTrip.tripPlannerRequestID=tripPlannerRequests.tripPlannerRequestID)
+                
+                WHERE tripPlannerRequests.gibbonSchoolYearID=:gibbonSchoolYearID";
+
+        return $this->db()->select($sql, $data);
+    }
+
     public function selectTripRequestsByCreator($gibbonSchoolYearID, $gibbonPersonID)
     {
         $data = ['gibbonSchoolYearID' => $gibbonSchoolYearID, 'gibbonPersonID' => $gibbonPersonID];
@@ -208,8 +220,11 @@ class ExperienceTripGateway extends QueryableGateway
 
         $data = ['deepLearningExperienceID' => $deepLearningExperienceID, 'tripPlannerRequestID' => $tripPlannerRequestID];
         $sql = "UPDATE tripPlannerRequests SET deepLearningExperienceID=:deepLearningExperienceID WHERE tripPlannerRequestID=:tripPlannerRequestID";
+        $this->db()->update($sql, $data);
 
-        return $this->db()->update($sql, $data);
+        $data = ['tripPlannerRequestID' => $tripPlannerRequestID];
+        $sql = "SELECT * FROM tripPlannerRequests WHERE tripPlannerRequestID=:tripPlannerRequestID";
+        return $this->db()->selectOne($sql, $data);
     }
 
     public function insertTripRequest($data)

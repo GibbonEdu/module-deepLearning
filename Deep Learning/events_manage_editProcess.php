@@ -134,13 +134,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     // Cleanup dates that have been deleted
     $dateGateway->deleteDatesNotInList($deepLearningEventID, $dateIDs);
 
-    // Remove orphaned blocks
-    if (!empty($dateIDs)) {
-        $data = ['deepLearningEventID' => $deepLearningEventID, 'dateIDs' => implode(',', $dateIDs)];
-        $sql = "DELETE FROM deepLearningDate WHERE deepLearningEventID=:deepLearningEventID AND NOT FIND_IN_SET(deepLearningEventDateID, :dateIDs)";
-        $pdo->statement($sql, $data);
-    }
-
     if (!$updated) {
       $URL .= "&return=error2";
     } else if ($partialFail) {

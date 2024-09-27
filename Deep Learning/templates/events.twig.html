@@ -34,7 +34,7 @@ For info about editing, see: https://twig.symfony.com/doc/2.x/
             
             <div class="{{ hasBackground ? 'text-white' : 'text-gray-600' }} text-xs font-thin">
                 {% for date in event.eventDates|split(',') %}
-                    {{- formatUsing('dateReadable', date, '%b %e') -}}
+                    {{- formatUsing('dateReadable', date, 102) -}}
                     {{- not loop.last ? ', ' -}}
                 {% endfor %}
             </div>

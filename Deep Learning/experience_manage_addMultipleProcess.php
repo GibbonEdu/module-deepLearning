@@ -113,7 +113,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         $gibbonGroupID = $groupGateway->insertGroup([
             'gibbonPersonIDOwner' => $experience['gibbonPersonID'],
             'gibbonSchoolYearID'  => $params['gibbonSchoolYearID'],
-            'name'                => $data['name'],
+            'name'                => $event['nameShort'].' '.$data['name'],
         ]);
 
         // Attach the group to the experience

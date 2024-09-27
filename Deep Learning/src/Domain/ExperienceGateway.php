@@ -213,7 +213,8 @@ class ExperienceGateway extends QueryableGateway
         $data = ['deepLearningEventID' => $deepLearningEventID];
         $sql = "SELECT deepLearningExperience.deepLearningExperienceID as groupBy, deepLearningExperience.*, 
                     deepLearningUnit.enrolmentMin, deepLearningUnit.enrolmentMax,
-                    COUNT(DISTINCT deepLearningEnrolment.deepLearningEnrolmentID) as enrolmentCount
+                    COUNT(DISTINCT deepLearningEnrolment.deepLearningEnrolmentID) as enrolmentCount,
+                    deepLearningUnit.location, deepLearningUnit.cost, deepLearningUnit.provider, deepLearningUnit.majors, deepLearningUnit.minors
                 FROM deepLearningExperience 
                 JOIN deepLearningUnit ON (deepLearningUnit.deepLearningUnitID=deepLearningExperience.deepLearningUnitID)
                 LEFT JOIN deepLearningEnrolment ON (deepLearningEnrolment.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID AND deepLearningEnrolment.status='Confirmed')

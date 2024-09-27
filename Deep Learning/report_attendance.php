@@ -27,7 +27,7 @@ use Gibbon\Module\DeepLearning\Domain\EnrolmentGateway;
 use Gibbon\Forms\DatabaseFormFactory;
 use Gibbon\Http\Url;
 
-if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_notEnrolled.php') == false) {
+if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_attendance.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {

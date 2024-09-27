@@ -148,6 +148,7 @@ class StaffGateway extends QueryableGateway
         $sql = "SELECT deepLearningExperience.deepLearningExperienceID,
                     deepLearningExperience.deepLearningEventID,
                     deepLearningExperience.name,
+                    deepLearningExperience.gibbonGroupID,
                     deepLearningStaff.deepLearningStaffID,
                     deepLearningStaff.gibbonPersonID,
                     deepLearningStaff.role,

@@ -198,13 +198,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         }
 
         // Update the trip request and experience to link to each other
-        $experienceTripGateway->attachTripRequest($params['deepLearningExperienceID'], $tripPlannerRequestID, $deepLearningEventDateIDList);
+        $tripRequest = $experienceTripGateway->attachTripRequest($params['deepLearningExperienceID'], $tripPlannerRequestID, $deepLearningEventDateIDList);
+
+        // Update the experience group if the trip already has one and the experience doesn't
+        if (empty($experience['gibbonGroupID']) && !empty($tripRequest['messengerGroupID'])) {
+            $experience['gibbonGroupID'] = $tripRequest['messengerGroupID'];
+            $experienceGateway->update($params['deepLearningExperienceID'], ['gibbonGroupID' => $experience['gibbonGroupID']]);
+        }
 
         // Sync trip participants
         if ($syncParticipants == 'Y') {
             $experienceTripGateway->updateTripRequest($tripPlannerRequestID, [
                 'deepLearningSync' => 'Y', 
-                'gibbonGroupID' => $experience['gibbonGroupID'],
+                'messengerGroupID' => $experience['gibbonGroupID'],
             ]);
             $experienceTripGateway->syncTripStaff($params['deepLearningExperienceID']);
             $experienceTripGateway->syncTripStudents($params['deepLearningExperienceID']);
