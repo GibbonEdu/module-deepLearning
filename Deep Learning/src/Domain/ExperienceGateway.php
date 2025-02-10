@@ -52,6 +52,7 @@ class ExperienceGateway extends QueryableGateway
                 'deepLearningExperience.deepLearningExperienceID',
                 'deepLearningExperience.name',
                 'deepLearningExperience.active',
+                'deepLearningExperience.gibbonGroupID',
                 "REPLACE(GROUP_CONCAT(DISTINCT gibbonYearGroup.nameShort ORDER BY gibbonYearGroup.sequenceNumber SEPARATOR ', '),'Y0','Y') AS yearGroups",
                 "COUNT(DISTINCT gibbonYearGroup.gibbonYearGroupID) as yearGroupCount",
                 "GROUP_CONCAT(DISTINCT CONCAT(gibbonPerson.preferredName, ' ', gibbonPerson.surname) ORDER BY gibbonPerson.surname SEPARATOR '<br/>') as tripLeaders",
@@ -107,6 +108,7 @@ class ExperienceGateway extends QueryableGateway
                 'deepLearningExperience.deepLearningExperienceID',
                 'deepLearningExperience.name',
                 'deepLearningExperience.active',
+                'deepLearningExperience.gibbonGroupID',
                 'deepLearningUnit.enrolmentMin',
                 'deepLearningUnit.enrolmentMax',
                 'deepLearningUnit.headerImage',
@@ -213,11 +215,16 @@ class ExperienceGateway extends QueryableGateway
         $data = ['deepLearningEventID' => $deepLearningEventID];
         $sql = "SELECT deepLearningExperience.deepLearningExperienceID as groupBy, deepLearningExperience.*, 
                     deepLearningUnit.enrolmentMin, deepLearningUnit.enrolmentMax,
-                    COUNT(DISTINCT deepLearningEnrolment.deepLearningEnrolmentID) as enrolmentCount,
+                    enrolment.count as enrolmentCount,
                     deepLearningUnit.location, deepLearningUnit.cost, deepLearningUnit.provider, deepLearningUnit.majors, deepLearningUnit.minors
                 FROM deepLearningExperience 
                 JOIN deepLearningUnit ON (deepLearningUnit.deepLearningUnitID=deepLearningExperience.deepLearningUnitID)
-                LEFT JOIN deepLearningEnrolment ON (deepLearningEnrolment.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID AND deepLearningEnrolment.status='Confirmed')
+                LEFT JOIN (
+                    SELECT COUNT(DISTINCT deepLearningEnrolment.deepLearningEnrolmentID) as count, deepLearningEnrolment.deepLearningExperienceID FROM deepLearningEnrolment
+                    JOIN gibbonPerson ON (deepLearningEnrolment.gibbonPersonID=gibbonPerson.gibbonPersonID)
+                    WHERE gibbonPerson.status='Full' AND deepLearningEnrolment.status='Confirmed'
+                    GROUP BY deepLearningEnrolment.deepLearningExperienceID
+                ) as enrolment ON (enrolment.deepLearningExperienceID=deepLearningExperience.deepLearningExperienceID)
                 WHERE deepLearningExperience.deepLearningEventID=:deepLearningEventID
                 AND deepLearningExperience.active='Y'
                 GROUP BY deepLearningExperience.deepLearningExperienceID

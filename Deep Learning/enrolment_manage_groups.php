@@ -57,7 +57,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
 
     // FILTER
     $form = Form::create('filter', $session->get('absoluteURL').'/index.php', 'get');
-    $form->setClass('noIntBorder fullWidth');
+    $form->setClass('noIntBorder w-full');
 
     $form->addHiddenValue('q', '/modules/'.$session->get('module').'/enrolment_manage_groups.php');
     $form->addHiddenValue('address', $session->get('address'));
@@ -67,7 +67,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
     $row->addSelect('deepLearningEventID')->fromArray($events)->selected($params['deepLearningEventID']);
 
     $row = $form->addRow();
-        $row->addFooter();
         $row->addSearchSubmit($session);
 
     echo $form->getOutput();
@@ -120,7 +119,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
         'mode' => 'student',
     ]));
 
-    $table = $form->addRow()->addTable()->setClass('smallIntBorder fullWidth');
+    $table = $form->addRow()->addTable()->setClass('smallIntBorder w-full');
     $row = $table->addRow()->addSubmit(__('Submit'));
     
     echo $form->getOutput();

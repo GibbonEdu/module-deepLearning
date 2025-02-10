@@ -94,7 +94,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
         $experiences = $experienceGateway->selectExperienceDetailsByEvent($params['deepLearningEventID'])->fetchGroupedUnique();
         $choiceCounts = $choiceGateway->selectChoiceCountsByEvent($params['deepLearningEventID'])->fetchGroupedUnique();
 
-        $table = $form->addRow()->addTable()->setClass('mini fullWidth');
+        $table = $form->addRow()->addTable()->setClass('mini w-full');
         $table->addClass('bulkActionForm colorOddEven');
 
         $header = $table->addHeaderRow();
@@ -186,7 +186,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
             'mode' => 'student',
         ]));
 
-        $table = $form->addRow()->addTable()->setClass('smallIntBorder fullWidth');
+        $table = $form->addRow()->addTable()->setClass('smallIntBorder w-full');
         $row = $table->addRow()->addSubmit(__('Submit'));
     } elseif ($form->getCurrentPage() >= 3) {
         // STEP 4

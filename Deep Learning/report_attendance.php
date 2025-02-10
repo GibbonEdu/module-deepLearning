@@ -70,7 +70,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_atten
 
         $form->setFactory(DatabaseFormFactory::create($pdo));
         $form->setTitle(__('Choose Date'));
-        $form->setClass('noIntBorder fullWidth');
+        $form->setClass('noIntBorder w-full');
 
         $form->addHiddenValue('q', '/modules/Deep Learning/report_attendance.php');
 

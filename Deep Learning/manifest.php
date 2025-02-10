@@ -25,7 +25,7 @@ $description = "Enables schools to implement ICHK's Deep Learning approach, in w
 $entryURL    = "view.php";
 $type        = "Additional";
 $category    = 'Learn';
-$version     = '0.1.01';
+$version     = '0.2.00';
 $author = "Gibbon Foundation";
 $url = "https://gibbonedu.org";
 
@@ -45,7 +45,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningEvent` (
     `gibbonYearGroupIDList` VARCHAR(255) NOT NULL, 
     PRIMARY KEY (`deepLearningEventID`),
     UNIQUE KEY (`name`, `gibbonSchoolYearID`)
-) ENGINE=InnoDB CHARSET=utf8";
+) ENGINE=InnoDB CHARSET=utf8mb3";
 
 $moduleTables[] = "CREATE TABLE `deepLearningEventDate` (
     `deepLearningEventDateID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
@@ -56,7 +56,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningEventDate` (
     `timeEnd` TIME NULL,
     PRIMARY KEY (`deepLearningEventDateID`),
     UNIQUE KEY (`eventDate`, `deepLearningEventID`)
-) ENGINE=InnoDB CHARSET=utf8";
+) ENGINE=InnoDB CHARSET=utf8mb3";
 
 $moduleTables[] = "CREATE TABLE `deepLearningUnit` (
     `deepLearningUnitID` INT(10) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
@@ -80,7 +80,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningUnit` (
     `gibbonPersonIDModified` INT(10) UNSIGNED ZEROFILL NOT NULL,
     PRIMARY KEY (`deepLearningUnitID`),
     UNIQUE KEY (`name`)
-) ENGINE=InnoDB CHARSET=utf8";
+) ENGINE=InnoDB CHARSET=utf8mb3";
 
 $moduleTables[] = "CREATE TABLE `deepLearningUnitAuthor` (
     `deepLearningUnitAuthorID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
@@ -89,7 +89,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningUnitAuthor` (
     `timestamp` TIMESTAMP NULL,
     PRIMARY KEY (`deepLearningUnitAuthorID`),
     UNIQUE KEY (`gibbonPersonID`, `deepLearningUnitID`)
-) ENGINE=InnoDB CHARSET=utf8";
+) ENGINE=InnoDB CHARSET=utf8mb3";
 
 $moduleTables[] = "CREATE TABLE `deepLearningUnitBlock` (
     `deepLearningUnitBlockID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
@@ -100,7 +100,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningUnitBlock` (
     `content` TEXT NULL,
     `sequenceNumber` INT(6) NOT NULL,
     PRIMARY KEY (`deepLearningUnitBlockID`)
-) ENGINE=InnoDB CHARSET=utf8";
+) ENGINE=InnoDB CHARSET=utf8mb3";
 
 $moduleTables[] = "CREATE TABLE `deepLearningUnitPhoto` (
     `deepLearningUnitPhotoID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
@@ -109,14 +109,14 @@ $moduleTables[] = "CREATE TABLE `deepLearningUnitPhoto` (
     `caption` VARCHAR(120) NOT NULL,
     `sequenceNumber` INT(6) NOT NULL,
     PRIMARY KEY (`deepLearningUnitPhotoID`)
-) ENGINE=InnoDB CHARSET=utf8";
+) ENGINE=InnoDB CHARSET=utf8mb3";
 
 $moduleTables[] = "CREATE TABLE `deepLearningUnitTag` (
     `deepLearningUnitTagID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
     `tag` VARCHAR(60) NOT NULL,
     PRIMARY KEY (`deepLearningUnitTagID`),
     UNIQUE KEY (`tag`)
-) ENGINE=InnoDB CHARSET=utf8";
+) ENGINE=InnoDB CHARSET=utf8mb3";
 
 $moduleTables[] = "CREATE TABLE `deepLearningExperience` (
     `deepLearningExperienceID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
@@ -130,7 +130,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningExperience` (
     `gibbonPersonIDModified` INT(10) UNSIGNED ZEROFILL NOT NULL,
     PRIMARY KEY (`deepLearningExperienceID`),
     UNIQUE KEY (`name`, `deepLearningEventID`)
-) ENGINE=InnoDB CHARSET=utf8";
+) ENGINE=InnoDB CHARSET=utf8mb3";
 
 $moduleTables[] = "CREATE TABLE `deepLearningExperienceVenue` (
     `deepLearningExperienceVenueID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
@@ -144,7 +144,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningExperienceVenue` (
     `timeStart` TIME NULL,
     `timeEnd` TIME NULL,
     PRIMARY KEY (`deepLearningExperienceVenueID`)
-) ENGINE=InnoDB CHARSET=utf8";
+) ENGINE=InnoDB CHARSET=utf8mb3";
 
 $moduleTables[] = "CREATE TABLE `deepLearningExperienceTrip` (
     `deepLearningExperienceTripID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
@@ -153,7 +153,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningExperienceTrip` (
     `tripPlannerRequestID` INT(7) UNSIGNED ZEROFILL NULL,
     PRIMARY KEY (`deepLearningExperienceTripID`),
     UNIQUE KEY (`deepLearningExperienceID`, `tripPlannerRequestID`)
-) ENGINE=InnoDB CHARSET=utf8";
+) ENGINE=InnoDB CHARSET=utf8mb3";
 
 $moduleTables[] = "CREATE TABLE `deepLearningStaff` (
     `deepLearningStaffID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
@@ -165,7 +165,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningStaff` (
     `deepLearningEventDateIDList` VARCHAR(255) NOT NULL,
     PRIMARY KEY (`deepLearningStaffID`),
     UNIQUE KEY (`gibbonPersonID`, `deepLearningExperienceID`)
-) ENGINE=InnoDB CHARSET=utf8";
+) ENGINE=InnoDB CHARSET=utf8mb3";
 
 $moduleTables[] = "CREATE TABLE `deepLearningEnrolment` (
     `deepLearningEnrolmentID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
@@ -181,7 +181,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningEnrolment` (
     `gibbonPersonIDModified` INT(10) UNSIGNED ZEROFILL NOT NULL,
     PRIMARY KEY (`deepLearningEnrolmentID`),
     UNIQUE KEY (`gibbonPersonID`, `deepLearningEventID`)
-) ENGINE=InnoDB CHARSET=utf8;";
+) ENGINE=InnoDB CHARSET=utf8mb3;";
 
 $moduleTables[] = "CREATE TABLE `deepLearningChoice` (
     `deepLearningChoiceID` INT(12) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
@@ -195,7 +195,7 @@ $moduleTables[] = "CREATE TABLE `deepLearningChoice` (
     `gibbonPersonIDModified` INT(10) UNSIGNED ZEROFILL NOT NULL,
     PRIMARY KEY (`deepLearningChoiceID`),
     UNIQUE KEY (`gibbonPersonID`, `choice`, `deepLearningEventID`)
-) ENGINE=InnoDB CHARSET=utf8;";
+) ENGINE=InnoDB CHARSET=utf8mb3;";
 
 // Add gibbonSettings entries
 $gibbonSetting[] = "INSERT INTO `gibbonSetting` (`scope` ,`name` ,`nameDisplay` ,`description` ,`value`) VALUES ('Deep Learning', 'welcomeText', 'Welcome Text', 'A short message displayed on the landing page for Deep Learning events.', '')";

@@ -101,7 +101,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     while ($rowBlocks = $dataBlocks->fetch()) {
         $customBlocks->addBlock($rowBlocks['deepLearningEventDateID'], [
             'name' => $rowBlocks['name'],
-            'eventDate' => Format::date($rowBlocks['eventDate']),
+            'eventDate' => $rowBlocks['eventDate'],
             'deepLearningEventDateID' => $rowBlocks['deepLearningEventDateID'],
         ]);
     }
@@ -161,13 +161,3 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
 
     echo $form->getOutput();
 }
-?>
-
-<script>
-$(document).ready(function () {
-    $('input[id^="eventDate"]').removeClass('hasDatepicker').datepicker({onSelect: function(){$(this).blur();}, onClose: function(){$(this).change();} });
-});
-$(document).on('click', '.addBlock', function () {
-    $('input[id^="eventDate"]').removeClass('hasDatepicker').datepicker({onSelect: function(){$(this).blur();}, onClose: function(){$(this).change();} });
-});
-</script>

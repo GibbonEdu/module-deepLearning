@@ -123,10 +123,3 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
 
     echo $form->getOutput();
 }
-?>
-
-<script>
-$(document).on('click', '.addBlock', function () {
-    $('input[id^="eventDate"]').removeClass('hasDatepicker').datepicker({onSelect: function(){$(this).blur();}, onClose: function(){$(this).change();} });
-});
-</script>

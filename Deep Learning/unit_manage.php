@@ -50,7 +50,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage.
     // Search
     if ($highestAction == 'Manage Units_all') {
         $form = Form::create('filters', $session->get('absoluteURL').'/index.php', 'get');
-        $form->setClass('noIntBorder fullWidth');
+        $form->setClass('noIntBorder w-full');
 
         $form->addHiddenValue('q', '/modules/Deep Learning/unit_manage.php');
 
@@ -129,7 +129,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage.
             if ($highestAction == 'Manage Units_all') {
                 $actions->addAction('delete', __('Delete'))
                         ->setURL('/modules/Deep Learning/unit_manage_delete.php')
-                        ->modalWindow(650, 400);
+                        ->modalWindow(650, 250);
             }
         });
 

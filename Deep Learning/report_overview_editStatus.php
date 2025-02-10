@@ -110,7 +110,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_overv
 
     $person = $container->get(UserGateway::class)->getByID($values['gibbonPersonIDModified'] ?? '', ['preferredName', 'surname']);
     if (!empty($values['gibbonPersonIDModified']) && !empty($person)) {
-        $row = $form->addRow()->addClass('text-right');
+        $row = $form->addRow();
         $row->addContent(Format::small(__m('Last modified by {name} on {date}', [
             'name' => Format::name('', $person['preferredName'], $person['surname'], 'Staff', false, true),
             'date' => Format::dateTimeReadable($values['timestampModified'] ?? ''),

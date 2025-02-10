@@ -68,7 +68,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
     // Search
     if ($highestAction == 'Manage Experiences_all') {
         $form = Form::create('filters', $session->get('absoluteURL').'/index.php', 'get');
-        $form->setClass('noIntBorder fullWidth');
+        $form->setClass('noIntBorder w-full');
 
         $form->addHiddenValue('q', '/modules/Deep Learning/experience_manage.php');
         $form->addHiddenValue('gibbonSchoolYearID', $params['gibbonSchoolYearID']);
@@ -135,6 +135,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
 
     if (!empty($highestTripAction)) {
         $table->addColumn('tripPlan', __('Trip Plan'))
+            ->width('8%')
             ->format(function ($values) use ($tripRequests, $params) {
                 $tripPlannerRequestID = $tripRequests[$values['deepLearningExperienceID']] ?? [];
                 if (empty($tripPlannerRequestID)) return '';
@@ -143,6 +144,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
                 return Format::link($url, __('View'));
             });
     }
+
+    $table->addColumn('gibbonGroupID', __('Messenger Group'))
+        ->width('8%')
+        ->format(function ($values) {
+            if (empty($values['gibbonGroupID'])) return '';
+
+            $url = Url::fromModuleRoute('Messenger', 'groups_manage_edit.php')->withQueryParams(['gibbonGroupID' => $values['gibbonGroupID']]);
+            return Format::link($url, __('View'));
+        });
 
     $table->addColumn('teacherCount', __('Teachers'))
         ->width('8%');

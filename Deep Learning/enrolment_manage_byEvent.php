@@ -49,7 +49,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
 
     // SEARCH
     $form = Form::create('filters', $session->get('absoluteURL').'/index.php', 'get');
-    $form->setClass('noIntBorder fullWidth');
+    $form->setClass('noIntBorder w-full');
 
     $form->addHiddenValue('q', '/modules/Deep Learning/enrolment_manage_byEvent.php');
 
@@ -58,7 +58,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
         $row->addSelect('deepLearningEventID')->fromArray($events)->placeholder()->selected($params['deepLearningEventID']);
 
     $row = $form->addRow();
-        $row->addFooter();
         $row->addSearchSubmit($session, 'Clear Filters');
 
     echo $form->getOutput();

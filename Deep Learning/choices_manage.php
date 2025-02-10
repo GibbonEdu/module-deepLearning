@@ -53,7 +53,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
 
     // SEARCH
     $form = Form::create('filters', $session->get('absoluteURL').'/index.php', 'get');
-    $form->setClass('noIntBorder fullWidth');
+    $form->setClass('noIntBorder w-full');
 
     $form->addHiddenValue('q', '/modules/Deep Learning/choices_manage.php');
 
@@ -66,7 +66,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
         $row->addTextField('search')->setValue($criteria->getSearchText())->maxLength(20);
 
     $row = $form->addRow();
-        $row->addFooter();
         $row->addSearchSubmit($session, 'Clear Filters', ['view', 'sidebar']);
 
     echo $form->getOutput();

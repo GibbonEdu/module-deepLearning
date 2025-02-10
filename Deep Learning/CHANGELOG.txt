@@ -1,5 +1,9 @@
 CHANGELOG
 =========
+v0.2.00
+-------
+Gibbon v28 Compatibility
+
 v0.1.01
 -------
 Usability tweaks to Deep Learning feature set

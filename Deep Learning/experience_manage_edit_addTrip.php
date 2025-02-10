@@ -118,7 +118,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/experience_m
         $row->addLabel('syncParticipants', __m('Sync Trip Participants?'));
         $row->addYesNo('syncParticipants')->placeholder()->required()->selected('Y');
 
-    $form->toggleVisibilityByClass('tripDays')->onSelect('type')->whenNot('Please select...');
+    $form->toggleVisibilityByClass('tripDays')->onSelect('type')->whenNot('');
 
     $eventDates = $container->get(EventDateGateway::class)->selectDates($experience['deepLearningEventID']);
     $row = $form->addRow()->addClass('tripDays');

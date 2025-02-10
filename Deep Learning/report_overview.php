@@ -68,7 +68,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_overv
         $form = Form::create('filter', $session->get('absoluteURL').'/index.php', 'get');
 
         $form->setTitle(__('Filter'));
-        $form->setClass('noIntBorder fullWidth');
+        $form->setClass('noIntBorder w-full');
 
         $form->addHiddenValue('q', '/modules/'.$session->get('module').'/report_overview.php');
         $form->addHiddenValue('address', $session->get('address'));

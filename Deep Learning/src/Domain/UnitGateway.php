@@ -90,7 +90,7 @@ class UnitGateway extends QueryableGateway
     public function getUnitEditAccess($deepLearningUnitID, $gibbonPersonID)
     {
         $data = ['deepLearningUnitID' => $deepLearningUnitID, 'gibbonPersonID' => $gibbonPersonID];
-        $sql = "SELECT (CASE WHEN authorship.deepLearningUnitAuthorID IS NOT NULL OR staff.canEdit='Y' THEN 'Y' ELSE 'N' END) as canEdit
+        $sql = "SELECT (CASE WHEN MAX(authorship.deepLearningUnitAuthorID) IS NOT NULL OR MAX(staff.canEdit)='Y' THEN 'Y' ELSE 'N' END) as canEdit
                 FROM deepLearningUnit
                 LEFT JOIN deepLearningUnitAuthor AS authorship ON (authorship.deepLearningUnitID=deepLearningUnit.deepLearningUnitID AND authorship.gibbonPersonID=:gibbonPersonID)
                 LEFT JOIN deepLearningExperience ON (deepLearningExperience.deepLearningUnitID=deepLearningUnit.deepLearningUnitID)
