@@ -1,5 +1,9 @@
 CHANGELOG
 =========
+v0.2.01
+-------
+Added a Export All button to the top of the Deep Learning Overview page
+
 v0.2.00
 -------
 Gibbon v28 Compatibility
