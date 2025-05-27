@@ -131,7 +131,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_overv
         echo $form->getOutput();
     }
 
-    $render = $container->get(SpreadsheetRenderer::class);
+    $renderer = $container->get(SpreadsheetRenderer::class);
     // TABLES
     foreach ($experiences as $deepLearningExperienceID => $experience) {
 
@@ -150,7 +150,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_overv
         $table->setDescription(__m('Location').': '.$experience['location'].(!empty($experience['provider']) ? ' ('.__m('Provider').': '.$experience['provider'].')' : ''));
 
         if ($viewMode == 'export' && count($experiences) > 1) {
-            $table->setRenderer($render);
+            $table->setRenderer($renderer);
             $table->addColumn('name', __('Experience Name'));
         } else {
             $table->addColumn('image_240', __('Photo'))

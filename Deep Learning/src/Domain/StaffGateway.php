@@ -59,12 +59,27 @@ class StaffGateway extends QueryableGateway
                 'deepLearningStaff.gibbonPersonID',
                 'deepLearningStaff.role',
                 'gibbonStaff.initials',
+                'gibbonStaff.type as staffType',
                 "(FIND_IN_SET(deepLearningStaff.role, 'Trip Leader,Teacher,Support')) as roleOrder",
+                'COUNT(DISTINCT coverage.ID) as coverage',
             ])
             ->innerJoin('deepLearningExperience', 'deepLearningExperience.deepLearningExperienceID=deepLearningStaff.deepLearningExperienceID')
             ->innerJoin('deepLearningEvent', 'deepLearningEvent.deepLearningEventID=deepLearningExperience.deepLearningEventID')
             ->innerJoin('gibbonPerson', 'gibbonPerson.gibbonPersonID=deepLearningStaff.gibbonPersonID')
             ->innerJoin('gibbonStaff', 'gibbonPerson.gibbonPersonID=gibbonStaff.gibbonPersonID')
+            ->leftJoin('deepLearningEventDate', 'deepLearningEvent.deepLearningEventID=deepLearningEventDate.deepLearningEventID')
+            ->joinSubSelect(
+                'LEFT',
+                "SELECT gibbonStaffCoverageDate.gibbonStaffCoverageDateID as ID, gibbonStaffCoverage.status as status, gibbonStaffAbsence.gibbonPersonID, gibbonStaffAbsenceDate.date, gibbonStaffAbsenceDate.allDay, gibbonStaffAbsenceDate.timeStart, gibbonStaffAbsenceDate.timeEnd
+                    FROM gibbonStaffAbsence 
+                    JOIN gibbonStaffAbsenceDate ON (gibbonStaffAbsenceDate.gibbonStaffAbsenceID=gibbonStaffAbsence.gibbonStaffAbsenceID)
+                    JOIN gibbonStaffCoverageDate ON (gibbonStaffCoverageDate.gibbonStaffAbsenceDateID=gibbonStaffAbsenceDate.gibbonStaffAbsenceDateID)
+                    JOIN gibbonStaffCoverage ON (gibbonStaffCoverage.gibbonStaffCoverageID=gibbonStaffCoverageDate.gibbonStaffCoverageID)
+
+                    WHERE gibbonStaffAbsence.status = 'Approved'",
+                'coverage',
+                "coverage.gibbonPersonID=gibbonPerson.gibbonPersonID AND coverage.date = deepLearningEventDate.eventDate "
+            )
             ->where('deepLearningExperience.active="Y"')            
             ->where('deepLearningExperience.deepLearningEventID=:deepLearningEventID')
             ->bindValue('deepLearningEventID', $deepLearningEventID)

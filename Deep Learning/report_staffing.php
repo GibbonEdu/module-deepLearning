@@ -136,6 +136,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_staff
         ->translatable()
         ->context('secondary');
 
+    $table->addColumn('coverage', __('Coverage'))
+        ->format(function ($values) {
+            if ($values['staffType'] != 'Teaching') return;
+
+            return $values['coverage'] > 0
+                ? Format::tag(__('Requested'), 'success')
+                : Format::tag(__('Unknown'), 'dull');
+        });
+
     $table->addColumn('notes', __('Notes'));
 
     echo $table->render($staffing);
