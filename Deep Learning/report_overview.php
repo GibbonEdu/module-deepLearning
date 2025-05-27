@@ -22,11 +22,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Forms\Form;
 use Gibbon\Services\Format;
 use Gibbon\Tables\Prefab\ReportTable;
+use Gibbon\Tables\Renderer\SpreadsheetRenderer;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
+use Gibbon\Module\DeepLearning\Domain\StaffGateway;
 use Gibbon\Module\DeepLearning\Domain\EnrolmentGateway;
 use Gibbon\Module\DeepLearning\Domain\ExperienceGateway;
-use Gibbon\Tables\DataTable;
-use Gibbon\Module\DeepLearning\Domain\StaffGateway;
 
 if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_overview.php') == false) {
     // Access denied
@@ -119,9 +119,19 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_overv
             ->directLink()
             ->displayLabel();
 
+        $form->addHeaderAction('export', __('Export All'))
+            ->setURL('/export.php')
+            ->addParam('q', '/modules/Deep Learning/report_overview.php')
+            ->addParam('deepLearningEventID', $params['deepLearningEventID'])
+            ->addParam('format', 'export')
+            ->setTarget('_blank')
+            ->directLink()
+            ->displayLabel();
+
         echo $form->getOutput();
     }
 
+    $render = $container->get(SpreadsheetRenderer::class);
     // TABLES
     foreach ($experiences as $deepLearningExperienceID => $experience) {
 
@@ -139,6 +149,17 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_overv
         $table->setTitle($experience['name']);
         $table->setDescription(__m('Location').': '.$experience['location'].(!empty($experience['provider']) ? ' ('.__m('Provider').': '.$experience['provider'].')' : ''));
 
+        if ($viewMode == 'export' && count($experiences) > 1) {
+            $table->setRenderer($render);
+            $table->addColumn('name', __('Experience Name'));
+        } else {
+            $table->addColumn('image_240', __('Photo'))
+                    ->context('primary')
+                    ->width('8%')
+                    ->notSortable()
+                    ->format(Format::using('userPhoto', ['image_240', 'xs']));
+        }
+
         $table->modifyRows(function($values, $row) {
             if ($values['role'] == 'Trip Leader') $row->addClass('success');
             elseif ($values['role'] == 'Teacher') $row->addClass('message');
@@ -149,13 +170,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_overv
 
         $table->addMetaData('hidePagination', true);
         $table->addMetaData('hideHeaderActions', true);
-
-        $table->addColumn('image_240', __('Photo'))
-            ->context('primary')
-            ->width('8%')
-            ->notSortable()
-            ->format(Format::using('userPhoto', ['image_240', 'xs']));
-            
+        $table->addMetaData('tableCount', count($experiences));
+        
         $table->addColumn('student', __('Person'))
             ->description(__('Status'))
             ->sortable(['surname', 'preferredName'])
@@ -213,5 +229,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/report_overv
         }
 
         echo $table->render($enrolment ?? []);
+    }
+
+    if ($viewMode == 'export' && count($experiences) > 1) {
+        $table->getRenderer()->save($table);
     }
 }
