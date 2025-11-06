@@ -25,7 +25,7 @@ $description = "Enables schools to implement ICHK's Deep Learning approach, in w
 $entryURL    = "view.php";
 $type        = "Additional";
 $category    = 'Learn';
-$version     = '0.2.01';
+$version     = '0.2.02';
 $author = "Gibbon Foundation";
 $url = "https://gibbonedu.org";
 
