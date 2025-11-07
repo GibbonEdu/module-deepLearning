@@ -72,6 +72,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
 
     $choices = $choiceGateway->queryChoices($criteria, $session->get('gibbonSchoolYearID'));
 
+//     echo '<pre>';
+// print_r($choices);
+// echo '</pre>';
+// die();
+
     // TABLE
     $table = DataTable::createPaginated('choices', $criteria);
 
@@ -114,8 +119,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
             $output = '';
             $choices = explode(',', $values['choiceList']);
             foreach ($choices as $choice) {
-                list($choiceNumber,$choiceName) = explode(':', $choice);
-                $output .= $choiceNumber.'. '.$choiceName.'<br/>';
+                $parts = explode(':', $choice);
+                $choiceNumber = $parts[0] ?? '';
+                $choiceName = $parts[1] ?? '';
+
+                if (!empty($choiceNumber) && !empty($choiceName)) {
+                    $output .= $choiceNumber.'. '.$choiceName.'<br/>';
+                }
             }
             return $output;
         });

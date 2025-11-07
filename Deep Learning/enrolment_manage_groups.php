@@ -89,7 +89,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/enrolment_ma
 
     foreach ($enrolments as $person) {
         for ($i = 1; $i <= $signUpChoices; $i++) {
-            $person["choice{$i}"] = str_pad($person["choice{$i}"], 12, '0', STR_PAD_LEFT);
+            $person["choice{$i}"] = str_pad($person["choice{$i}"] ?? '', 12, '0', STR_PAD_LEFT);
             $person["choice{$i}Name"] = $experiences[$person["choice{$i}"]]['name'] ?? '';
         }
 
