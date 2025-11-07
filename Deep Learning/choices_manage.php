@@ -72,11 +72,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/choices_mana
 
     $choices = $choiceGateway->queryChoices($criteria, $session->get('gibbonSchoolYearID'));
 
-//     echo '<pre>';
-// print_r($choices);
-// echo '</pre>';
-// die();
-
     // TABLE
     $table = DataTable::createPaginated('choices', $criteria);
 
