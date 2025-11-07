@@ -115,7 +115,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php') =
             ->width('30%')
             ->format(function ($values) use ($enrolment, $gibbonSchoolYearID) {
                 $now = (new DateTime('now'))->format('U');
-                $accessEnrolmentDate = DateTime::createFromFormat('Y-m-d H:i:s', $values['accessEnrolmentDate']);
+                $accessEnrolmentDate = DateTime::createFromFormat('Y-m-d H:i:s', $values['accessEnrolmentDate'] ?? '');
                 if ($accessEnrolmentDate && $accessEnrolmentDate->format('U') < $now) {
                     if (!empty($values['enrolment'])) {
                         $url = Url::fromModuleRoute('Deep Learning', 'view_experience.php')->withQueryParams(['deepLearningEventID' => $values['deepLearningEventID'], 'deepLearningExperienceID' => $values['enrolment']['deepLearningExperienceID'], 'sidebar' => 'false']);
@@ -159,12 +159,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/view.php') =
                     return Format::tag(__m('Current Event'), 'message');
                 }
 
-                $accessCloseDate = DateTime::createFromFormat('Y-m-d H:i:s', $values['accessCloseDate']);
+                $accessCloseDate = DateTime::createFromFormat('Y-m-d H:i:s', $values['accessCloseDate'] ?? '');
                 if ($accessCloseDate && $accessCloseDate->format('U') < $now) {
                     return Format::tag(__m('Sign up closed on').'<br/>'.$accessCloseDate->format('M j \\a\\t g:ia'), 'dull');
                 }
 
-                $accessOpenDate = DateTime::createFromFormat('Y-m-d H:i:s', $values['accessOpenDate']);
+                $accessOpenDate = DateTime::createFromFormat('Y-m-d H:i:s', $values['accessOpenDate'] ?? '');
                 if ($accessOpenDate && ($accessOpenDate->format('U') <= $now && $accessCloseDate->format('U') >= $now)) {
                     return $canSignUp && !empty($values['signUpEvent'])
                         ? Format::tag(__m('Sign up is open'), 'success')
