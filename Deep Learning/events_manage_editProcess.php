@@ -21,6 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Data\Validator;
 use Gibbon\Services\Format;
+use Gibbon\Domain\System\FileGateway;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Module\DeepLearning\Domain\EventDateGateway;
 
@@ -88,6 +89,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     }
 
     // Move attached file, if there is one
+    $fileMetaData = null;
     if (!empty($_FILES['backgroundImageFile']['tmp_name'])) {
         $fileUploader = new Gibbon\FileUploader($pdo, $session);
         $fileUploader->getFileExtensions('Graphics/Design');
@@ -99,6 +101,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
 
         if (empty($data['backgroundImage'])) {
             $partialFail = true;
+        } else {
+            $fileMetaData = $fileUploader->getFileMetaData($data['backgroundImage']);
         }
 
     } else {
@@ -107,6 +111,15 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
 
     // Update the record
     $updated = $eventGateway->update($deepLearningEventID, $data);
+
+    // Record file tracking for background image (UL056)
+    if (!empty($fileMetaData)) {
+        $gibbonFileID = $container->get(FileGateway::class)->recordFileUpload($fileMetaData, 'deepLearningEvent', $deepLearningEventID, 'backgroundImage');
+
+        if (empty($gibbonFileID)) {
+            $partialFail = true;
+        }
+    }
 
     // Update blocks
     $dates = $_POST['dates'] ?? [];

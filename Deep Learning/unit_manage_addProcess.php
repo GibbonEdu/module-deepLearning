@@ -19,8 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Services\Format;
 use Gibbon\Data\Validator;
+use Gibbon\Domain\System\FileGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitTagGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitAuthorGateway;
@@ -78,6 +78,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
     }
 
     // Move attached file, if there is one
+    $fileMetaData = null;
     if (!empty($_FILES['headerImageFile']['tmp_name'])) {
         $fileUploader = new Gibbon\FileUploader($pdo, $session);
         $fileUploader->getFileExtensions('Graphics/Design');
@@ -85,10 +86,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         $file = $_FILES['headerImageFile'] ?? null;
 
         // Upload the file, return the /uploads relative path
-        $data['headerImage'] = $fileUploader->uploadFromPost($file, $data['name']);
+        $data['headerImage'] = $fileUploader->uploadFromPost($file, $data['name'], true);
 
         if (empty($data['headerImage'])) {
             $partialFail = true;
+        } else {
+            $fileMetaData = $fileUploader->getFileMetaData($data['headerImage']);
         }
     }
 
@@ -112,6 +115,14 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         $URL .= '&return=error2';
         header("Location: {$URL}");
         exit;
+    }
+
+    if (!empty($fileMetaData) && !empty($deepLearningUnitID)) {
+        $gibbonFileID = $container->get(FileGateway::class)->recordFileUpload($fileMetaData, 'deepLearningUnit', $deepLearningUnitID, 'headerImage');
+
+        if (empty($gibbonFileID)) {
+            $partialFail = true;
+        }
     }
 
     // Create the author
