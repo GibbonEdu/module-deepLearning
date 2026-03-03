@@ -21,7 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Data\Validator;
 use Gibbon\FileUploader;
-use Gibbon\Domain\System\FileGateway;
+use Gibbon\Contracts\Filesystem\FileHandler;
 use Gibbon\Module\DeepLearning\Domain\UnitGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitTagGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitAuthorGateway;
@@ -130,13 +130,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         $data['headerImage'] = $_POST['headerImage'] ?? '';
     }
 
+    // Get old record for file deletion check
+    $oldRecord = $unitGateway->getByID($deepLearningUnitID);
+    $fileHandler = $container->get(FileHandler::class);
+
     // Update the record
     $updated = $unitGateway->update($deepLearningUnitID, $data);
     $partialFail = !$updated;
 
-    // Record file tracking for header image (UL051/UL052)
+    // Handle file deletion when user removes header image
+    if (empty($data['headerImage']) && !empty($oldRecord['headerImage'])) {
+        $deleted = $fileHandler->deleteFile('deepLearningUnit', $deepLearningUnitID, 'headerImage');
+    }
+
+    // Record file tracking for header image 
     if (!empty($fileMetaData) && !empty($deepLearningUnitID)) {
-        $gibbonFileID = $container->get(FileGateway::class)->recordFileUpload($fileMetaData, 'deepLearningUnit', $deepLearningUnitID, 'headerImage');
+        $gibbonFileID = $fileHandler->recordFileUpload($fileMetaData, 'deepLearningUnit', $deepLearningUnitID, 'headerImage');
 
         if (empty($gibbonFileID)) {
             $partialFail = true;
@@ -261,7 +270,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
 
         // Record file tracking for photo
         if (!empty($photoFileMetaData) && !empty($deepLearningUnitPhotoID)) {
-            $gibbonFileID = $container->get(FileGateway::class)->recordFileUpload($photoFileMetaData, 'deepLearningUnitPhoto', $deepLearningUnitPhotoID, 'filePath');
+            $gibbonFileID = $fileHandler->recordFileUpload($photoFileMetaData, 'deepLearningUnitPhoto', $deepLearningUnitPhotoID, 'filePath');
 
             if (empty($gibbonFileID)) {
                 $partialFail = true;

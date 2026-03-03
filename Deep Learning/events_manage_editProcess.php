@@ -21,7 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Data\Validator;
 use Gibbon\Services\Format;
-use Gibbon\Domain\System\FileGateway;
+use Gibbon\Contracts\Filesystem\FileHandler;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Module\DeepLearning\Domain\EventDateGateway;
 
@@ -109,12 +109,21 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         $data['backgroundImage'] = $_POST['backgroundImage'] ?? '';
     }
 
+    // Get old record for file deletion check
+    $oldRecord = $eventGateway->getByID($deepLearningEventID);
+    $fileHandler = $container->get(FileHandler::class);
+
     // Update the record
     $updated = $eventGateway->update($deepLearningEventID, $data);
 
-    // Record file tracking for background image (UL056)
+    // Handle file deletion when user removes background image
+    if (empty($data['backgroundImage']) && !empty($oldRecord['backgroundImage'])) {
+        $deleted = $fileHandler->deleteFile('deepLearningEvent', $deepLearningEventID, 'backgroundImage');
+    }
+
+    // Record file tracking for background image
     if (!empty($fileMetaData)) {
-        $gibbonFileID = $container->get(FileGateway::class)->recordFileUpload($fileMetaData, 'deepLearningEvent', $deepLearningEventID, 'backgroundImage');
+        $gibbonFileID = $fileHandler->recordFileUpload($fileMetaData, 'deepLearningEvent', $deepLearningEventID, 'backgroundImage');
 
         if (empty($gibbonFileID)) {
             $partialFail = true;

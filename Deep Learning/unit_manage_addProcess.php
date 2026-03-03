@@ -20,7 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Data\Validator;
-use Gibbon\Domain\System\FileGateway;
+use Gibbon\Contracts\Filesystem\FileHandler;
 use Gibbon\Module\DeepLearning\Domain\UnitGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitTagGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitAuthorGateway;
@@ -118,7 +118,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
     }
 
     if (!empty($fileMetaData) && !empty($deepLearningUnitID)) {
-        $gibbonFileID = $container->get(FileGateway::class)->recordFileUpload($fileMetaData, 'deepLearningUnit', $deepLearningUnitID, 'headerImage');
+        $gibbonFileID = $container->get(FileHandler::class)->recordFileUpload($fileMetaData, 'deepLearningUnit', $deepLearningUnitID, 'headerImage');
 
         if (empty($gibbonFileID)) {
             $partialFail = true;

@@ -21,7 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Data\Validator;
 use Gibbon\Services\Format;
-use Gibbon\Domain\System\FileGateway;
+use Gibbon\Contracts\Filesystem\FileHandler;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Module\DeepLearning\Domain\EventDateGateway;
 
@@ -101,7 +101,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
 
     // Record file tracking for background image (UL055)
     if (!empty($fileMetaData) && !empty($deepLearningEventID)) {
-        $gibbonFileID = $container->get(FileGateway::class)->recordFileUpload($fileMetaData, 'deepLearningEvent', $deepLearningEventID, 'backgroundImage');
+        $gibbonFileID = $container->get(FileHandler::class)->recordFileUpload($fileMetaData, 'deepLearningEvent', $deepLearningEventID, 'backgroundImage');
 
         if (empty($gibbonFileID)) {
             $partialFail = true;
