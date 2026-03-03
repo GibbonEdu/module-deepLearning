@@ -138,11 +138,6 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
     $updated = $unitGateway->update($deepLearningUnitID, $data);
     $partialFail = !$updated;
 
-    // Handle file deletion when user removes header image
-    if (empty($data['headerImage']) && !empty($oldRecord['headerImage'])) {
-        $deleted = $fileHandler->deleteFile('deepLearningUnit', $deepLearningUnitID, 'headerImage');
-    }
-
     // Record file tracking for header image 
     if (!empty($fileMetaData) && !empty($deepLearningUnitID)) {
         $gibbonFileID = $fileHandler->recordFileUpload($fileMetaData, 'deepLearningUnit', $deepLearningUnitID, 'headerImage');
@@ -150,6 +145,11 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         if (empty($gibbonFileID)) {
             $partialFail = true;
         }
+    }
+
+    // Handle file deletion when user removes header image
+    if (empty($data['headerImage']) && !empty($oldRecord['headerImage'])) {
+        $deleted = $fileHandler->deleteFile('deepLearningUnit', $deepLearningUnitID, 'headerImage');
     }
     
     // Update the authors
@@ -281,12 +281,12 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
     // Remove photos that have been deleted from the filesystem
     $cleanupPhotos = $unitPhotoGateway->selectPhotosNotInList($deepLearningUnitID, $photoIDs)->fetchAll();
     foreach ($cleanupPhotos as $photo) {
-        $unitPhotoGateway->delete($photo['deepLearningUnitPhotoID']);
-
         $photoPath = $session->get('absolutePath').'/'.$photo['filePath'];
         if (!empty($photo['filePath']) && file_exists($photoPath)) {
-            unlink($photoPath);
+            $fileHandler->deleteFile('deepLearningUnitPhoto', $photo['deepLearningUnitPhotoID'], 'filePath');
         }
+        
+        $unitPhotoGateway->delete($photo['deepLearningUnitPhotoID']);
     }
 
     // Update the tags

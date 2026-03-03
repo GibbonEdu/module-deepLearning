@@ -88,6 +88,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         exit;
     }
 
+    // Get old record to check if headImage is deleted
+    $oldRecord = $eventGateway->getByID($deepLearningEventID);
+    $fileHandler = $container->get(FileHandler::class);
+
     // Move attached file, if there is one
     $fileMetaData = null;
     if (!empty($_FILES['backgroundImageFile']['tmp_name'])) {
@@ -104,30 +108,25 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         } else {
             $fileMetaData = $fileUploader->getFileMetaData($data['backgroundImage']);
         }
-
     } else {
         $data['backgroundImage'] = $_POST['backgroundImage'] ?? '';
     }
 
-    // Get old record for file deletion check
-    $oldRecord = $eventGateway->getByID($deepLearningEventID);
-    $fileHandler = $container->get(FileHandler::class);
-
     // Update the record
     $updated = $eventGateway->update($deepLearningEventID, $data);
-
-    // Handle file deletion when user removes background image
-    if (empty($data['backgroundImage']) && !empty($oldRecord['backgroundImage'])) {
-        $deleted = $fileHandler->deleteFile('deepLearningEvent', $deepLearningEventID, 'backgroundImage');
-    }
-
+    
     // Record file tracking for background image
-    if (!empty($fileMetaData)) {
+    if (!empty($fileMetaData) && !empty($deepLearningEventID)) {
         $gibbonFileID = $fileHandler->recordFileUpload($fileMetaData, 'deepLearningEvent', $deepLearningEventID, 'backgroundImage');
 
         if (empty($gibbonFileID)) {
             $partialFail = true;
         }
+    }
+
+    // Handle file deletion when user removes background image
+    if (empty($data['backgroundImage']) && !empty($oldRecord['backgroundImage'])) {
+        $deleted = $fileHandler->deleteFile('deepLearningEvent', $deepLearningEventID, 'backgroundImage');
     }
 
     // Update blocks
