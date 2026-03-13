@@ -1,5 +1,10 @@
 CHANGELOG
 =========
+
+v0.3.00
+-------
+Added comprehensive file upload tracking system to monitor and manage all file uploads across the system
+
 v0.2.01
 -------
 Removed deprecated function calls
