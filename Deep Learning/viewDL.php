@@ -45,7 +45,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/viewDL.php')
     $enrolmentGateway = $container->get(EnrolmentGateway::class);
     $studentGateway = $container->get(StudentGateway::class);
 
-    $children = $studentGateway->selectActiveStudentsByFamilyAdult($gibbonSchoolYearID, $gibbonPersonID)->fetchAll();
+    $children = $studentGateway->selectActiveStudentsByFamilyAdult($gibbonSchoolYearID, $gibbonPersonID)->fetchGroupedUnique();
 
     if (empty($children)) {
         echo Format::alert(__('There are no records to display.'), 'message');
