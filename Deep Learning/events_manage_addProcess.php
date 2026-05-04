@@ -21,6 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Data\Validator;
 use Gibbon\Services\Format;
+use Gibbon\Contracts\Filesystem\FileHandler;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Module\DeepLearning\Domain\EventDateGateway;
 
@@ -78,6 +79,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
     }
 
     // Move attached file, if there is one
+    $fileMetaData = null;
     if (!empty($_FILES['backgroundImageFile']['tmp_name'])) {
         $fileUploader = new Gibbon\FileUploader($pdo, $session);
         $fileUploader->getFileExtensions('Graphics/Design');
@@ -89,11 +91,22 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
 
         if (empty($data['backgroundImage'])) {
             $partialFail = true;
+        } else {
+            $fileMetaData = $fileUploader->getFileMetaData($data['backgroundImage']);
         }
     }
 
     // Create the record
     $deepLearningEventID = $eventGateway->insert($data);
+
+    // Record file tracking for background image (UL055)
+    if (!empty($fileMetaData) && !empty($deepLearningEventID)) {
+        $gibbonFileID = $container->get(FileHandler::class)->recordFileUpload($fileMetaData, 'deepLearningEvent', $deepLearningEventID, 'backgroundImage');
+
+        if (empty($gibbonFileID)) {
+            $partialFail = true;
+        }
+    }
 
     $dates = $_POST['dates'] ?? [];
     foreach ($dates as $i) {
@@ -108,7 +121,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
 
     $URL .= !$deepLearningEventID
         ? "&return=error2"
-        : "&return=success0&editID=$deepLearningEventID";
+        : ($partialFail ? "&return=success1" : "&return=success0&editID=$deepLearningEventID");
 
     header("Location: {$URL}");
 }

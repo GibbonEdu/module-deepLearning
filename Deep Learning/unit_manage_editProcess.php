@@ -19,9 +19,9 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-use Gibbon\Services\Format;
 use Gibbon\Data\Validator;
 use Gibbon\FileUploader;
+use Gibbon\Contracts\Filesystem\FileHandler;
 use Gibbon\Module\DeepLearning\Domain\UnitGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitTagGateway;
 use Gibbon\Module\DeepLearning\Domain\UnitAuthorGateway;
@@ -113,6 +113,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
     $fileUploader->getFileExtensions('Graphics/Design');
 
     // Move attached file, if there is one
+    $fileMetaData = null;
     if (!empty($_FILES['headerImageFile']['tmp_name'])) {
         $file = $_FILES['headerImageFile'] ?? null;
 
@@ -121,15 +122,35 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
 
         if (empty($data['headerImage'])) {
             $partialFail = true;
+        } else {
+            $fileMetaData = $fileUploader->getFileMetaData($data['headerImage']);
         }
 
     } else {
         $data['headerImage'] = $_POST['headerImage'] ?? '';
     }
 
+    // Get old record for file deletion check
+    $oldRecord = $unitGateway->getByID($deepLearningUnitID);
+    $fileHandler = $container->get(FileHandler::class);
+
     // Update the record
     $updated = $unitGateway->update($deepLearningUnitID, $data);
     $partialFail = !$updated;
+
+    // Record file tracking for header image 
+    if (!empty($fileMetaData) && !empty($deepLearningUnitID)) {
+        $gibbonFileID = $fileHandler->recordFileUpload($fileMetaData, 'deepLearningUnit', $deepLearningUnitID, 'headerImage');
+
+        if (empty($gibbonFileID)) {
+            $partialFail = true;
+        }
+    }
+
+    // Handle file deletion when user removes header image
+    if (empty($data['headerImage']) && !empty($oldRecord['headerImage'])) {
+        $deleted = $fileHandler->deleteFile('deepLearningUnit', $deepLearningUnitID, 'headerImage');
+    }
     
     // Update the authors
     $authors = $_POST['authors'] ?? '';
@@ -210,6 +231,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
             'sequenceNumber'     => array_search($index, $photoOrder) ?? false,
         ];
 
+        $photoFileMetaData = null;
         if (!empty($_FILES['photos']['tmp_name'][$index]['fileUpload'])) {
             $file = [
                 'name' => $_FILES['photos']['name'][$index]['fileUpload'] ?? '',
@@ -226,6 +248,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         if (empty($photoData['filePath'])) {
             $partialFail = true;
             continue;
+        } else {
+            $photoFileMetaData = $fileUploader->getFileMetaData($photoData['filePath']);
         }
 
         if ($photoData['sequenceNumber'] === false) {
@@ -243,17 +267,26 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         }
 
         $photoIDs[] = str_pad($deepLearningUnitPhotoID, 12, '0', STR_PAD_LEFT);
+
+        // Record file tracking for photo
+        if (!empty($photoFileMetaData) && !empty($deepLearningUnitPhotoID)) {
+            $gibbonFileID = $fileHandler->recordFileUpload($photoFileMetaData, 'deepLearningUnitPhoto', $deepLearningUnitPhotoID, 'filePath');
+
+            if (empty($gibbonFileID)) {
+                $partialFail = true;
+            }
+        }
     }
 
     // Remove photos that have been deleted from the filesystem
     $cleanupPhotos = $unitPhotoGateway->selectPhotosNotInList($deepLearningUnitID, $photoIDs)->fetchAll();
     foreach ($cleanupPhotos as $photo) {
-        $unitPhotoGateway->delete($photo['deepLearningUnitPhotoID']);
-
         $photoPath = $session->get('absolutePath').'/'.$photo['filePath'];
         if (!empty($photo['filePath']) && file_exists($photoPath)) {
-            unlink($photoPath);
+            $fileHandler->deleteFile('deepLearningUnitPhoto', $photo['deepLearningUnitPhotoID'], 'filePath');
         }
+        
+        $unitPhotoGateway->delete($photo['deepLearningUnitPhotoID']);
     }
 
     // Update the tags
