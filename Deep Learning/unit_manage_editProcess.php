@@ -132,6 +132,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
 
     // Get old record for file deletion check
     $oldRecord = $unitGateway->getByID($deepLearningUnitID);
+    if (!empty($fileMetaData) && !empty($oldRecord['headerImage'])) {
+        $fileMetaData['previousFilePath'] = $oldRecord['headerImage'];
+    }
     $fileHandler = $container->get(FileHandler::class);
 
     // Update the record
@@ -250,6 +253,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
             continue;
         } else {
             $photoFileMetaData = $fileUploader->getFileMetaData($photoData['filePath']);
+            if (!empty($photoFileMetaData) && !empty($photo['filePath'])) {
+                $photoFileMetaData['previousFilePath'] = $photo['filePath'];
+            }
         }
 
         if ($photoData['sequenceNumber'] === false) {
@@ -281,11 +287,7 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
     // Remove photos that have been deleted from the filesystem
     $cleanupPhotos = $unitPhotoGateway->selectPhotosNotInList($deepLearningUnitID, $photoIDs)->fetchAll();
     foreach ($cleanupPhotos as $photo) {
-        $photoPath = $session->get('absolutePath').'/'.$photo['filePath'];
-        if (!empty($photo['filePath']) && file_exists($photoPath)) {
-            $fileHandler->deleteFile('deepLearningUnitPhoto', $photo['deepLearningUnitPhotoID'], 'filePath');
-        }
-        
+        $fileHandler->deleteFile('deepLearningUnitPhoto', $photo['deepLearningUnitPhotoID'], 'filePath');
         $unitPhotoGateway->delete($photo['deepLearningUnitPhotoID']);
     }
 
