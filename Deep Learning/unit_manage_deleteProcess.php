@@ -19,8 +19,10 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Contracts\Filesystem\FileHandler;
 use Gibbon\Data\Validator;
 use Gibbon\Module\DeepLearning\Domain\UnitGateway;
+use Gibbon\Module\DeepLearning\Domain\UnitPhotoGateway;
 
 require_once '../../gibbon.php';
 
@@ -48,6 +50,18 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/unit_manage_
         header("Location: {$URL}");
         exit;
     }
+
+    // Clean up photos and their file data
+    $unitPhotoGateway = $container->get(UnitPhotoGateway::class);
+    $photos = $unitPhotoGateway->selectBy(['deepLearningUnitID' => $deepLearningUnitID], ['deepLearningUnitPhotoID'])->fetchAll();
+
+    foreach ($photos as $photo) {
+        $photoDeleted = $container->get(FileHandler::class)->deleteFile('deepLearningUnitPhoto', $photo['deepLearningUnitPhotoID'], 'filePath');
+    }
+
+    $unitPhotoGateway->deleteWhere(['deepLearningUnitID' => $deepLearningUnitID]);
+
+    $fileDeleted = $container->get(FileHandler::class)->deleteFile('deepLearningUnit', $deepLearningUnitID, 'headerImage');
 
     $deleted = $unitGateway->delete($deepLearningUnitID);
 

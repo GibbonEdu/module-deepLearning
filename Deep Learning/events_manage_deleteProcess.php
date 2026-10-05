@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Contracts\Filesystem\FileHandler;
 use Gibbon\Data\Validator;
 use Gibbon\Module\DeepLearning\Domain\EventGateway;
 use Gibbon\Module\DeepLearning\Domain\EventDateGateway;
@@ -52,6 +53,8 @@ if (isActionAccessible($guid, $connection2, '/modules/Deep Learning/events_manag
         header("Location: {$URL}");
         exit;
     }
+
+    $deletedFile = $container->get(FileHandler::class)->deleteFile('deepLearningEvent', $deepLearningEventID, 'backgroundImage');
 
     $deleted = $eventGateway->delete($deepLearningEventID);
 

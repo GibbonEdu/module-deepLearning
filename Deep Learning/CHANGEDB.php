@@ -123,3 +123,9 @@ $sql[$count][1] = "
 $sql[$count][0] = '0.3.00';
 $sql[$count][1] = "
 ";
+
+//v0.3.01
+++$count;
+$sql[$count][0] = '0.3.01';
+$sql[$count][1] = "
+";
